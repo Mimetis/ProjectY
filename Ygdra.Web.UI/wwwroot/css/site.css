@@ -1,0 +1,339 @@
+﻿:root {
+    /*--bg-dark: #343a40;*/
+    --bg-dark: rgba(0, 0, 0, 0.90);
+    --bg-light: rgba(250,250,250,0.1);
+    --font-color: #FFFFFF;
+    --input-background-color:var(--bg-light);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+body {
+    font-size: .850rem;
+    overflow: hidden;
+    display: grid;
+    grid-gap: 0 0;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: auto 1fr;
+    height: 100vh;
+    background: var(--bg-dark);
+    color: var(--font-color);
+}
+
+
+.border-bottom {
+    border-bottom: 1px solid rgba(230, 230, 230, 0.15) !important;
+}
+
+/*
+ * Keyframes for page transition animation
+ */
+
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 4%, 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+
+/*
+ * CSS Page Transitions
+ */
+.main {
+    grid-row: 2;
+    grid-column: 2;
+    animation-duration: 0.25s;
+    transition-timing-function: ease-in;
+    animation-fill-mode: both;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: auto;
+    animation-name: fadeInUp;
+}
+
+.docking-form {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
+    margin:1rem;
+    padding:1rem;
+    border-top: 1px solid rgba(230, 230, 230, 0.15);
+}
+
+.docking-footer {
+    border-top: 1px solid rgba(230, 230, 230, 0.15);
+    margin: 1rem;
+    padding: 1rem;
+}
+
+
+/** Override .breadcrumb css to add a border like the form-layout css */
+.breadcrumb {
+    font-size:1.2em;
+    padding: .3rem 1rem;
+    background:var(--background-color);
+    text-transform:uppercase;
+}
+    /** css for all links in the breadcrumb */
+    .breadcrumb a {
+        text-decoration: none;
+    }
+
+/* To be able to set a position absolute for overlay inside */
+.table-responsive {
+    position: relative;
+}
+
+.overlay {
+    position: absolute;
+    display: inline-block; /* Hidden by default */
+    width: 100%; /* Full width relative to div parent */
+    height: 100%; /* Full height relative to div parent  */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: initial; /* Add a pointer on hover */
+}
+
+/* Overriding default hover content table */
+.table-hover tbody tr:hover {
+    /*color: inherit;*/
+    background-color: rgba(0, 0, 0, 0.02);
+    box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.075), inset -1px 0 0 rgba(0, 0, 0, 0.075), 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15)
+}
+
+
+/* Microsoft graph login */
+mgt-login {
+    --font-size: 14px;
+    --font-weight: 600;
+    --height: '100%';
+    --color: white;
+    --color-hover: rgb(222, 226, 230);
+    --background-color: transparent;
+    --background-color--hover: #808080;
+    --popup-content-background-color: white;
+    --popup-command-font-size: 12px;
+    --popup-color: #201f1e;
+}
+
+mgt-people-picker {
+    --input-border: 1px #ced4da solid; /* sets all input area border */
+    border-radius: 0.25rem
+}
+
+/* Disable terrible focus shadow (UGLY) */
+.btn:focus, .btn.focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.1rem #808080;
+}
+
+.page-link:focus {
+    z-index: 2;
+    outline: 0;
+    box-shadow: 0 0 0 0.1rem #808080;
+}
+
+
+div.people-picker {
+    margin: 10px;
+    border-radius: 0.25rem !important;
+}
+
+.mgt {
+    margin-right: 10px;
+    width: 250px;
+    max-width: 250px;
+    text-align: right;
+}
+
+/*.search-bar {
+    max-width: 200vw !important;
+    width: 100vw !important;
+    text-align: left;
+}
+
+*/
+/*
+    Creating a panel for any form needed
+*/
+.form-layout {
+    margin-top: 16px;
+    margin-bottom: 56px;
+    background-color: rgba(0,0,0,.25);
+    width: 100%;
+    padding: 24px;
+    border-radius: 5px;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: rgba(0,0,0,.1) !important;
+    border-image: initial !important;
+}
+
+
+/*top navbar*/
+
+
+.navtop {
+    background-color: rgba(0,0,0,.85);
+    grid-row: 1;
+    grid-column: 1 / span 2;
+    /*Disposition intérieure*/
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+}
+
+    .navtop .title {
+        flex: 2;
+        font-size: 1.25rem;
+        padding-left: 10px;
+        padding-right: 10px;
+        white-space: nowrap;
+    }
+
+    .navtop .search {
+        flex: 8;
+    }
+
+    .navtop .login {
+        /* for parent flex disposition*/
+        flex: 1;
+        /* for inner elements*/
+        display: flex;
+        justify-content: flex-end;
+        white-space: nowrap;
+    }
+
+
+    .navtop a {
+        color: white;
+        z-index: inherit;
+    }
+
+.navleft {
+    grid-row: 2;
+    grid-column: 1;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset -5px -20px 5px 0px rgba(0, 0, 0, 0.2);
+    background-color: var(--bg-light);
+    /*Ugly but it's working to hide the shadow on the bottom*/
+    height: 105%;
+}
+
+    .navleft .nav-link {
+        /*font-weight: 500;*/
+        color: var(--font-color);
+    }
+
+        .navleft .nav-link.active {
+            color: #007bff;
+        }
+
+    .navleft ul {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        padding-left: 0px;
+        margin-bottom: 0;
+        list-style: none;
+    }
+
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        top: 5rem;
+        width: 100vw;
+    }
+
+    .search-bar {
+        width: 100vw !important;
+        text-align: left;
+    }
+
+    [role=main] {
+        height: calc(100vh - 10em);
+        margin-left: 0px;
+    }
+
+    mgt-login {
+        --padding: 5px 2px 5px 2px
+    }
+
+    .mgt {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        margin-right: 0px;
+        width: 250px;
+        max-width: 250px;
+        text-align: left;
+    }
+}
+
+
+
+/*
+ * Navbar
+ */
+
+.navbar-brand {
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+    font-size: 1rem;
+    background-color: rgba(0, 0, 0, .25);
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+}
+
+.navbar .navbar-toggler {
+    top: .25rem;
+    right: 1rem;
+}
+
+.navbar .form-control {
+    padding: .75rem 1rem;
+    border-width: 0;
+    border-radius: 0;
+}
+
+.form-control{
+    font-size:1em;
+}
+
+.search-box__input {
+    height: 100%;
+    color: #fff;
+    background-color: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .1);
+}
+
+
+.form-control-dark {
+    color: #fff;
+    background-color: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .1);
+}
+    .form-control-dark:focus {
+        border-color: transparent;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0);
+        background-color: rgba(255, 255, 255, .8);
+    }

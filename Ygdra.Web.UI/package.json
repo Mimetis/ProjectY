@@ -1,0 +1,50 @@
+{
+  "name": "ygdra_web_ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --progress --profile",
+    "watch": "webpack --progress --profile --watch",
+    "production": "webpack --progress --profile --mode production",
+    "rollup": "rollup --config",
+    "rollupwatch": "rollup --config --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^4.2.1",
+    "cssnano": "^4.1.10",
+    "mini-css-extract-plugin": "^0.10.0",
+    "node-sass": "^4.14.1",
+    "postcss-loader": "^3.0.0",
+    "rollup": "^2.25.0",
+    "rollup-plugin-terser": "^7.0.0",
+    "sass-loader": "^9.0.3",
+    "style-loader": "^1.2.1",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "gulp": "^4.0.2",
+    "gulp-autoprefixer": "^6.0.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-open": "3.0.1",
+    "gulp-minify": "3.1.0",
+    "del": "6.0.0",
+    "path": "0.12.7",
+    "rollup-stream": "1.24.1",
+    "vinyl-source-stream": "2.0.0",
+    "@rollup/stream": "1.1.0",
+    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-commonjs": "15.1.0",
+    "rollup-plugin-uglify": "6.0.4",
+    "gulp-terser": "1.4.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20",
+    "urijs": "^1.19.2"
+  }
+}

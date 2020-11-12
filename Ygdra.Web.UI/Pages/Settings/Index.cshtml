@@ -1,0 +1,64 @@
+﻿@page "{handler?}"
+@model Ygdra.Web.UI.Pages.Settings.IndexModel
+@{
+}
+
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Options</h1>
+</div>
+
+<div class="ml-3 mr-3" aria-label="Engines action">
+    <a class="btn btn-dark btn-sm" asp-page="./Edit">
+        <i class="fas fa-credit-card"></i>
+        New
+    </a>
+    <a class="btn btn-dark btn-sm disabled">
+        <i class="fas fa-file-import"></i>
+        Import
+    </a>
+</div>
+
+<div class="docking-form">
+
+    <h2 class="h5">Options</h2>
+
+    <p>Here are all the options used in your environment</p>
+
+
+    <table id="settingsTable" class="table table-striped table-hover"
+           data-search="true"
+           data-show-refresh="true"
+           data-show-toggle="false"
+           data-show-export="true"
+           data-page-list="[10, 25, 50, 100, all]"
+           data-toggle="table"
+           data-pagination="true"
+           data-url="/Settings/Index/Settings"
+           data-resizable="true">
+        <thead class="thead-dark">
+            <tr>
+                <th data-field="name" data-sortable="true" data-formatter="nameFormatter">Setting</th>
+                <th data-field="value" data-sortable="true">Value</th>
+                <th data-field="updateDateString" data-search-formatter="false" data-sortable="true">Update Date</th>
+            </tr>
+        </thead>
+    </table>
+
+    <script>
+
+        $(() => {
+            $("#settingsTable").on('click-row.bs.table', function (row, $element, field) {
+                window.location.href = $element.detailsPage;
+            });
+        });
+
+        function nameFormatter(value, row) {
+            return `<strong>${value}</strong>`;
+        }
+    </script>
+</div>

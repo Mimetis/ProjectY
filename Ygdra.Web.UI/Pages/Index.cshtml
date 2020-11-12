@@ -1,0 +1,22 @@
+﻿@page
+@model IndexModel
+@{ ViewData["Title"] = "Home page"; }
+
+
+
+<div class="form-layout">
+
+
+    @if (!User.Identity.IsAuthenticated)
+    {
+<br />
+                <p>Choose <b>Sign in</b> at the top of the page and sign in with your work or school account.</p>}
+
+    <input type="button" id="btnClick" name="btnClick" class="btn btn-dark" value="Check value">
+
+
+    <form method="post">
+        <input type="submit" class="btn btn-dark" value="POST">
+    </form>
+
+</div>

@@ -1,0 +1,54 @@
+﻿@page "{id?}"
+@model Ygdra.Web.UI.Pages.Engines.DetailsModel
+@{
+}
+
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Engine details</h1>
+</div>
+
+@if (Model.EngineView == null)
+{
+    <div class="docking-form">
+        <div class="no-item">
+            This engine is not existing anymore. It has been deleted or you just hit a wrong url.
+            <i class="far fa-question-circle"></i>
+        </div>
+    </div>
+
+}
+else
+{
+
+    <div class="docking-form">
+        <partial name="_EnginePartial" model="Model.EngineView" />
+    </div>
+
+
+
+    <div class="docking-footer">
+        <a class="btn btn-dark btn-sm" asp-page="./Index">
+            <i class="fas fa-undo"></i>
+            Back
+        </a>
+        @if (Model.EngineView.Status != Core.Engine.Entities.YEngineStatus.Deploying &&
+       Model.EngineView.Status != Core.Engine.Entities.YEngineStatus.Deployed)
+        {
+            <a class="btn btn-dark btn-sm" asp-page="./Edit" asp-route-id="@Model.EngineView.Id">
+                <i class="fas fa-edit"></i>
+                Edit
+            </a>
+        }
+    </div>
+
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }
+
+}
+

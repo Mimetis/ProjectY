@@ -1,0 +1,130 @@
+﻿
+
+.navtop {
+    background-color: rgba(0,0,0,.85);
+    grid-area: header;
+    /*Disposition intérieure*/
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    width: 100vw;
+    height: 3rem;
+
+    .title {
+        flex: 2;
+        font-size: 1.25rem;
+        padding-left: 10px;
+        padding-right: 10px;
+        white-space: nowrap;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+
+
+        #span-title-long {
+            visibility: visible;
+        }
+
+        #span-title-short {
+            visibility: collapse;
+        }
+
+        @include max-md() {
+            font-size: 1rem;
+            padding-left: 5px;
+            padding-right: 5px;
+            white-space: normal;
+
+            #span-title-long {
+                visibility: collapse;
+                width: 0;
+            }
+
+            #span-title-short {
+                visibility: visible;
+                font-weight: 700;
+            }
+        }
+    }
+
+    .search {
+        flex: 7;
+    }
+
+    .notif {
+        flex: 1;
+    }
+
+    .settings {
+        flex: 2;
+        height: 100%;
+
+        a {
+            display: flex;
+            align-items: center;
+            height: inherit;
+            padding: 0.4em;
+            text-decoration: none;
+
+            &:hover {
+                background: rgba(255,255,255, 0.2);
+            }
+        }
+    }
+
+    .login {
+        /* for parent flex disposition*/
+        flex: none;
+        /* for inner elements*/
+        display: flex;
+        justify-content: flex-end;
+        white-space: nowrap;
+    }
+
+    a {
+        color: white;
+        z-index: inherit;
+    }
+}
+
+
+.navleft {
+    grid-area: nav;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset -5px -20px 5px 0px rgba(0, 0, 0, 0.2);
+    background-color: var(--bg-light);
+    /*Ugly but it's working to hide the shadow on the bottom*/
+    height: 105%;
+
+    @include max-md() {
+        visibility: collapse;
+        display: block;
+        width: 0px;
+        height: 0px;
+        grid-area: main;
+    }
+
+
+    .nav-link {
+        /*font-weight: 500;*/
+        color: var(--font-color);
+    }
+
+    .nav-link.active {
+        color: #007bff;
+    }
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        padding-left: 0px;
+        margin-bottom: 0;
+        list-style: none;
+    }
+}

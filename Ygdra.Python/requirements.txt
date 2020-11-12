@@ -1,0 +1,7 @@
+pip
+wheel
+pyspark
+pytest
+pytest-runner
+pytest-cov
+azure-identity

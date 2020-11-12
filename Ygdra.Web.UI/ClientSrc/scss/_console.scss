@@ -1,0 +1,15 @@
+﻿.console {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    background: #272822;
+    color: white;
+    padding-left: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    overflow: auto;
+    font-family: courier-new, courier, monospace;
+    font-feature-settings: "liga" 0;
+}

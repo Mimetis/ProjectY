@@ -1,0 +1,136 @@
+﻿@page "{id?}"
+@model Ygdra.Web.UI.Pages.Engines.EditModel
+@{ }
+
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Create an engine request</h1>
+</div>
+
+
+<form method="post" class="overflow-hidden d-flex flex-column h-100">
+    <div class="docking-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="EngineView.Id" />
+        <input type="hidden" asp-for="EngineView.IsNew" />
+
+        <div class="form-group row">
+            <div class="col-sm-3 col-md-3 col-lg-2 col-xl-1 col-form-label">
+                <label asp-for="EngineView.EngineName"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-9 col-md-9 col-lg-10 col-xl-11">
+                <input type="text" class="form-control" asp-for="EngineView.EngineName">
+                <span asp-validation-for="EngineView.EngineName" class="text-danger"></span>
+                <small id="lblEngineNameHelper" class="form-text text-muted">
+                    Engine name is your engine's code name, used to identify easily your engine.
+                </small>
+            </div>
+        </div>
+
+        <div class="form-group row mt-2">
+            <div class="col-sm-1 col-form-label">
+                <label asp-for="EngineView.EngineType"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-11">
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-dark">
+                        <input type="radio" asp-for="EngineView.EngineType" value="Databricks">
+                        <image src="@Url.Content("~/images/DatabricksIcon.png")" alt="Databricks icon" title="Databricks"></image>
+                        Databricks
+                    </label>
+                    <label class="btn btn-outline-dark">
+                        <input type="radio" asp-for="EngineView.EngineType" value="Synapse">
+                        <image src="@Url.Content("~/images/SynapseIcon.png")" alt="Synapse icon" title="Synapse"></image>
+                        Synapse
+                    </label>
+                </div>
+                <span asp-validation-for="EngineView.EngineType" class="text-danger"></span>
+                <small id="lblEngineOwnersHelper" class="form-text text-muted">
+                    Engine type to deploy for your environment
+                </small>
+
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-1 col-form-label">
+                <label asp-for="EngineView.Owners"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-11">
+                <mgt-people-picker @if (Model.EngineView.HasOwners) Write("default-selected-user-ids=" + Model.EngineView.OwnersFlatListing);>
+                    <template data-type="selected-person">
+                        <input type="hidden" asp-for="EngineView.Owners" value="{{person.id}}">
+                        <mgt-person view="oneLine" person-details="{{person}}" fetch-image=true></mgt-person>
+                    </template>
+                </mgt-people-picker>
+                <span asp-validation-for="EngineView.Owners" class="text-danger"></span>
+
+                <small id="lblEngineOwnersHelper" class="form-text text-muted">
+                    Engine's owners allowed to edit engine properties
+                </small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-1 col-form-label">
+                <label asp-for="EngineView.Members"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-11">
+                <mgt-people-picker @if (Model.EngineView.HasMembers) Write("default-selected-user-ids=" + Model.EngineView.MembersFlatListing);>
+                    <template data-type="selected-person">
+                        <input type="hidden" asp-for="EngineView.Members" value="{{person.id}}">
+                        <mgt-person view="oneLine" person-details="{{person}}" fetch-image=true></mgt-person>
+                    </template>
+                </mgt-people-picker>
+                <small id="lblEngineMembersHelper" class="form-text text-muted">
+                    Engine's members allowed to use the engine
+                </small>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-1 col-form-label">
+                <label for="txtEngineComments">Comments</label>
+            </div>
+            <div class="col-sm-11">
+                <textarea class="form-control form-control-dark" id="txtEngineComments" asp-for="EngineView.Comments" rows="3"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="docking-footer">
+        <a class="btn btn-dark btn-sm" asp-page="./Index">
+            <i class="fas fa-reply"></i>
+            Back
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="fas fa-save"></i>
+            Save
+        </button>
+        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteEngineRequestModal">
+            <i class="fas fa-trash-alt"></i>
+            Delete
+        </button>
+    </div>
+
+    @*<button type="reset" class="btn btn-outline-dark float-right ml-2">
+            <i class="fas fa-undo"></i>
+            Reset
+        </button>
+        <button type="submit" class="btn btn-dark float-right ml-2">
+            <i class="fas fa-save"></i>
+            Send
+        </button>*@
+</form>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

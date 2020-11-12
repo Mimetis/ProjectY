@@ -1,0 +1,66 @@
+﻿@model DataSourceViewAzureDatabricks
+
+<div class="form-group row">
+    <div class="col-12 col-lg-2 col-form-label">
+        <label asp-for="WorkspaceUrl"></label>
+        <label class="text-danger">*</label>
+    </div>
+    <div class="col-12 col-lg-8">
+        <div class="input-group">
+            <input type="text" class="form-control" asp-for="WorkspaceUrl" placeholder="Your Account">
+            <div class="input-group-append hide-sm">
+                <span class="input-group-text">.azuredatabricks.net</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-12 col-lg-2 col-form-label">
+        <label asp-for="AccessToken"></label>
+        <label class="text-danger">*</label>
+    </div>
+    <div class="col-12 col-lg-8">
+        <div class="input-group">
+            <input type="text" class="form-control" asp-for="AccessToken">
+            <div class="pl-1">
+                <a href="https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication#token-management" target="_blank" class="btn btn-outline-light2 hide-sm" id="testConnectionButton">
+                    <span class="hide-lg">About</span>
+                    <i class="fas fa-question-circle"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="form-group row">
+    <div class="col-12 col-lg-2 col-form-label">
+        <label asp-for="ExistingClusterId"></label>
+        <label class="text-danger">*</label>
+    </div>
+    <div class="col-12 col-lg-8">
+        <input type="text" class="form-control" asp-for="ExistingClusterId">
+    </div>
+</div>
+
+<script>
+    $(() => {
+        $("#DataSourceView_WorkspaceUrl").rules("add", {
+            required: true,
+            messages: {
+                required: "Workspace Url is required.",
+            }
+        });
+        $("#DataSourceView_AccessToken").rules("add", {
+            required: true,
+            messages: {
+                required: "Access token is required.",
+            }
+        });
+        $("#DataSourceView_ExistingClusterId").rules("add", {
+            required: true,
+            messages: {
+                required: "Existing cluster id is required.",
+            }
+        });
+    });
+</script>

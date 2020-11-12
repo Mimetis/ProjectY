@@ -1,0 +1,120 @@
+﻿@page "{id?}"
+@model Ygdra.Web.UI.Pages.Settings.EditModel
+@{
+}
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Azure SQL</h1>
+</div>
+
+
+<form method="post" class="overflow-hidden d-flex flex-column h-100">
+    <div class="docking-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="SettingView.Id" />
+
+        <div class="form-group row">
+            <div class="col-4 col-sm-3 col-lg-2 col-form-label">
+                <label asp-for="SettingView.Name"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-12 col-sm-9 col-lg-8">
+                <input type="text" class="form-control" asp-for="SettingView.Name">
+                <span asp-validation-for="SettingView.Name" class="text-danger"></span>
+                <small id="lblEngineNameHelper" class="form-text text-muted">
+                    Setting name
+                </small>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-4 col-sm-3 col-lg-2 col-form-label">
+                <label asp-for="SettingView.SettingType"></label>
+            </div>
+            <div class="col-12 col-sm-9 col-lg-8">
+                <select class="form-control" asp-for="SettingView.SettingType" asp-items="@Model.SettingView.SettingTypeItems">
+                </select>
+                <small id="lblEngineNameHelper" class="form-text text-muted">
+                    Setting Type
+                </small>
+            </div>
+        </div>
+
+        @if (Model.SettingView.SettingType == Core.Settings.Entities.YSettingType.DatabricksClusterNodeType)
+        {
+
+            <div class="form-group row">
+                <div class="col-4 col-sm-3 col-lg-2 col-form-label">
+                    <label asp-for="SettingView.Value"></label>
+                </div>
+                <div class="col-12 col-sm-9 col-lg-8">
+                    <select class="form-control" asp-for="SettingView.Value" asp-items="@Ygdra.Core.Settings.Entities.YDatabricksClusterNodeTypeSettingTypes.ValuesItems">
+                    </select>
+                    <small id="lblEngineNameHelper" class="form-text text-muted">
+                        Default Databricks cluster node type
+                    </small>
+                </div>
+            </div>
+        }
+        else if (Model.SettingView.SettingType == Core.Settings.Entities.YSettingType.Date)
+        {
+            <div class="form-group row">
+                <div class="col-4 col-sm-3 col-lg-2 col-form-label">
+                    <label asp-for="SettingView.Value"></label>
+                </div>
+                <div class="col-12 col-sm-9 col-lg-8">
+                    <input type="date" class="form-control" asp-for="SettingView.Value">
+                    <small id="lblEngineNameHelper" class="form-text text-muted">
+                        Date setting Value
+                    </small>
+                </div>
+            </div>
+        }
+        else if (Model.SettingView.SettingType == Core.Settings.Entities.YSettingType.Numeric)
+        {
+            <div class="form-group row">
+                <div class="col-4 col-sm-3 col-lg-2 col-form-label">
+                    <label asp-for="SettingView.Value"></label>
+                </div>
+                <div class="col-12 col-sm-9 col-lg-8">
+                    <input type="number" class="form-control" asp-for="SettingView.Value">
+                    <small id="lblEngineNameHelper" class="form-text text-muted">
+                        Number setting Value
+                    </small>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <div class="col-4 col-sm-3 col-lg-2 col-form-label">
+                    <label asp-for="SettingView.Value"></label>
+                </div>
+                <div class="col-12 col-sm-9 col-lg-8">
+                    <input type="text" class="form-control" asp-for="SettingView.Value">
+                    <small id="lblEngineNameHelper" class="form-text text-muted">
+                        String setting Value
+                    </small>
+                </div>
+            </div>
+        }
+
+    </div>
+    <div class="docking-footer">
+        <a class="btn btn-dark btn-sm" asp-page="./Index">
+            <i class="fas fa-reply"></i>
+            Back
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="fas fa-save"></i>
+            Save
+        </button>
+        <button type="submit" class="btn btn-success btn-sm">
+            <i class="fas fa-plug"></i>
+            Test
+        </button>
+    </div>
+</form>

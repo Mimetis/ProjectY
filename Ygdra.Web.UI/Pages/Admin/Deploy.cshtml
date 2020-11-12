@@ -1,0 +1,164 @@
+﻿@page "{id?}"
+@model Ygdra.Web.UI.Pages.Admin.DeployModel
+@{
+}
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Deploy an engine</h1>
+</div>
+
+<form method="post" class="overflow-hidden d-flex flex-column h-100">
+
+    <div class="docking-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="EngineView.Id" />
+
+        <div class="row align-items-center m-1">
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.EngineName"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-3 col-md-3 align-self-md-start">
+                <input type="text" class="form-control" asp-for="EngineView.EngineName">
+                <span asp-validation-for="EngineView.EngineName" class="text-danger"></span>
+            </div>
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.ResourceGroupName"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-3 col-md-3 align-self-md-start">
+                <input type="text" class="form-control" asp-for="EngineView.ResourceGroupName">
+                <span asp-validation-for="EngineView.ResourceGroupName" class="text-danger"></span>
+            </div>
+        </div>
+
+
+        <div class="row align-items-center m-1">
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.ClusterName"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-3 col-md-3 align-self-md-start">
+                <input type="text" class="form-control" asp-for="EngineView.ClusterName">
+                <span asp-validation-for="EngineView.ClusterName" class="text-danger"></span>
+            </div>
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.FactoryName"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-3 col-md-3 align-self-md-start">
+                <input type="text" class="form-control" asp-for="EngineView.FactoryName">
+                <span asp-validation-for="EngineView.FactoryName" class="text-danger"></span>
+            </div>
+        </div>
+
+
+        <div class="row align-items-center m-1">
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.KeyVaultName"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-3 col-md-3 align-self-md-start">
+                <input type="text" class="form-control" asp-for="EngineView.KeyVaultName">
+                <span asp-validation-for="EngineView.KeyVaultName" class="text-danger"></span>
+            </div>
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.StorageName"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-3 col-md-3 align-self-md-start">
+                <input type="text" class="form-control" asp-for="EngineView.StorageName">
+                <span asp-validation-for="EngineView.StorageName" class="text-danger"></span>
+            </div>
+        </div>
+
+
+        <div class="row align-items-center m-1">
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.Owners"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-8 col-md-8 align-self-md-start">
+                <mgt-people-picker @if (Model.EngineView.HasOwners) Write("default-selected-user-ids=" + Model.EngineView.OwnersFlatListing);>
+                    <template data-type="selected-person">
+                        <input type="hidden" asp-for="EngineView.Owners" value="{{person.id}}">
+                        <mgt-person view="oneLine" person-details="{{person}}" fetch-image=true></mgt-person>
+                    </template>
+                </mgt-people-picker>
+                <span asp-validation-for="EngineView.Owners" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row align-items-center m-1">
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.Members"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-8 col-md-8 align-self-md-start">
+                <mgt-people-picker @if (Model.EngineView.HasMembers) Write("default-selected-user-ids=" + Model.EngineView.MembersFlatListing);>
+                    <template data-type="selected-person">
+                        <input type="hidden" asp-for="EngineView.Members" value="{{person.id}}">
+                        <mgt-person view="oneLine" person-details="{{person}}" fetch-image=true></mgt-person>
+                    </template>
+                </mgt-people-picker>
+                <span asp-validation-for="EngineView.Members" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row align-items-center m-1">
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.Location"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-8 col-md-8 align-self-md-start">
+                <select class="form-control"
+                        asp-for="EngineView.Location"
+                        asp-items="@Model.EngineView.LocationsItems">
+                </select>
+            </div>
+        </div>
+
+        <div class="console mt-4" id="console">
+        </div>
+
+    </div>
+
+    <div class="docking-footer">
+        <a class="btn btn-dark btn-sm" asp-page="./Details" asp-route-id="@Model.EngineView.Id">
+            <i class="fas fa-undo"></i>
+            Back
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm" id="launch" name="launch" href="#">
+            <i class="fas fa-cloud-upload-alt"></i>
+            Deploy engine
+        </button>
+    </div>
+
+</form>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

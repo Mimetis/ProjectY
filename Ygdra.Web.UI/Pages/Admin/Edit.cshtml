@@ -1,0 +1,176 @@
+﻿@page "{id?}"
+@model Ygdra.Web.UI.Pages.Admin.EditModel
+@{
+}
+
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Validate an engine request</h1>
+</div>
+
+
+<form method="post" class="overflow-hidden d-flex flex-column h-100">
+    <div class="docking-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="EngineView.Id" />
+
+        <div class="form-group row">
+            <div class="col-sm-2 col-form-label">
+                <label asp-for="EngineView.EngineName"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" asp-for="EngineView.EngineName">
+                <span asp-validation-for="EngineView.EngineName" class="text-danger"></span>
+                <small id="lblEngineNameHelper" class="form-text text-muted">
+                    Engine name is your engine's code name, used to identify easily your engine.
+                </small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-2 col-form-label">
+                <label asp-for="EngineView.EngineType"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-10">
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-dark">
+                        <input type="radio" asp-for="EngineView.EngineType" value="Databricks">
+                        <image src="@Url.Content("~/images/DatabricksIcon.png")" alt="Databricks icon" title="Databricks"></image>
+                        Databricks
+                    </label>
+                    <label class="btn btn-outline-dark">
+                        <input type="radio" asp-for="EngineView.EngineType" value="Synapse">
+                        <image src="@Url.Content("~/images/SynapseIcon.png")" alt="Synapse icon" title="Synapse"></image>
+                        Synapse
+                    </label>
+                </div>
+                <span asp-validation-for="EngineView.EngineType" class="text-danger"></span>
+                <small id="lblEngineOwnersHelper" class="form-text text-muted">
+                    Engine type to deploy for your environment
+                </small>
+
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-2 col-form-label">
+                <label asp-for="EngineView.Owners"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-10">
+                <mgt-people-picker @if (Model.EngineView.HasOwners) Write("default-selected-user-ids=" + Model.EngineView.OwnersFlatListing);>
+                    <template data-type="selected-person">
+                        <input type="hidden" asp-for="EngineView.Owners" value="{{person.id}}">
+                        <mgt-person view="oneLine" person-details="{{person}}" fetch-image=true></mgt-person>
+                    </template>
+                </mgt-people-picker>
+                <span asp-validation-for="EngineView.Owners" class="text-danger"></span>
+
+                <small id="lblEngineOwnersHelper" class="form-text text-muted">
+                    Engine's owners allowed to edit engine properties
+                </small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-2 col-form-label">
+                <label asp-for="EngineView.Members"></label>
+                <label class="text-danger">*</label>
+            </div>
+            <div class="col-sm-10">
+                <mgt-people-picker @if (Model.EngineView.HasMembers) Write("default-selected-user-ids=" + Model.EngineView.MembersFlatListing);>
+                    <template data-type="selected-person">
+                        <input type="hidden" asp-for="EngineView.Members" value="{{person.id}}">
+                        <mgt-person view="oneLine" person-details="{{person}}" fetch-image=true></mgt-person>
+                    </template>
+                </mgt-people-picker>
+                <small id="lblEngineMembersHelper" class="form-text text-muted">
+                    Engine's members allowed to use the engine
+                </small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-2 col-form-label">
+                <label asp-for="EngineView.Comments"></label>
+            </div>
+            <div class="col-sm-10">
+                <textarea class="form-control" asp-for="EngineView.Comments" rows="3"></textarea>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-2 col-form-label">
+                <label asp-for="EngineView.Status"></label>
+            </div>
+            <div class="col-sm-10">
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" asp-for="EngineView.Status" value="InReview">
+                        Reviewing
+                    </label>
+                    <label class="btn btn-outline-info">
+                        <input type="radio" asp-for="EngineView.Status" value="NeedMoreInfos">
+                        Need more informations
+                    </label>
+                    <label class="btn btn-outline-danger">
+                        <input type="radio" asp-for="EngineView.Status" value="Rejected">
+                        Rejected
+                    </label>
+                    <label class="btn btn-outline-info">
+                        <input type="radio" asp-for="EngineView.Status" value="Deploying">
+                        Deploying
+                    </label>
+                    <label class="btn btn-outline-success">
+                        <input type="radio" asp-for="EngineView.Status" value="Deployed">
+                        Deployed
+                    </label>
+                    <label class="btn btn-outline-danger">
+                        <input type="radio" asp-for="EngineView.Status" value="Failed">
+                        Failed
+                    </label>
+                </div>
+                <span asp-validation-for="EngineView.Status" class="text-danger"></span>
+                <small id="lblEngineOwnersHelper" class="form-text text-muted">
+                    Engine request validation status
+                </small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-2 col-form-label">
+                <label asp-for="EngineView.AdminComments"></label>
+            </div>
+            <div class="col-sm-10">
+                <textarea class="form-control" asp-for="EngineView.AdminComments" rows="3"></textarea>
+                <span asp-validation-for="EngineView.AdminComments" class="text-danger"></span>
+                <small id="lblEngineOwnersHelper" class="form-text text-muted">
+                    Admin comments if status is set to "More infos"
+                </small>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="docking-footer">
+        <a class="btn btn-dark btn-sm" asp-page="./EnginesRequests">
+            <i class="fas fa-undo"></i>
+            Back
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="fas fa-save"></i>
+            Submit
+        </button>
+    </div>
+
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

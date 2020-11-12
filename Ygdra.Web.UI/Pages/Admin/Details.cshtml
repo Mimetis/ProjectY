@@ -1,0 +1,62 @@
+﻿@page "{id?}"
+@model Ygdra.Web.UI.Pages.Admin.EngineRequestDetailsModel
+@{
+}
+
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Validate an engine request</h1>
+</div>
+
+@if (Model.EngineView == null)
+{
+    <div class="docking-form">
+        <div class="no-item">
+            This engine is not existing anymore. It has been deleted or you just hit a wrong url.
+            <i class="far fa-question-circle"></i>
+        </div>
+    </div>
+
+}
+else
+{
+    <div class="docking-form">
+        <partial name="_EnginePartial" model="Model.EngineView" />
+    </div>
+
+    <div class="docking-footer">
+        <a class="btn btn-dark btn-sm" asp-page="./Index">
+            <i class="fas fa-undo"></i>
+            Back
+        </a>
+        <a class="btn btn-dark btn-sm" asp-page="./Edit" asp-route-id="@Model.EngineView.Id">
+            <i class="fas fa-edit"></i>
+            Edit
+        </a>
+        <a class="btn btn-primary btn-sm" asp-page="./Deploy" asp-route-id="@Model.EngineView.Id">
+            <i class="fas fa-cloud-upload-alt"></i>
+            Deploy
+        </a>
+
+        <button type="button"
+                data-target="#panelDeleteEngine"
+                class="btn btn-danger btn-sm"
+                data-title="Delete engine request"
+                data-engine-id="@Model.EngineView.Id"
+                data-toggle="modal">
+            <i class="fas fa-trash-alt"></i>
+            Delete
+        </button>
+        <!-- Button trigger modal -->
+    </div>
+
+
+
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }
+}

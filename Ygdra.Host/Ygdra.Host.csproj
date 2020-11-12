@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.2.3" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.1.0" />
+    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.4.0" />
+    <PackageReference Include="Hangfire" Version="1.7.15" />
+    <PackageReference Include="Hangfire.AzureCosmosDB" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.5.1" />
+    <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.5.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ygdra.Core\Ygdra.Core.csproj" />
+    <ProjectReference Include="..\Ygdra.Host.CosmosDb\Ygdra.Host.CosmosDb.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Misc\" />
+  </ItemGroup>
+
+
+</Project>

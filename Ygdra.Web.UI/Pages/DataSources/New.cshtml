@@ -1,0 +1,212 @@
+﻿@page "{handler?}"
+@model Ygdra.Web.UI.Pages.DataSources.NewModel
+@{
+}
+
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<form method="post" class="overflow-hidden d-flex flex-column h-100">
+
+    <div class="docking-form">
+
+        <h2 class="h5">New data source</h2>
+
+        <div>
+            <p>Create a new data source: Choose your engine then create a connection to your data source</p>
+            <ul>
+                <li>
+                    Choose your engine.
+                </li>
+                <li>
+                    Choose the data source type you want to connect.
+                </li>
+                <li>
+                    Create a connection to your data source.
+                </li>
+            </ul>
+        </div>
+
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <input type="hidden" asp-for="DataSourceView.EngineId">
+
+        <div id="smartWizard">
+            <ul class="nav">
+                <li>
+                    <a class="nav-link" href="#step-1">
+                        Engine
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link" href="#step-2">
+                        Data source type
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link" href="#step-3">
+                        Connection
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div id="step-1" class="tab-pane" role="tabpanel">
+
+
+                    <div class="mb-2">
+                        1) Choose an engine on which your data source will be created:
+                    </div>
+
+                    <table id="enginesTable" class="table table-striped table-hover">
+                        <thead class="thead-dark">
+                        </thead>
+                    </table>
+
+                </div>
+                <div id="step-2" class="tab-pane" role="tabpanel">
+
+                    <div class="mb-2">
+                        2) Choose the data source type you want to connect to:
+                    </div>
+
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+
+                        <div class="card-deck mb-3 text-center">
+                            <div class="card mb-4 shadow-sm">
+                                <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureSqlDatabase" id="DataSourceView.AzureSqlDatabase">
+                                    <div class="svg-i-100x100-AzureSQLDatabase"></div>
+                                    <div class="my-0 font-weight-normal">Azure Sql Database</div>
+                                </div>
+                            </div>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureSqlDW" id="DataSourceView.AzureSqlDW">
+                                    <div class="svg-i-100x100-AzureSynapse"></div>
+                                    <div class="my-0 font-weight-normal">Azure Synapse Analytics (SQL DW)</div>
+                                </div>
+                            </div>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureBlobFS" id="DataSourceView.AzureDatabricks">
+                                    <div class="svg-i-100x100-AzureBlob"></div>
+                                    <div class="my-0 font-weight-normal">Azure Data Lake Storage V2</div>
+                                </div>
+                            </div>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="CosmosDb" id="DataSourceView.CosmosDB">
+                                    <div class="svg-i-100x100-AzureCosmosDB"></div>
+                                    <div class="my-0 font-weight-normal">Azure Cosmos DB (SQL API)</div>
+                                </div>
+                            </div>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureDatabricks" id="DataSourceView.AzureDatabricks">
+                                    <div class="svg-i-100x100-DataBricks"></div>
+                                    <div class="my-0 font-weight-normal">Azure Databricks</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div id="step-3" class="tab-pane" role="tabpanel">
+                    <div class="form-group row">
+                        <div class="col-4 col-lg-2 col-form-label">
+                            <label asp-for="DataSourceView.Name"></label>
+                            <label class="text-danger">*</label>
+                        </div>
+                        <div class="col-12 col-lg-8">
+                            <input type="text" class="form-control" asp-for="DataSourceView.Name" placeholder="DataSourceName" readonly="@Model.DataSourceView?.ReadOnly">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-12 col-lg-2 col-form-label d-flex">
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon @Model?.DataSourceView?.Icon"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Properties:
+                            </span>
+                        </div>
+                        <div class="col-12 col-lg-8 btn-sm">
+                            <a href="#" class="btn btn-outline-light2 btn-sm text-nowrap" id="dataSourceTestButton">
+                                <i class="fas fa-plug"></i>
+                                Test Connection
+                            </a>
+                        </div>
+                    </div>
+                    <div id="properties">
+
+                        @if ((Model.DataSourceView as DataSourceViewAzureSqlDatabase) != null)
+                        {
+                            ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                            <partial name="_AzureSqlDatabasePartial" model="Model.DataSourceView" />
+                        }
+
+                        @if ((Model.DataSourceView as DataSourceViewCosmosDb) != null)
+                        {
+                            ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                            <partial name="_AzureCosmosDBPartial" model="Model.DataSourceView" />
+                        }
+
+                        @if ((Model.DataSourceView as DataSourceViewAzureBlobFS) != null)
+                        {
+                            ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                            <partial name="_AzureDataLakeGen2" model="Model.DataSourceView" />
+
+                        }
+                        @if ((Model.DataSourceView as DataSourceViewAzureDatabricks) != null)
+                        {
+                            ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                            <partial name="_AzureDatabricksPartial" model="Model.DataSourceView" />
+                        }
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="docking-footer">
+        <a class="btn btn-primary btn-sm" disabled asp-page="./Index" id="previousButton">
+            < Previous
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm" id="nextButton">
+            Next >
+        </button>
+        <button type="submit" class="btn btn-success btn-sm" id="saveButton">
+            <i class="fas fa-save"></i>
+            Create
+        </button>
+    </div>
+
+    <script>
+        function personsFormatter(value, row) {
+            return `<mgt-people show-max='5' user-ids='${value}'></mgt-people>`;
+        }
+
+        function engineTypeFormatter(value, row) {
+            return `<image src='${value.engineTypeIconString}' alt='${value.engineType}' title='${value.engineType}' style="width:20px;"></image>`;
+        }
+
+        function engineNameFormatter(value, row) {
+            return `<strong>${value}</strong>`;
+        }
+
+        function statusFormatter(value, row) {
+            return `<i class="${value.statusIcon}" title='${value.statusString}' style="color:${value.statusColor};width:20px;"></i>`;
+        }
+
+        function loadingTemplate(message) {
+            return '<i class="fa fa-spinner fa-spin fa-fw fa-2x"></i>'
+        }
+    </script>
+</form>

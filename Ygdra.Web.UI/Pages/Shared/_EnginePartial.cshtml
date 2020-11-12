@@ -1,0 +1,209 @@
+﻿@model EngineView
+
+<input type="hidden" asp-for="Id" />
+
+<div class="pb-2">
+    <h1 class="h5">Request details</h1>
+</div>
+
+<div class="row align-items-center">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+        <label asp-for="EngineName"></label>
+    </div>
+    <div class="col-auto mx-n3 hide-md align-self-md-start">
+        <label>:</label>
+    </div>
+    <div class="col-7 col-lg-3 align-self-md-start">
+        <label>@Model.EngineName</label>
+    </div>
+    <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+        <label asp-for="EngineType"></label>
+    </div>
+    <div class="col-auto mx-n3 hide-md align-self-md-start">
+        <label>:</label>
+    </div>
+    <div class="col-7 col-lg-3 align-self-md-start">
+        <div class="d-flex align-items-center">
+            <div class='svg-30x30-icon'><div class='svg-icon @Model.EngineTypeIconString'></div></div>
+            <span class="hide-sm ml-2">@Model.EngineType</span>
+        </div>
+    </div>
+
+</div>
+
+<div class="row align-items-center">
+    <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+        <label asp-for="Owners"></label>
+        <a href="#" data-toggle="modal" data-target="#panelRequestOwners"
+           data-title="Engine owners"
+           data-users-id="@Model.OwnersFlatListing"
+           class="ml-2 hide-sm" title="Members details">
+            <i class="fas fa-external-link-alt"></i>
+        </a>
+
+    </div>
+    <div class="col-auto mx-n3 hide-md align-self-md-start">
+        <label>:</label>
+    </div>
+    <div class="col-7 col-lg-3 align-self-md-start">
+        <mgt-people style="margin-top:-8px;margin-left:-8px;" show-max="4"
+                    @if (Model.HasOwners) Write("user-ids=" + Model.OwnersFlatListing);>
+        </mgt-people>
+    </div>
+    <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+        <label asp-for="Members"></label>
+        <a href="#" data-toggle="modal" data-target="#panelRequestMembers"
+           data-title="Engine members"
+           data-users-id="@Model.MembersFlatListing"
+           class="ml-2 hide-sm" title="Members details">
+            <i class="fas fa-external-link-alt"></i>
+        </a>
+
+    </div>
+    <div class="col-auto mx-n3 hide-md align-self-md-start">
+        <label>:</label>
+    </div>
+    <div class="col-7 col-lg-3 align-self-md-start">
+        <mgt-people style="margin-top:-8px;margin-left:-8px;" show-max="4"
+                    @if (Model.HasMembers) Write("user-ids=" + Model.MembersFlatListing);>
+        </mgt-people>
+    </div>
+</div>
+
+<div class="row align-items-center">
+    <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+        <label asp-for="Status"></label>
+    </div>
+    <div class="col-auto mx-n3 hide-md align-self-md-start">
+        <label>:</label>
+    </div>
+    <div class="col-7 col-lg-3 align-self-md-start">
+        <label>
+            <span class="@Model.StatusClass disabled btn-sm">
+                @Model.StatusString
+            </span>
+        </label>
+    </div>
+</div>
+
+<div class="row align-items-center">
+    <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+        <label asp-for="Comments"></label>
+    </div>
+    <div class="col-auto mx-n3 hide-md align-self-md-start">
+        <label>:</label>
+    </div>
+    <div class="col-7 col-lg-3 align-self-md-start">
+        <label>@Model.Comments</label>
+    </div>
+    <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+        <label asp-for="AdminComments"></label>
+    </div>
+    <div class="col-auto mx-n3 hide-md align-self-md-start">
+        <label>:</label>
+    </div>
+    <div class="col-7 col-lg-3 align-self-md-start">
+        <label>@Model.AdminComments</label>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(this.Model.StatusLog))
+{
+    <div class="pb-2 pt-2">
+        <h1 class="h5">Deployment status</h1>
+    </div>
+
+    <div class="row align-items-center">
+        <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+            <label asp-for="StatusLog"></label>
+        </div>
+        <div class="col-auto mx-n3 hide-md align-self-md-start">
+            <label>:</label>
+        </div>
+        <div class="col-7 col-lg-7 align-self-md-start">
+            <label>@Model.StatusLog</label>
+        </div>
+    </div>
+
+}
+@if (this.Model.Status == Core.Engine.Entities.YEngineStatus.Deploying)
+{
+    <div class="pb-2 pt-2">
+        <h1 class="h5">In progres deployment details</h1>
+    </div>
+
+    <div class="console mt-4" id="console">
+    </div>
+
+}
+
+
+@if (this.Model.Status == Core.Engine.Entities.YEngineStatus.Deployed)
+{
+
+    <div class="row align-items-center">
+        <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+            <label asp-for="ResourceGroupName"></label>
+            <a href="#" class="ml-2 hide-sm" title="Resource group"
+               data-target="#panelResourceGroup"
+               data-title="Resource group details"
+               data-engine-id="@Model.Id"
+               data-toggle="modal">
+                <i class="fas fa-external-link-alt"></i>
+            </a>
+        </div>
+        <div class="col-auto mx-n3 hide-md align-self-md-start">
+            <label>:</label>
+        </div>
+        <div class="col-7 col-lg-3 align-self-md-start">
+            <label>@Model.ResourceGroupName</label>
+        </div>
+        <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+            <label asp-for="Location"></label>
+        </div>
+        <div class="col-auto mx-n3 hide-md align-self-md-start">
+            <label>:</label>
+        </div>
+        <div class="col-7 col-lg-3 align-self-md-start">
+            <label>@Model.Location</label>
+        </div>
+    </div>
+
+    <div class="row align-items-center">
+        <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+            <label asp-for="ClusterName"></label>
+            <a href="#" class="ml-2 hide-sm" title="Cluster"
+               data-target="#panelDatabricks"
+               data-title="Databricks details"
+               data-engine-id="@Model.Id"
+               data-toggle="modal">
+                <i class="fas fa-external-link-alt"></i>
+            </a>
+        </div>
+        <div class="col-auto mx-n3 hide-md align-self-md-start">
+            <label>:</label>
+        </div>
+        <div class="col-7 col-lg-3 align-self-md-start">
+            <label>@Model.ClusterName</label>
+        </div>
+        <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+            <label asp-for="FactoryName"></label>
+            <a href="#" class="ml-2 hide-sm" title="Factory"
+               data-target="#panelDataFactory"
+               data-title="Data Factory details"
+               data-engine-id="@Model.Id"
+               data-toggle="modal">
+                <i class="fas fa-external-link-alt"></i>
+            </a>
+        </div>
+        <div class="col-auto mx-n3 hide-md align-self-md-start">
+            <label>:</label>
+        </div>
+        <div class="col-7 col-lg-3 align-self-md-start">
+            <label>@Model.FactoryName</label>
+        </div>
+    </div>
+
+}

@@ -1,0 +1,148 @@
+﻿@page
+@model Ygdra.Web.UI.Pages.Dashboard.IndexModel
+@{ }
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 ml-2 border-bottom">
+    <h1 class="h4">Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+            <span data-feather="calendar"></span>
+            This week
+        </button>
+    </div>
+</div>
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+
+
+<div class="container">
+    <div class="card-deck mb-3 text-center">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">
+                    <i class="fas fa-cogs"></i>
+                    Engines
+                </h4>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title"><small class="text-muted">Your own dedicated engine</small></h1>
+                <div class="list-unstyled mt-3 mb-4">
+                    <div><strong>Request a new engine :</strong></div>
+                    <div class="mt-2 mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon svg-i-100x100-DataBricks"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Azure Databricks
+                            </span>
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon svg-i-100x100-AzureDataFactory"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Azure Data Factory
+                            </span>
+                        </div>
+                    </div>
+                    <div><strong>OR</strong></div>
+                    <div class="mt-1 mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon svg-i-100x100-AzureSynapse"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Azure Synapses
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <a class="btn btn-dark btn-sm" asp-page="/Engines/Index">Get started</a>
+            </div>
+        </div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">
+                    <i class="fas fa-link"></i>
+                    DataSources
+                </h4>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title"><small class="text-muted">Declare your data sources</small></h1>
+                <div class="list-unstyled mt-3 mb-4">
+                    <div><strong>Create a data source :</strong></div>
+                    <div class="mt-1 mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon svg-i-100x100-AzureCosmosDB"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Azure CosmosDB
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon svg-i-100x100-AzureBlob"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Azure Data Lake Gen 2
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon svg-i-100x100-AzureBlob"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Azure Blob Storage
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="svg-22x22-icon">
+                                <div class="svg-icon svg-i-100x100-AzureSQLDatabase"></div>
+                            </div>
+                            <span class="ml-2 mr-2">
+                                Azure SQL Database
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <a class="btn btn-dark btn-sm" asp-page="/DataSources/Index">Get started !</a>
+            </div>
+        </div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">
+                    <i class="fas fa-dice-d6"></i>
+                    Entities
+                </h4>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title"><small class="text-muted">Process your entities</small></h1>
+                <div class="list-unstyled mt-3 mb-4">
+                    <div><strong>Process your entity:</strong></div>
+                    <div class="mt-1 mb-2">
+                        <div class="d-flex align-items-center">
+                            Manage your entities
+                        </div>
+                        <div class="d-flex align-items-center">
+                            Configure sensitive attributes
+                        </div>
+                        <div class="d-flex align-items-center">
+                            Manage GDPR
+                        </div>
+                        <div class="d-flex align-items-center">
+                            Manage entities versioning
+                        </div>
+                    </div>
+                </div>
+                <a class="btn btn-dark btn-sm" asp-page="/Outputs/Index">Get started</a>
+            </div>
+        </div>
+    </div>
+</div>

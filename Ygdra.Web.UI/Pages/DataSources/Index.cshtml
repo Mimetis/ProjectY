@@ -1,0 +1,85 @@
+﻿@page "{handler?}"
+@model Ygdra.Web.UI.Pages.DataSources.IndexModel
+@{
+}
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Data sources</h1>
+</div>
+
+<div class="ml-3 mr-3">
+    <p>Data sources represent the connection to the data you want to process and expose to your engine</p>
+</div>
+
+<div class="ml-3 mr-3" aria-label="Engines action">
+    <a class="btn btn-dark btn-sm" asp-page="./New">
+        <i class="fas fa-plus-circle"></i>
+        New
+    </a>
+</div>
+
+<div class="docking-form">
+
+    <h2 class="h5">Your available data sources</h2>
+
+    <p>Choose an engine to get all the connections attached to it:</p>
+
+
+    <table id="enginesTable" class="table table-striped table-hover">
+        <thead class="thead-dark">
+        </thead>
+    </table>
+
+    <p>Here are all the data sources connections you've created so far</p>
+
+
+    <table id="dataSourcesTable" class="table table-striped table-hover"
+           data-search="true"
+           data-show-refresh="false"
+           data-show-toggle="false"
+           data-show-export="true"
+           data-page-list="[10, 25, 50, 100, all]"
+           data-pagination="true"
+           data-loading-template="loadingTemplate"
+           data-resizable="true">
+        <thead class="thead-dark">
+            <tr>
+                <th data-field="icon" data-width="80" data-align="center" data-sortable="false" data-formatter="dataSourceViewIconFormatter">Type</th>
+                <th data-field="name" data-width="400" data-sortable="true" data-formatter="strongFormatter">Data source name</th>
+                <th data-field="typeString" data-sortable="true">Data source type</th>
+            </tr>
+        </thead>
+    </table>
+
+</div>
+
+<script>
+    function personsFormatter(value, row) {
+        return `<mgt-people show-max='5' user-ids='${value}'></mgt-people>`;
+    }
+
+    function engineTypeFormatter(value, row) {
+        return `<div class='svg-22x22-icon'><div class='svg-icon ${value.engineTypeIconString}'></div></div>`;
+    }
+
+    function strongFormatter(value, row) {
+        return `<strong>${value}</strong>`;
+    }
+
+    function statusFormatter(value, row) {
+        return `<i class="${value.statusIcon}" title='${value.statusString}' style="color:${value.statusColor};width:20px;"></i>`;
+    }
+
+    function loadingTemplate(message) {
+        return '<i class="fa fa-spinner fa-spin fa-fw fa-2x"></i>'
+    }
+
+    function dataSourceViewIconFormatter(value, row) {
+        return `<div class='svg-22x22-icon'><div class='svg-icon ${value}'></div></div>`;
+    }
+
+</script>

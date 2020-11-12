@@ -1,0 +1,126 @@
+﻿@page "{engineId?}/{dataSourceName?}"
+@model Ygdra.Web.UI.Pages.DataSources.EditModel
+@{
+}
+
+
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Data Source details</h1>
+</div>
+
+@if (Model.DataSourceView == null)
+{
+    <div class="docking-form">
+        <div class="no-item">
+            This data source is not existing anymore. It has been deleted or you just hit a wrong url.
+            <i class="far fa-question-circle"></i>
+        </div>
+    </div>
+
+}
+else
+{
+
+    <form method="post" class="overflow-hidden d-flex flex-column h-100">
+        <div class="docking-form">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <input asp-for="DataSourceView.EngineId" type="hidden" />
+            <input asp-for="DataSourceView.DataSourceType" type="hidden" />
+            <input asp-for="DataSourceView.IsNew" type="hidden" />
+            <input asp-for="DataSourceView.JsonString" type="hidden" />
+
+            <div class="form-group row">
+                <div class="col-12 col-lg-2 col-form-label d-flex">
+                    <div class="svg-22x22-icon">
+                        <div class="svg-icon @Model?.DataSourceView?.Icon"></div>
+                    </div>
+                    <span class="ml-2 mr-2">
+                        Properties:
+                    </span>
+                </div>
+                <div class="col-12 col-lg-8 btn-sm">
+                    <a href="#" class="btn btn-outline-light2 btn-sm text-nowrap" id="dataSourceTestButton">
+                        <i class="fas fa-plug"></i>
+                        Test Connection
+                    </a>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-12 col-lg-2 col-form-label text-nowrap">
+                    <label asp-for="DataSourceView.Name"></label>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <input type="text" class="form-control" asp-for="DataSourceView.Name" readonly="@Model.DataSourceView.ReadOnly">
+                </div>
+            </div>
+
+            @if ((Model.DataSourceView as DataSourceViewAzureSqlDatabase) != null)
+            {
+                ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                <partial name="_AzureSqlDatabasePartial" model="Model.DataSourceView" />
+            }
+
+            @if ((Model.DataSourceView as DataSourceViewCosmosDb) != null)
+            {
+                ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                <partial name="_AzureCosmosDBPartial" model="Model.DataSourceView" />
+            }
+
+            @if ((Model.DataSourceView as DataSourceViewAzureBlobFS) != null)
+            {
+                ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                <partial name="_AzureDataLakeGen2" model="Model.DataSourceView" />
+
+            }
+            @if ((Model.DataSourceView is DataSourceViewAzureDatabricks))
+            {
+                ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                <partial name="_AzureDatabricksPartial" model="Model.DataSourceView" />
+            }
+            <div class="form-group row">
+                <div class="col-12 col-lg-2 col-form-label">
+                    <label>Source</label>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <a class="btn btn-outline-light2 btn-sm text-nowrap" data-toggle="collapse" href="#sourceCodeCollapse" role="button" aria-expanded="false" aria-controls="sourceCodeCollapse">
+                        <i class="fas fa-code"></i>
+                        Show source code
+                    </a>
+                    <div class="collapse" id="sourceCodeCollapse">
+                        <pre class='ml-3 mr-3 mt-3 btn-sm' style='background-color:white;white-space:pre-wrap;width:100%;height:100%;'><code id="sourceCode"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="docking-footer">
+            <a class="btn btn-dark btn-sm" asp-page="./Index">
+                <i class="fas fa-reply"></i>
+                Back
+            </a>
+            @if (Model?.DataSourceView?.DataSourceType != Core.DataSources.Entities.YDataSourceType.None)
+            {
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-save"></i>
+                    Save
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteDataSourceViewModal">
+                    <i class="fas fa-trash-alt"></i>
+                    Delete
+                </button>
+            }
+        </div>
+
+    </form>
+
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }
+
+}

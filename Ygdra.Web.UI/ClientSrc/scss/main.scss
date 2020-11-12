@@ -1,0 +1,182 @@
+﻿@mixin min-sm() {
+    @media only screen and (min-width: 576px) {
+        @content;
+    }
+}
+@mixin max-sm() {
+    @media only screen and (max-width: 575.98px) {
+        @content;
+    }
+}
+
+@mixin min-md() {
+    @media only screen and (min-width: 768px) {
+        @content;
+    }
+}
+@mixin max-md() {
+    @media only screen and (max-width: 767.98px) {
+        @content;
+    }
+}
+
+@mixin min-lg() {
+    @media only screen and (min-width: 992px) {
+        @content;
+    }
+}
+@mixin max-lg() {
+    @media only screen and (max-width: 991.98px) {
+        @content;
+    }
+}
+
+@mixin min-xl() {
+    @media only screen and (min-width: 1200px) {
+        @content;
+    }
+}
+@mixin max-xl() {
+    @media only screen and (max-width: 1199.98px) {
+        @content;
+    }
+}
+
+
+// vars
+
+:host {
+    --bg-dark: rgba(0, 0, 0, 0.90);
+    --bg-light: rgba(0, 0, 0, 0.60);
+    --font-color: rgb(247, 247, 248);
+    --bd-color: rgba(0, 161, 255, 0.90);
+}
+
+mgt-login {
+    --font-size: 14px;
+    --font-weight: 600;
+    --width: "100%";
+    --height: "100%";
+    --margin: 0;
+    --padding: 10px;
+    --color: rgb(247, 247, 248);
+    --color-hover: rgba(0, 0, 0, 0.90);
+    --background-color: transparent;
+    --background-color--hover: #edebe9;
+    --popup-content-background-color: white;
+    --popup-command-font-size: 12px;
+    --popup-command-margin: 16px 0 0;
+    --popup-padding: 24px 48px 16px 24px;
+    --popup-color: rgba(0, 0, 0, 0.90);
+}
+
+mgt-people-picker {
+    --input-border: none;
+    --input-background-color: rgb(229, 229, 229);
+    --dropdown-background-color: rgb(229, 229, 229);
+    --dropdown-item-hover-background: rgb(229, 229, 229);
+    --dropdown-item-selected-background: #0f78d4;
+    --input-hover-color: #008394;
+    --input-focus-color: #0f78d4;
+    --font-color: #1f1f1f;
+    --placeholder-focus-color: #1f1f1f;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+body {
+    margin: 0;
+    font-size: .850rem;
+    overflow: hidden;
+    height: 100vh;
+    background: var(--bg-dark);
+    color: var(--font-color);
+    display: grid;
+    grid-gap: 0 0;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "header header" "nav main";
+
+    @include max-md() {
+        grid-template-rows: auto 1fr;
+        grid-template-columns: 1fr;
+        grid-template-areas: "header" "main";
+    }
+}
+
+.main {
+    grid-area: main;
+    animation-duration: 0.25s;
+    transition-timing-function: ease-in;
+    animation-fill-mode: both;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: auto;
+    /*animation-name: fadeInUp;*/
+}
+
+
+/*
+ * Keyframes for page transition animation
+ */
+
+/** Override .breadcrumb css to add a border like the form-layout css */
+.breadcrumb {
+    font-size: 1.2em;
+    padding: .3rem 1rem;
+    background: var(--background-color);
+    text-transform: uppercase;
+
+    .a {
+        text-decoration: none;
+    }
+}
+
+.btn-sm {
+    @include max-md() {
+        font-size: .575rem;
+    }
+}
+
+.hide-sm {
+    @include max-sm() {
+        display:none;
+    }
+}
+
+.hide-md {
+    @include max-md() {
+        display: none;
+    }
+}
+
+.hide-lg {
+    @include max-lg() {
+        display: none;
+    }
+}
+
+.hide-xl {
+    @include max-xl() {
+        display: none;
+    }
+}
+
+@import 'nav';
+@import 'anim';
+@import 'table';
+@import 'layout';
+@import 'modal';
+@import 'console';
+@import 'notifications';
+@import 'svg';
+@import 'wizard';
+@import 'spinner';
+@import 'buttons';
+@import 'settings';

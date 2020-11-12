@@ -1,0 +1,93 @@
+﻿/*******************************
+* MODAL AS LEFT/RIGHT SIDEBAR
+* Add "left" or "right" in modal parent div, after class="modal".
+* Get free snippets on bootpen.com
+*******************************/
+
+.modal.left .modal-dialog,
+.modal.right .modal-dialog {
+    position: fixed;
+    margin: auto;
+    width: 100%;
+    height: 100%;
+    transform: translate3d(0%, 0, 0);
+}
+
+.modal.left .modal-content,
+.modal.right .modal-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.modal.left .modal-body,
+.modal.right .modal-body {
+    padding: 15px 15px 15px;
+}
+
+
+/*Left*/
+.modal.left.fade .modal-dialog {
+    left: 0px;
+}
+
+.modal.left.fade.in .modal-dialog {
+    left: 100%;
+}
+
+/*Right*/
+.modal.right.fade .modal-dialog {
+    right: 0px;
+    transform: none;
+}
+
+.modal.right.fade.in .modal-dialog {
+    right: 100%;
+    transform: none;
+}
+
+/* ----- MODAL STYLE ----- */
+
+.modal-body-console {
+    overflow: auto;
+    /*height: 100%;*/
+    border-top: 1px solid rgba(230, 230, 230, 0.15);
+}
+
+
+.modal-content {
+    border: none;
+    border-radius:0;
+    overflow:hidden;
+}
+.modal-title{
+    white-space:nowrap;
+}
+.modal-body{
+    overflow-y:auto;
+}
+
+.modal-header {
+    all: unset;
+    background-color: rgba(0,0,0,.85);
+    height: 3rem;
+    min-height: 3rem;
+    display: flex;
+    justify-content: center;
+    color: #FFFFFF;
+    align-items: center;
+    padding-left: 5px;
+}
+
+.close {
+
+    width:100%;
+    text-align:end;
+    padding:0!important;
+    margin-right:10px!important;
+
+    color: rgba(255,255,255,1);
+
+    &:hover {
+        color: rgba(255,255,255,0.2)
+    }
+}

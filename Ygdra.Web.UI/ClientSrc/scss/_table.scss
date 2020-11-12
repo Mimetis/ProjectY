@@ -1,0 +1,56 @@
+﻿
+/* To be able to set a position absolute for overlay inside */
+.table-responsive {
+    position: relative;
+}
+
+.overlay {
+    position: absolute;
+    display: inline-block; /* Hidden by default */
+    width: 100%; /* Full width relative to div parent */
+    height: 100%; /* Full height relative to div parent  */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: initial; /* Add a pointer on hover */
+}
+
+/* Overriding default hover content table */
+.table-hover {
+
+    tbody {
+
+        tr:hover {
+            /*color: inherit;*/
+            background-color: rgba(0, 0, 0, 0.02);
+            box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.075), inset -1px 0 0 rgba(0, 0, 0, 0.075), 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15)
+        }
+    }
+}
+
+.table {
+    td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+
+    tbody {
+        tr {
+            cursor: pointer;
+        }
+    }
+}
+
+.bootstrap-table .fixed-table-container .fixed-table-body {
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+}
+
+.page-link:focus {
+    z-index: 2;
+    outline: 0;
+    box-shadow: 0 0 0 0.1rem #808080;
+}
