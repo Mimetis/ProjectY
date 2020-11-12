@@ -9,32 +9,31 @@ namespace Ygdra.Web.UI.Models
 {
     public class DataSourceViewAzureBlobFS : DataSourceView
     {
-        public DataSourceViewAzureBlobFS() : base()
-        {
 
+        private readonly YDataSourceAzureBlobFS dataSource;
+
+        public DataSourceViewAzureBlobFS()
+        {
+            this.dataSource = new YDataSourceAzureBlobFS { DataSourceType = YDataSourceType.AzureBlobStorage };
         }
 
-        public DataSourceViewAzureBlobFS(DataSourceView dataSourceView) : base(dataSourceView)
-        {
-            this.DataSource = new YDataSourceAzureBlobFS(dataSourceView.DataSource);
-        }
-
-        public new YDataSourceAzureBlobFS DataSource { get; set; }
-
-
+        public override YDataSource DataSource { get => this.dataSource; }
+        public override bool IsNew { get; set; }
+        public override Guid EngineId { get; set; }
         public override string PartialView => "_AzureDataLakeGen2";
-
         public override string Icon => "svg-i-100x100-AzureBlob";
-
         public override string TypeString => "Azure Data Lake Storage Gen2";
+        public override YDataSourceType DataSourceType => this.dataSource.DataSourceType;
+
+
 
         [Display(Name = "Account Name")]
         [Required(ErrorMessage = "Account Name is required")]
-        public string StorageAccountName { get => this.DataSource.StorageAccountName; set => this.DataSource.StorageAccountName = value; }
+        public string StorageAccountName { get => this.dataSource.StorageAccountName; set => this.dataSource.StorageAccountName = value; }
 
         [Display(Name = "Account Key")]
         [Required(ErrorMessage = "Account Key is required")]
-        public string StorageAccountKey { get => this.DataSource.StorageAccountKey; set => this.DataSource.StorageAccountKey = value; }
+        public string StorageAccountKey { get => this.dataSource.StorageAccountKey; set => this.dataSource.StorageAccountKey = value; }
 
     }
 

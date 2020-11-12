@@ -81,14 +81,14 @@ namespace Ygdra.Web.UI.Pages.Entities
             if (!string.IsNullOrEmpty(dataSourceType) && Enum.TryParse<YDataSourceType>(dataSourceType, out var ydt))
                 dataSources = dataSources.Where(ds => ds.DataSourceType == ydt).ToList();
 
-            var views = dataSources?.Select(item => new DataSourceView(item)).ToList() ?? new List<DataSourceView>();
+            var views = dataSources?.Select(item => new DataSourceViewUnknown(item)).ToList() ?? new List<DataSourceViewUnknown>();
 
             var enginesAction = await this.enginesController.GetEngineAsync(engineId);
 
             foreach (var ds in views)
                 ds.EngineId = engineId;
 
-            return new YJsonResult<List<DataSourceView>>(views);
+            return new YJsonResult<List<DataSourceViewUnknown>>(views);
         }
 
         public PartialViewResult OnGetEntities(string dvt, Guid engineId)

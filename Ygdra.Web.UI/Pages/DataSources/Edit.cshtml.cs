@@ -42,16 +42,14 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
                 var dataSource = response.Value;
 
-                this.DataSourceView = DataSourceViewFactory.GetTypedDatSourceView(new DataSourceView(dataSource));
+                this.DataSourceView = DataSourceViewFactory.GetTypedDatSourceView(dataSource.DataSourceType, new DataSourceViewUnknown(dataSource));
                 this.DataSourceView.IsNew = false;
                 this.DataSourceView.EngineId = engineId;
 
             }
             catch (Exception)
             {
-                this.DataSourceView = new DataSourceView();
-                this.DataSourceView.IsNew = true;
-                this.DataSourceView.EngineId = engineId;
+                return NotFound();
             }
 
             return Page();

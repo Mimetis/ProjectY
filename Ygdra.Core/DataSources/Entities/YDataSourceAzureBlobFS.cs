@@ -43,10 +43,12 @@ namespace Ygdra.Core.DataSources.Entities
 
             typeProperties.Merge("accountKey", this.StorageAccountKey);
 
-            var storageUrl = this.StorageAccountName.ToLower().StartsWith("https://") ? this.StorageAccountName : $"https://{this.StorageAccountName}";
-            storageUrl = storageUrl.EndsWith(".dfs.core.windows.net") ? storageUrl : $"{storageUrl}.dfs.core.windows.net";
-
-            typeProperties.Merge("url", storageUrl);
+            if (!string.IsNullOrEmpty(this.StorageAccountName))
+            {
+                var storageUrl = this.StorageAccountName.ToLower().StartsWith("https://") ? this.StorageAccountName : $"https://{this.StorageAccountName}";
+                storageUrl = storageUrl.EndsWith(".dfs.core.windows.net") ? storageUrl : $"{storageUrl}.dfs.core.windows.net";
+                typeProperties.Merge("url", storageUrl);
+            }
 
         }
     }

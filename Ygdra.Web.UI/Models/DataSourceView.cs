@@ -18,31 +18,12 @@ using Ygdra.Core.Services;
 
 namespace Ygdra.Web.UI.Models
 {
-    public class DataSourceView
+    public abstract class DataSourceView
     {
-        public YDataSource DataSource { get; set; }
+        public abstract YDataSource DataSource { get; }
 
-        public DataSourceView()
-        {
-            this.DataSource = new YDataSource();
-        }
-
-        public DataSourceView(YDataSource dataSource = null)
-        {
-            this.DataSource = dataSource == null ? new YDataSource() : dataSource;
-        }
-
-        public DataSourceView(DataSourceView other)
-        {
-
-            this.DataSource = other.DataSource;
-            this.IsNew = other.IsNew;
-            this.EngineId = other.EngineId;
-
-        }
-
-        public bool IsNew { get; set; }
-        public Guid EngineId { get; set; }
+        public abstract bool IsNew { get; set; }
+        public abstract Guid EngineId { get; set; }
 
         [Required]
         [StringLength(255, MinimumLength = 5)]
@@ -64,46 +45,78 @@ namespace Ygdra.Web.UI.Models
         }
 
 
-        [Required(ErrorMessage = "You should select a data source type")]
-        public YDataSourceType DataSourceType
-        {
-            get => this.DataSource.DataSourceType;
-            set => this.DataSource.DataSourceType = value;
-        }
-
-        public virtual string PartialView { get; }
-        public virtual string Icon => "svg-i-100x100-HTTP";
-        public virtual string TypeString => "Azure Data Source";
+        public abstract YDataSourceType DataSourceType { get; }
+        public abstract string PartialView { get; }
+        public abstract string Icon { get; }
+        public abstract string TypeString { get; }
 
     }
 
 
     public class DataSourceViewUnknown : DataSourceView
     {
+        private YDataSource dataSource;
 
+        public DataSourceViewUnknown() => this.dataSource = new YDataSource();
+
+        public DataSourceViewUnknown(YDataSource dataSource) => this.dataSource = dataSource;
+
+        public override YDataSource DataSource { get => this.dataSource; }
+        public override bool IsNew { get; set; }
+        public override Guid EngineId { get; set; }
+        public override YDataSourceType DataSourceType => this.dataSource.DataSourceType;
+        public override string PartialView => null;
+        public override string Icon => "svg-i-100x100-HTTP";
+        public override string TypeString => "svg-i-100x100-HTTP";
     }
 
     public class DataSourceViewFactory
     {
-        public static DataSourceView GetTypedDatSourceView(DataSourceView dataSourceView)
+        public static DataSourceView GetTypedDatSourceView(YDataSourceType dataSourceType, DataSourceView dataSourceView = null)
         {
-            switch (dataSourceView.DataSourceType)
+            DataSourceView ds;
+
+            switch (dataSourceType)
             {
                 case YDataSourceType.AzureBlobStorage:
                 case YDataSourceType.AzureBlobFS:
-                    return new DataSourceViewAzureBlobFS(dataSourceView);
+                    ds = new DataSourceViewAzureBlobFS();
+                    break;
                 case YDataSourceType.AzureSqlDatabase:
                 case YDataSourceType.AzureSqlDW:
-                    return new DataSourceViewAzureSqlDatabase(dataSourceView);
+                    ds = new DataSourceViewAzureSqlDatabase();
+                    break;
                 case YDataSourceType.AzureDatabricks:
-                    return new DataSourceViewAzureDatabricks(dataSourceView);
+                    ds = new DataSourceViewAzureDatabricks();
+                    break;
                 case YDataSourceType.CosmosDb:
-                    return new DataSourceViewCosmosDb(dataSourceView);
+                    ds = new DataSourceViewCosmosDb();
+                    break;
                 case YDataSourceType.None:
                 default:
-                    return new DataSourceView(dataSourceView);
+                    ds = new DataSourceViewUnknown();
+                    break;
 
             }
+
+            // clone 
+            if (dataSourceView != null)
+            {
+                ds.DataSource.AdditionalData = dataSourceView.DataSource.AdditionalData;
+                ds.DataSource.Description = dataSourceView.DataSource.Description;
+                ds.DataSource.Name = dataSourceView.DataSource.Name;
+                ds.DataSource.Type = dataSourceView.DataSource.Type;
+                ds.EngineId = dataSourceView.EngineId;
+                ds.IsNew = dataSourceView.IsNew;
+                ds.Name = dataSourceView.Name;
+                ds.Type = dataSourceView.Type;
+
+                if (ds.DataSource.AdditionalData?["properties"] is JObject props)
+                    ds.DataSource.OnDeserialized(props);
+
+            }
+            return ds;
+
         }
     }
 

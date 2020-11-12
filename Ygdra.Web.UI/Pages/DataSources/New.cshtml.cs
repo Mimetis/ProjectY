@@ -37,7 +37,8 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
         public void OnGet()
         {
-            this.DataSourceView = new DataSourceView { IsNew = true };
+            // we don't know yet what kind of DataSource we will have at the end of the wizard
+            this.DataSourceView = new DataSourceViewUnknown { IsNew = true };
         }
 
         [BindProperty]
@@ -48,12 +49,9 @@ namespace Ygdra.Web.UI.Pages.DataSources
             DataSourceView typedDataSourceView = null;
 
             if (Enum.TryParse(typeof(YDataSourceType), dvt, out var t))
-            {
-                var dataSourceView = new DataSourceView { DataSourceType = (YDataSourceType)t };
-                typedDataSourceView = DataSourceViewFactory.GetTypedDatSourceView(dataSourceView);
-            }
+                typedDataSourceView = DataSourceViewFactory.GetTypedDatSourceView((YDataSourceType)t);
 
-            if (typedDataSourceView == null)
+            if (typedDataSourceView == null || typedDataSourceView.DataSourceType == YDataSourceType.None)
                 return null;
 
             typedDataSourceView.EngineId = engineId;
@@ -71,7 +69,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
             var response = await this.client.ProcessRequestApiAsync<List<YDataSource>>(
                 $"api/Datafactories/{engineId}/links").ConfigureAwait(false);
             var all = response.Value;
-            var views = all?.Select(item => new DataSourceView(item));
+            var views = all?.Select(item => new DataSourceViewUnknown(item));
             return new JsonResult(views);
 
         }
