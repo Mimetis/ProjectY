@@ -63,6 +63,7 @@ namespace Ygdra.Host.Extensions
 
             builder.UseSwaggerUI(setup =>
             {
+                setup.RoutePrefix = "";
                 setup.SwaggerEndpoint("/swagger/v1/swagger.json", name);
                 setup.OAuthClientId(options.ClientId);
                 setup.OAuthAppName("Ygdra");
