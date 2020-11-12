@@ -89,6 +89,14 @@ mgt-people-picker {
 }
 
 
+
+@font-face {
+    font-family: 'pe';
+    src: url('/webfonts/pe-webfont.woff2') format('woff2'), url('/webfonts/pe-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
     margin: 0;
     font-size: .850rem;

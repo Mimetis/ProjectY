@@ -32,6 +32,7 @@
         <div asp-validation-summary="All" class="text-danger"></div>
 
         <input type="hidden" asp-for="DataSourceView.EngineId">
+        <input type="hidden" asp-for="DataSourceView.IsNew">
 
         <div id="smartWizard">
             <ul class="nav">
@@ -103,13 +104,13 @@
                                     <div class="my-0 font-weight-normal">Azure Cosmos DB (SQL API)</div>
                                 </div>
                             </div>
-                            <div class="card mb-4 shadow-sm">
+                            @*<div class="card mb-4 shadow-sm disabled">
                                 <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
-                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureDatabricks" id="DataSourceView.AzureDatabricks">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureDatabricks" id="DataSourceView.AzureDatabricks" disabled>
                                     <div class="svg-i-100x100-DataBricks"></div>
                                     <div class="my-0 font-weight-normal">Azure Databricks</div>
                                 </div>
-                            </div>
+                            </div>*@
                         </div>
 
                     </div>
@@ -121,26 +122,10 @@
                             <label class="text-danger">*</label>
                         </div>
                         <div class="col-12 col-lg-8">
-                            <input type="text" class="form-control" asp-for="DataSourceView.Name" placeholder="DataSourceName" readonly="@Model.DataSourceView?.ReadOnly">
+                            <input type="text" class="form-control" asp-for="DataSourceView.Name" placeholder="DataSourceName" >
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <div class="col-12 col-lg-2 col-form-label d-flex">
-                            <div class="svg-22x22-icon">
-                                <div class="svg-icon @Model?.DataSourceView?.Icon"></div>
-                            </div>
-                            <span class="ml-2 mr-2">
-                                Properties:
-                            </span>
-                        </div>
-                        <div class="col-12 col-lg-8 btn-sm">
-                            <a href="#" class="btn btn-outline-light2 btn-sm text-nowrap" id="dataSourceTestButton">
-                                <i class="fas fa-plug"></i>
-                                Test Connection
-                            </a>
-                        </div>
-                    </div>
                     <div id="properties">
 
                         @if ((Model.DataSourceView as DataSourceViewAzureSqlDatabase) != null)

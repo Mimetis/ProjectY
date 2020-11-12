@@ -16,15 +16,23 @@ namespace Ygdra.Web.UI.Models
 {
     public class EntityView
     {
-        public EntityView(YEntity entity)
-        {
-            this.IsNew = false;
-            this.Entity = entity;
-        }
+
         public EntityView()
         {
-            this.IsNew = true;
             this.Entity = new YEntity();
+        }
+
+        public EntityView(YEntity entity = null)
+        {
+            this.Entity = entity == null ? new YEntity() : entity;
+        }
+
+
+        public EntityView(EntityView other)
+        {
+            this.Entity = other.Entity;
+            this.IsNew = other.IsNew;
+            this.EngineId = other.EngineId;
 
         }
 
@@ -46,6 +54,14 @@ namespace Ygdra.Web.UI.Models
             get => this.Entity.DataSourceName;
             set => this.Entity.DataSourceName = value;
         }
+
+        public string Version
+        {
+            get => this.Entity.Version;
+            set => this.Entity.Version = value;
+        }
+
+
 
         [Required(ErrorMessage = "You should select an engine")]
         public Guid EngineId { get; set; }
@@ -80,17 +96,17 @@ namespace Ygdra.Web.UI.Models
 
     public class EntityViewFactory
     {
-        public static EntityView GetTypedEntityVieweView(YEntity entity)
+        public static EntityView GetTypedEntityVieweView(EntityView entityView)
         {
-            switch (entity.EntityType)
+            switch (entityView.EntityType)
             {
                 case YEntityType.AzureSqlTable:
-                    return new EntityViewAzureSqlTable(entity);
+                    return new EntityViewAzureSqlTable(entityView);
                 case YEntityType.DelimitedText:
-                    return new EntityViewDelimitedText(entity);
+                    return new EntityViewDelimitedText(entityView);
                 case YEntityType.None:
                 default:
-                    return new EntityView(entity);
+                    return new EntityView(entityView);
             }
         }
     }

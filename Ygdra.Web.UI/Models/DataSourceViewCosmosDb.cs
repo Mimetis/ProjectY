@@ -10,17 +10,16 @@ namespace Ygdra.Web.UI.Models
     public class DataSourceViewCosmosDb : DataSourceView
     {
 
-        public DataSourceViewCosmosDb()
+        public DataSourceViewCosmosDb() : base()
         {
-            this.IsNew = true;
-            this.dataSource = new YDataSourceCosmosDb();
+
+        }
+        public DataSourceViewCosmosDb(DataSourceView dataSourceView = null) : base(dataSourceView)
+        {
+            this.DataSource = new YDataSourceCosmosDb(dataSourceView.DataSource);
         }
 
-        public DataSourceViewCosmosDb(YDataSource dataSource)
-        {
-            this.IsNew = false;
-            this.dataSource = new YDataSourceCosmosDb(dataSource);
-        }
+        public new YDataSourceCosmosDb DataSource { get; set; }
 
         public override string PartialView => "_AzureCosmosDBPartial";
 
@@ -31,15 +30,15 @@ namespace Ygdra.Web.UI.Models
 
         [Display(Name = "Connection Url")]
         [Required(ErrorMessage = "Connection Url is required")]
-        public string ConnectionUrl { get => ((YDataSourceCosmosDb)this.dataSource).AccountEndpoint; set => ((YDataSourceCosmosDb)this.dataSource).AccountEndpoint = value; }
+        public string ConnectionUrl { get => this.DataSource.AccountEndpoint; set => this.DataSource.AccountEndpoint = value; }
 
         [Display(Name = "Storage Account Key")]
         [Required(ErrorMessage = "Storage Account Key is required")]
-        public string StorageAccountKey { get => ((YDataSourceCosmosDb)this.dataSource).AccountKey; set => ((YDataSourceCosmosDb)this.dataSource).AccountKey = value; }
+        public string StorageAccountKey { get => this.DataSource.AccountKey; set => this.DataSource.AccountKey = value; }
 
         [Display(Name = "Database name")]
         [Required(ErrorMessage = "Database Name is required")]
-        public string DatabaseName { get => ((YDataSourceCosmosDb)this.dataSource).DatabaseName; set => ((YDataSourceCosmosDb)this.dataSource).DatabaseName = value; }
+        public string DatabaseName { get => this.DataSource.DatabaseName; set => this.DataSource.DatabaseName = value; }
 
         
     }

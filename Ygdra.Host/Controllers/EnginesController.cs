@@ -63,49 +63,51 @@ namespace Ygdra.Host.Controllers
         [HttpPost("{id}/deploy")]
         public async Task<ActionResult<YDeploymentStatePayload>> DeployEngineAsync(Guid id, [FromBody] YEngine engine)
         {
-                HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+            HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
 
-                if (!this.User.IsInRole("Admin"))
-                    return new UnauthorizedObjectResult("You should be admin to make a deployment");
+            if (!this.User.IsInRole("Admin"))
+                return new UnauthorizedObjectResult("You should be admin to make a deployment");
 
-                var userObjectId = this.User.GetObjectId();
+            var userObjectId = this.User.GetObjectId();
 
-                if (string.IsNullOrEmpty(userObjectId))
-                    return new UnauthorizedObjectResult("User unknown");
+            if (string.IsNullOrEmpty(userObjectId))
+                return new UnauthorizedObjectResult("User unknown");
 
-                var userId = new Guid(userObjectId);
+            var userId = new Guid(userObjectId);
 
-                engine = await this.engineProvider.GetEngineAsync(id).ConfigureAwait(false);
+            engine = await this.engineProvider.GetEngineAsync(id).ConfigureAwait(false);
 
-                engine.ResourceGroupName.EnsureStringIsLetterOrDigit();
-                engine.ClusterName.EnsureStringIsLetterOrDigit();
-                engine.FactoryName.EnsureStringIsLetterOrDigit();
+            engine.ResourceGroupName.EnsureStringIsLetterOrDigit();
+            engine.ClusterName.EnsureStringIsLetterOrDigit();
+            engine.FactoryName.EnsureStringIsLetterOrDigit();
+            engine.StorageName.EnsureStringIsLetterOrDigit();
+            engine.KeyVaultName.EnsureStringIsLetterOrDigit();
 
-                var job = this.hangFireService.GetProcessingJob(engine);
+            var job = this.hangFireService.GetProcessingJob(engine);
 
-                if (job != null)
-                {
-                    return new YDeploymentStatePayload(YDeploymentStatePayloadState.Deploying)
-                    {
-                        Id = id,
-                        Message = $"Background process indicate your engine <strong>{engine.EngineName}</strong> has a deployment already in progress.<br />You'll receive a notification when the deployment is completed."
-                    };
-                }
-
-                var health = await this.notificationsService.IsServiceHealthyAsync();
-
-                if (!health)
-                    throw new Exception("Azure SignalR Service is not healthy");
-
-                var jobId = BackgroundJob.Enqueue(() => enginesService.CreateEngineDeploymentAsync(engine, userId, default));
-
-                var deployingState = new YDeploymentStatePayload(YDeploymentStatePayloadState.Deploying)
+            if (job != null)
+            {
+                return new YDeploymentStatePayload(YDeploymentStatePayloadState.Deploying)
                 {
                     Id = id,
-                    Message = $"Deploying start. Background Job Id : {jobId}."
+                    Message = $"Background process indicate your engine <strong>{engine.EngineName}</strong> has a deployment already in progress.<br />You'll receive a notification when the deployment is completed."
                 };
+            }
 
-                return deployingState;
+            var health = await this.notificationsService.IsServiceHealthyAsync();
+
+            if (!health)
+                throw new Exception("Azure SignalR Service is not healthy");
+
+            var jobId = BackgroundJob.Enqueue(() => enginesService.CreateEngineDeploymentAsync(engine, userId, default));
+
+            var deployingState = new YDeploymentStatePayload(YDeploymentStatePayloadState.Deploying)
+            {
+                Id = id,
+                Message = $"Deploying start. Background Job Id : {jobId}."
+            };
+
+            return deployingState;
 
         }
 
@@ -113,39 +115,39 @@ namespace Ygdra.Host.Controllers
         public async Task<ActionResult<YDeploymentStatePayload>> DeleteEngineAsync(Guid id)
         {
 
-                HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+            HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
 
-                if (!this.User.IsInRole("Admin"))
-                    return new UnauthorizedObjectResult("You should be admin to remove an engine and all its resources.");
+            if (!this.User.IsInRole("Admin"))
+                return new UnauthorizedObjectResult("You should be admin to remove an engine and all its resources.");
 
-                var userObjectId = this.User.GetObjectId();
+            var userObjectId = this.User.GetObjectId();
 
-                if (string.IsNullOrEmpty(userObjectId))
-                    return new UnauthorizedObjectResult("User unknown");
+            if (string.IsNullOrEmpty(userObjectId))
+                return new UnauthorizedObjectResult("User unknown");
 
-                var userId = new Guid(userObjectId);
+            var userId = new Guid(userObjectId);
 
-                YEngine engine = await this.engineProvider.GetEngineAsync(id);
+            YEngine engine = await this.engineProvider.GetEngineAsync(id);
 
-                if (engine == null)
-                    return new NotFoundObjectResult($"No engine found with Id {id}");
+            if (engine == null)
+                return new NotFoundObjectResult($"No engine found with Id {id}");
 
-                var health = await this.notificationsService.IsServiceHealthyAsync();
+            var health = await this.notificationsService.IsServiceHealthyAsync();
 
-                if (!health)
-                    throw new Exception("Azure SignalR Service is not healthy");
+            if (!health)
+                throw new Exception("Azure SignalR Service is not healthy");
 
 
-                var jobId = BackgroundJob.Enqueue(() => enginesService.DeleteEngineDeploymentAsync(engine, userId, default));
+            var jobId = BackgroundJob.Enqueue(() => enginesService.DeleteEngineDeploymentAsync(engine, userId, default));
 
-                var deployingState = new YDeploymentStatePayload(YDeploymentStatePayloadState.Deploying)
-                {
-                    Id = id,
-                    Message = $"Removing engine deployment started. Background Job Id : {jobId}."
-                };
+            var deployingState = new YDeploymentStatePayload(YDeploymentStatePayloadState.Deploying)
+            {
+                Id = id,
+                Message = $"Removing engine deployment started. Background Job Id : {jobId}."
+            };
 
-                return deployingState;
-          
+            return deployingState;
+
 
         }
 
@@ -155,19 +157,19 @@ namespace Ygdra.Host.Controllers
         [HttpGet()]
         public async Task<ActionResult<List<YEngine>>> GetUserEngines()
         {
-            
-                HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
 
-                var userClaims = this.HttpContext.User;
+            HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
 
-                var userId = this.User.GetObjectId();
+            var userClaims = this.HttpContext.User;
 
-                var engines = await this.engineProvider.GetEnginesAsync(new Guid(userId));
+            var userId = this.User.GetObjectId();
 
-                if (engines == null || !engines.Any())
-                    return new OkResult();
+            var engines = await this.engineProvider.GetEnginesAsync(new Guid(userId));
 
-                return engines.ToList();
+            if (engines == null || !engines.Any())
+                return new OkResult();
+
+            return engines.ToList();
 
         }
 

@@ -20,56 +20,55 @@ namespace Ygdra.Web.UI.Models
 {
     public class DataSourceView
     {
-        internal YDataSource dataSource;
+        public YDataSource DataSource { get; set; }
+
         public DataSourceView()
         {
-            this.IsNew = true;
-            this.dataSource = new YDataSource();
+            this.DataSource = new YDataSource();
         }
 
-        public DataSourceView(YDataSource dataSource)
+        public DataSourceView(YDataSource dataSource = null)
         {
-            this.IsNew = false;
-            this.dataSource = dataSource;
+            this.DataSource = dataSource == null ? new YDataSource() : dataSource;
         }
 
-        [JsonIgnore]
+        public DataSourceView(DataSourceView other)
+        {
+
+            this.DataSource = other.DataSource;
+            this.IsNew = other.IsNew;
+            this.EngineId = other.EngineId;
+
+        }
+
         public bool IsNew { get; set; }
+        public Guid EngineId { get; set; }
 
         [Required]
         [StringLength(255, MinimumLength = 5)]
         [Display(Name = "Data source name")]
         public string Name
         {
-            get => this.dataSource.Name;
-            set => this.dataSource.Name = value;
-        }
-
-
-        [Required(ErrorMessage = "You should select an engine")]
-        public Guid EngineId
-        {
-            get;
-            set;
+            get => this.DataSource.Name;
+            set => this.DataSource.Name = value;
         }
 
         public string ReadOnly => this.IsNew ? "" : "readonly";
 
-
-        public string JsonString => JsonConvert.SerializeObject(this.dataSource);
+        public string JsonString => JsonConvert.SerializeObject(this.DataSource);
 
         public string Type
         {
-            get => this.dataSource.Type;
-            set => this.dataSource.Type = value;
+            get => this.DataSource.Type;
+            set => this.DataSource.Type = value;
         }
 
 
         [Required(ErrorMessage = "You should select a data source type")]
         public YDataSourceType DataSourceType
         {
-            get => this.dataSource.DataSourceType;
-            set => this.dataSource.DataSourceType = value;
+            get => this.DataSource.DataSourceType;
+            set => this.DataSource.DataSourceType = value;
         }
 
         public virtual string PartialView { get; }
@@ -86,23 +85,23 @@ namespace Ygdra.Web.UI.Models
 
     public class DataSourceViewFactory
     {
-        public static DataSourceView GetTypedDatSourceView(YDataSource dataSource)
+        public static DataSourceView GetTypedDatSourceView(DataSourceView dataSourceView)
         {
-            switch (dataSource.DataSourceType)
+            switch (dataSourceView.DataSourceType)
             {
                 case YDataSourceType.AzureBlobStorage:
                 case YDataSourceType.AzureBlobFS:
-                    return new DataSourceViewAzureBlobFS(dataSource);
+                    return new DataSourceViewAzureBlobFS(dataSourceView);
                 case YDataSourceType.AzureSqlDatabase:
                 case YDataSourceType.AzureSqlDW:
-                    return new DataSourceViewAzureSqlDatabase(dataSource);
+                    return new DataSourceViewAzureSqlDatabase(dataSourceView);
                 case YDataSourceType.AzureDatabricks:
-                    return new DataSourceViewAzureDatabricks(dataSource);
+                    return new DataSourceViewAzureDatabricks(dataSourceView);
                 case YDataSourceType.CosmosDb:
-                    return new DataSourceViewCosmosDb(dataSource);
+                    return new DataSourceViewCosmosDb(dataSourceView);
                 case YDataSourceType.None:
                 default:
-                    return new DataSourceView(dataSource);
+                    return new DataSourceView(dataSourceView);
 
             }
         }

@@ -9,23 +9,21 @@ namespace Ygdra.Web.UI.Models
 {
     public class DataSourceViewAzureSqlDatabase : DataSourceView
     {
-
-        public DataSourceViewAzureSqlDatabase()
+        public DataSourceViewAzureSqlDatabase() : base()
         {
-            this.dataSource = new YDataSourceAzureSqlDatabase();
+            this.DataSource = new YDataSourceAzureSqlDatabase(base.DataSource);
+        }
+        public DataSourceViewAzureSqlDatabase(YDataSourceType dataSourceType) : base()
+        {
+            this.DataSource = new YDataSourceAzureSqlDatabase(dataSourceType);
         }
 
-        public DataSourceViewAzureSqlDatabase(YDataSourceType dataSourceType)
+        public DataSourceViewAzureSqlDatabase(DataSourceView dataSourceView = null) : base(dataSourceView)
         {
-            this.IsNew = true;
-            this.dataSource = new YDataSourceAzureSqlDatabase(dataSourceType);
+            this.DataSource = new YDataSourceAzureSqlDatabase(dataSourceView.DataSource);
         }
 
-        public DataSourceViewAzureSqlDatabase(YDataSource dataSource)
-        {
-            this.IsNew = false;
-            this.dataSource = new YDataSourceAzureSqlDatabase(dataSource);
-        }
+        public new YDataSourceAzureSqlDatabase DataSource { get; set; }
 
 
         public override string PartialView => "_AzureSqlDatabasePartial";
@@ -35,19 +33,19 @@ namespace Ygdra.Web.UI.Models
 
         [Display(Name = "Data Source")]
         [Required(ErrorMessage = "Data Source is required.")]
-        public string DataSource { get => ((YDataSourceAzureSqlDatabase)this.dataSource).DataSource; set => ((YDataSourceAzureSqlDatabase)this.dataSource).DataSource = value; }
+        public string DbDataSource { get => this.DataSource.DataSource; set => this.DataSource.DataSource = value; }
 
         [Display(Name = "Database Name")]
         [Required(ErrorMessage = "Database Name is required.")]
-        public string InitialCatalog { get => ((YDataSourceAzureSqlDatabase)this.dataSource).InitialCatalog; set => ((YDataSourceAzureSqlDatabase)this.dataSource).InitialCatalog = value; }
+        public string InitialCatalog { get => this.DataSource.InitialCatalog; set => this.DataSource.InitialCatalog = value; }
 
         [Display(Name = "User Id")]
         [Required(ErrorMessage = "User Id is required.")]
-        public string UserId { get => ((YDataSourceAzureSqlDatabase)this.dataSource).UserId; set => ((YDataSourceAzureSqlDatabase)this.dataSource).UserId = value; }
+        public string UserId { get => this.DataSource.UserId; set => this.DataSource.UserId = value; }
 
         [Display(Name = "Password")]
         [Required(ErrorMessage = "Password is required.")]
-        public string Password { get => ((YDataSourceAzureSqlDatabase)this.dataSource).Password; set => ((YDataSourceAzureSqlDatabase)this.dataSource).Password = value; }
+        public string Password { get => this.DataSource.Password; set => this.DataSource.Password = value; }
 
 
     }

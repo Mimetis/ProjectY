@@ -31,30 +31,34 @@ export class dataSourceNew extends wizardPage {
                     if (this.$engineIdElement) {
                         let engineId = this.$engineIdElement.val().toString();
 
-                        if (!engineId?.length)
+                        if (!engineId?.length) {
+                            this.$smartWizard.smartWizard("goToStep", 1);
                             return;
+                        }
                         // get selection from data sources type
                         let type = $(`input[name="DataSourceView.DataSourceType"]:checked`).val()
 
-                        if (!type)
+                        if (!type) {
+                            this.$smartWizard.smartWizard("goToStep", 1);
+                            return;
+                        }
+
+                        if (this.lastTypeSelected === type.toString())
                             return;
 
-                        if (this.lastTypeSelected === type)
-                            return;
-
-                        this.lastTypeSelected = type;
+                        this.lastTypeSelected = type.toString();
 
                         if (type.toString().toLowerCase() == 'azuresqldatabase')
-                            await this.dataSourceAzureSql.loadAsync(engineId, this.htmlFieldPrefix, this.$properties, this.loadMethod);
+                            await this.dataSourceAzureSql.loadAsync(engineId, this.htmlFieldPrefix, this.$properties);
 
                         if (type.toString().toLowerCase() == 'azuresqldw')
-                            await this.dataSourceAzureSql.loadAsync(engineId, this.htmlFieldPrefix, this.$properties, this.loadMethod);
+                            await this.dataSourceAzureSql.loadAsync(engineId, this.htmlFieldPrefix, this.$properties);
 
                         if (type.toString().toLowerCase() == 'azureblobfs')
-                            await this.dataSourceAzureDataLakeV2.loadAsync(engineId, this.htmlFieldPrefix, this.$properties, this.loadMethod);
+                            await this.dataSourceAzureDataLakeV2.loadAsync(engineId, this.htmlFieldPrefix, this.$properties);
 
                         if (type.toString().toLowerCase() == 'cosmosdb')
-                            await this.dataSourceAzureCosmosDb.loadAsync(engineId, this.htmlFieldPrefix, this.$properties, this.loadMethod);
+                            await this.dataSourceAzureCosmosDb.loadAsync(engineId, this.htmlFieldPrefix, this.$properties);
 
                     }
 

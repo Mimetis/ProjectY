@@ -59,6 +59,7 @@
                     </div>
 
                     <input type="hidden" asp-for="EntityView.EngineId">
+                    <input type="hidden" asp-for="EntityView.IsNew">
 
                     <table id="enginesTable" class="table table-striped table-hover">
                         <thead class="thead-dark">
@@ -140,9 +141,15 @@
                         </div>
                         <div class="col-12 col-lg-8">
                             <input type="text" class="form-control" asp-for="EntityView.Name">
-                            <small id="lblEngineNameHelper" class="form-text text-muted">
-                                Entity name
-                            </small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-4 col-lg-2 col-form-label">
+                            <label asp-for="EntityView.Version"></label>
+                            <label class="text-danger">*</label>
+                        </div>
+                        <div class="col-12 col-lg-2">
+                            <input type="text" class="form-control" asp-for="EntityView.Version">
                         </div>
                     </div>
 

@@ -144,24 +144,33 @@ namespace Ygdra.Host.Controllers
         [Route("{engineId}/secrets/{key}")]
         public async Task<KeyVaultSecret> GetKeyVaultSecret(Guid engineId, string key)
         {
-            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+            try
+            {
 
-            if (engine == null)
-                throw new Exception("Engine does not exists");
+                var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
 
-            if (string.IsNullOrEmpty(engine.ResourceGroupName))
-                throw new Exception("Resource group name does not exists");
+                if (engine == null)
+                    throw new Exception("Engine does not exists");
 
-            if (string.IsNullOrEmpty(engine.KeyVaultName))
-                throw new Exception("Keyvault name does not exists");
+                if (string.IsNullOrEmpty(engine.ResourceGroupName))
+                    throw new Exception("Resource group name does not exists");
 
-            var kvUri = $"https://{engine.KeyVaultName}.vault.azure.net/";
+                if (string.IsNullOrEmpty(engine.KeyVaultName))
+                    throw new Exception("Keyvault name does not exists");
 
-            var credentials = new ClientSecretCredential(this.options.TenantId, this.options.ClientId, this.options.ClientSecret);
-            var client = new SecretClient(new Uri(kvUri), credentials);
+                var kvUri = $"https://{engine.KeyVaultName}.vault.azure.net/";
 
-            var secret = await client.GetSecretAsync(key);
-            return secret.Value;
+                var credentials = new ClientSecretCredential(this.options.TenantId, this.options.ClientId, this.options.ClientSecret);
+                var client = new SecretClient(new Uri(kvUri), credentials);
+
+                var secret = await client.GetSecretAsync(key);
+                return secret.Value;
+            }
+            catch (Exception)
+            {
+
+                return null;
+            }
         }
 
         [HttpDelete()]

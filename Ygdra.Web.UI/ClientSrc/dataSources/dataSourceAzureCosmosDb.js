@@ -1,15 +1,17 @@
 ﻿export class dataSourceAzureCosmosDb {
 
-
-    async loadAsync(engineId, htmlFieldPrefix, element, loadMethod) {
+    constructor() {
+        this.isLoaded = false;
+    }
+    async loadAsync(engineId, htmlFieldPrefix, element) {
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
-        if (loadMethod !== 'POST') {
+        if (!this.isLoaded) {
             await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=CosmosDb`);
         }
 
-        if (loadMethod !== 'POST') {
-        }
+        this.isLoaded = true;
+
     }
 }

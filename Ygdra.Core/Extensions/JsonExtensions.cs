@@ -13,6 +13,11 @@ namespace Ygdra.Core.Extensions
             o.Merge(new JObject { { propertyName, val } });
         }
 
+        public static void Merge(this JArray o, string propertyName, JToken val)
+        {
+            o.Merge(new JObject { { propertyName, val } });
+        }
+
         public static void Merge(this JToken o, string propertyName, JToken val)
         {
             if (!(o is JObject))

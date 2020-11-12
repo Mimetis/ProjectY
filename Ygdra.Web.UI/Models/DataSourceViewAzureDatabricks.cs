@@ -9,18 +9,16 @@ namespace Ygdra.Web.UI.Models
 {
     public class DataSourceViewAzureDatabricks : DataSourceView
     {
-
-        public DataSourceViewAzureDatabricks()
+        public DataSourceViewAzureDatabricks() : base()
         {
-            this.IsNew = true;
-            this.dataSource = new YDataSourceAzureDatabricks();
+
+        }
+        public DataSourceViewAzureDatabricks(DataSourceView dataSourceView = null) : base(dataSourceView)
+        {
+            this.DataSource = new YDataSourceAzureDatabricks(dataSourceView.DataSource);
         }
 
-        public DataSourceViewAzureDatabricks(YDataSource dataSource)
-        {
-            this.IsNew = false;
-            this.dataSource = new YDataSourceAzureDatabricks(dataSource);
-        }
+        public new YDataSourceAzureDatabricks DataSource { get; set; }
 
         public override string PartialView => "_AzureDatabricksPartial";
         public override string Icon => "svg-i-100x100-DataBricks";
@@ -29,15 +27,15 @@ namespace Ygdra.Web.UI.Models
 
         [Display(Name = "Workspace Url")]
         [Required(ErrorMessage = "Workspace Url is required")]
-        public string WorkspaceUrl { get => ((YDataSourceAzureDatabricks)this.dataSource).WorkspaceUrl; set => ((YDataSourceAzureDatabricks)this.dataSource).WorkspaceUrl = value; }
+        public string WorkspaceUrl { get => this.DataSource.WorkspaceUrl; set => this.DataSource.WorkspaceUrl = value; }
 
         [Display(Name = "Access Token")]
         [Required(ErrorMessage = "Access Token is required")]
-        public string AccessToken { get => ((YDataSourceAzureDatabricks)this.dataSource).AccessToken; set => ((YDataSourceAzureDatabricks)this.dataSource).AccessToken = value; }
+        public string AccessToken { get => this.DataSource.AccessToken; set => this.DataSource.AccessToken = value; }
 
         [Display(Name = "Existing Cluster Id")]
         [Required(ErrorMessage = "Cluster Id is required")]
-        public string ExistingClusterId { get => ((YDataSourceAzureDatabricks)this.dataSource).ExistingClusterId; set => ((YDataSourceAzureDatabricks)this.dataSource).ExistingClusterId = value; }
+        public string ExistingClusterId { get => this.DataSource.ExistingClusterId; set => this.DataSource.ExistingClusterId = value; }
 
     }
 

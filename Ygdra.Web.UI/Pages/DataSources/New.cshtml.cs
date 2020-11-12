@@ -37,9 +37,8 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
         public void OnGet()
         {
-
+            this.DataSourceView = new DataSourceView { IsNew = true };
         }
-
 
         [BindProperty]
         public DataSourceView DataSourceView { get; set; }
@@ -49,12 +48,17 @@ namespace Ygdra.Web.UI.Pages.DataSources
             DataSourceView typedDataSourceView = null;
 
             if (Enum.TryParse(typeof(YDataSourceType), dvt, out var t))
-                typedDataSourceView = DataSourceViewFactory.GetTypedDatSourceView(new YDataSource { DataSourceType = (YDataSourceType)t });
+            {
+                var dataSourceView = new DataSourceView { DataSourceType = (YDataSourceType)t };
+                typedDataSourceView = DataSourceViewFactory.GetTypedDatSourceView(dataSourceView);
+            }
 
             if (typedDataSourceView == null)
                 return null;
 
             typedDataSourceView.EngineId = engineId;
+            typedDataSourceView.IsNew = true;
+
             PartialViewResult partial = Partial(typedDataSourceView.PartialView, typedDataSourceView);
             partial.ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
 
@@ -88,7 +92,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
         {
             try
             {
-                var isOk = await this.dataFactoriesController.TestAsync(this.DataSourceView.EngineId, this.DataSourceView.Name, this.DataSourceView.dataSource);
+                var isOk = await this.dataFactoriesController.TestAsync(this.DataSourceView.EngineId, this.DataSourceView.Name, this.DataSourceView.DataSource);
                 return new JsonResult(isOk);
 
             }
@@ -104,7 +108,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
                 return Page();
 
             await this.client.ProcessRequestApiAsync<JObject>($"api/DataFactories/{this.DataSourceView.EngineId}/links/{this.DataSourceView.Name}",
-                null, this.DataSourceView.dataSource, HttpMethod.Put).ConfigureAwait(false);
+                null, this.DataSourceView.DataSource, HttpMethod.Put).ConfigureAwait(false);
 
             return Redirect("/DataSources/Index");
 

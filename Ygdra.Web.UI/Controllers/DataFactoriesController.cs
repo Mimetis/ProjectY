@@ -123,7 +123,7 @@ namespace Ygdra.Web.UI.Controllers
             {
                 var response = await this.client.ProcessRequestApiAsync<bool>(
                     $"api/DataFactories/{engineId}/test",
-                    null, dataSourceView.dataSource, HttpMethod.Post).ConfigureAwait(false);
+                    null, dataSourceView.DataSource, HttpMethod.Post).ConfigureAwait(false);
 
                 return response.Value;
             });

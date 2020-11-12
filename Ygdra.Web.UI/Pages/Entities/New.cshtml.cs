@@ -39,10 +39,19 @@ namespace Ygdra.Web.UI.Pages.Entities
         }
         public void OnGet()
         {
+            this.EntityView = new EntityView
+            {
+                IsNew = true,
+                Version = "1.0.0"
+            };
+
         }
 
         [BindProperty]
         public EntityView EntityView { get; set; }
+
+        [BindProperty]
+        public int Step { get; set; }
 
         public async Task<IActionResult> OnGetEnginesAsync()
         {
@@ -87,12 +96,17 @@ namespace Ygdra.Web.UI.Pages.Entities
             EntityView typedEntityView = null;
 
             if (Enum.TryParse(typeof(YEntityType), dvt, out var t))
-                typedEntityView = EntityViewFactory.GetTypedEntityVieweView(new YEntity { EntityType = (YEntityType)t });
+            {
+                var entityView = new EntityView { EntityType = (YEntityType)t };
+                typedEntityView = EntityViewFactory.GetTypedEntityVieweView(entityView);
+            }
 
             if (typedEntityView == null)
                 return null;
 
             typedEntityView.EngineId = engineId;
+            typedEntityView.IsNew = true;
+
             PartialViewResult partial = Partial(typedEntityView.PartialView, typedEntityView);
             partial.ViewData.TemplateInfo.HtmlFieldPrefix = nameof(EntityView);
 

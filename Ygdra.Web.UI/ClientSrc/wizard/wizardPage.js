@@ -12,13 +12,6 @@ export class wizardPage {
         this.engineUrl = engineUrl;
     }
 
-    get loadMethod() {
-        return this._loadMethod;
-    }
-    set loadMethod(x) {
-        this._loadMethod = x;
-    }
-
     async onLoad() {
         // get form
         this.$form = $("form");
@@ -42,11 +35,10 @@ export class wizardPage {
 
         // hidden fields
         this.$engineIdElement = $(`#${this.htmlFieldPrefix}EngineId`);
+        this.$isNew = $(`#${this.htmlFieldPrefix}IsNew`);
+        this.$step = $(`#${this.htmlFieldPrefix}Step`);
 
-        this.loadMethod = 'GET';
-
-        if (this.$engineIdElement.val())
-            this.loadMethod = 'POST';
+        this.step = this.$step ? this.$step.val() : 0;
 
         if (this.$spinner)
             this.$spinner.hide();
@@ -64,6 +56,7 @@ export class wizardPage {
         // Step show event
         this.$smartWizard.on("showStep", async (e, anchorObject, stepNumber, stepDirection, stepPosition) => {
 
+            this.$step.val(stepNumber);
             this.$nextButton.enable();
             this.$previousButton.enable();
             this.$nextButton.enable();
@@ -81,14 +74,10 @@ export class wizardPage {
 
         });
 
-        let step = 0;
-
-        if (this.loadMethod == 'POST')
-            step = 2;
 
         // bootstrap wizard
         this.$smartWizard.smartWizard({
-            selected: step,
+            selected: this.step,
             theme: 'dots', // theme for the wizard, related css need to include for other than default theme
             autoAdjustHeight: false,
             transition: {
@@ -124,10 +113,13 @@ export class wizardPage {
             return;
         }
 
-        // On PostBack, select the correct engine
-        if (this.loadMethod === 'POST')
-            this.$enginesTable.bootstrapTable('check', data.findIndex(e => e.id === this.$engineIdElement.val()));
+        if (this.$engineIdElement && this.$engineIdElement.val()) {
 
+            let selectedIndex = data.findIndex(e => e.id === this.$engineIdElement.val());
+
+            if (selectedIndex >= 0)
+                this.$enginesTable.bootstrapTable('check', selectedIndex);
+        }
 
         // get the radio inputs buttons to add a validation rule on them
         let $btSelectItem = $('input[name="btSelectItem"]');

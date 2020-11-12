@@ -11,15 +11,9 @@ namespace Ygdra.Core.DataSources.Entities
     public class YDataSourceAzureDatabricks : YDataSource
     {
 
-
-        public YDataSourceAzureDatabricks()
+        public YDataSourceAzureDatabricks(YDataSource other = null) : base(other)
         {
-            this.DataSourceType = YDataSourceType.AzureDatabricks;
-
-        }
-        public YDataSourceAzureDatabricks(YDataSource other) : base(other)
-        {
-            if (other.DataSourceType != YDataSourceType.AzureDatabricks)
+            if (other != null && other.DataSourceType != YDataSourceType.None && other.DataSourceType != YDataSourceType.AzureDatabricks)
                 throw new Exception($"Can't create a type YDataSourceAzureDatabricks from this YDataSource {other}");
         }
 

@@ -13,15 +13,14 @@ namespace Ygdra.Web.UI.Models
 
         public new YEntityDelimitedText Entity { get; set; }
 
-        public EntityViewDelimitedText()
+        public EntityViewDelimitedText() : base()
         {
-            this.IsNew = true;
-            this.Entity = new YEntityDelimitedText();
+
         }
-        public EntityViewDelimitedText(YEntity entity)
+
+        public EntityViewDelimitedText(EntityView entityView = null) : base(entityView)
         {
-            this.IsNew = false;
-            this.Entity = new YEntityDelimitedText(entity);
+            this.Entity = new YEntityDelimitedText(entityView.Entity);
         }
 
         public override string Icon => "svg-i-100x100-DelimitedText";
@@ -55,22 +54,22 @@ namespace Ygdra.Web.UI.Models
         public bool FirstRowAsHeader { get => Entity.FirstRowAsHeader; set => Entity.FirstRowAsHeader = value; }
 
         [Display(Name = "Compression Type")]
-        public string CompressionCodec { get => ((YEntityDelimitedText)this.Entity).CompressionCodec; set => ((YEntityDelimitedText)this.Entity).CompressionCodec = value; }
+        public string CompressionCodec { get => this.Entity.CompressionCodec; set => this.Entity.CompressionCodec = value; }
 
         [Display(Name = "Column Delimited")]
-        public string ColumnDelimiter { get => ((YEntityDelimitedText)this.Entity).ColumnDelimiter; set => ((YEntityDelimitedText)this.Entity).ColumnDelimiter = value; }
+        public string ColumnDelimiter { get => this.Entity.ColumnDelimiter; set => this.Entity.ColumnDelimiter = value; }
 
         [Display(Name = "Row Delimiter")]
-        public string RowDelimiter { get => ((YEntityDelimitedText)this.Entity).RowDelimiter; set => ((YEntityDelimitedText)this.Entity).RowDelimiter = value; }
+        public string RowDelimiter { get => this.Entity.RowDelimiter; set => this.Entity.RowDelimiter = value; }
 
         [Display(Name = "Encoding Type")]
-        public string EncodingName { get => ((YEntityDelimitedText)this.Entity).EncodingName; set => ((YEntityDelimitedText)this.Entity).EncodingName = value; }
+        public string EncodingName { get => this.Entity.EncodingName; set => this.Entity.EncodingName = value; }
 
         [Display(Name = "Escape Character")]
-        public string EscapeChar { get => ((YEntityDelimitedText)this.Entity).EscapeChar; set => ((YEntityDelimitedText)this.Entity).EscapeChar = value; }
+        public string EscapeChar { get => this.Entity.EscapeChar; set => this.Entity.EscapeChar = value; }
 
         [Display(Name = "Quote Character")]
-        public string QuoteChar { get => ((YEntityDelimitedText)this.Entity).QuoteChar; set => ((YEntityDelimitedText)this.Entity).QuoteChar = value; }
+        public string QuoteChar { get => this.Entity.QuoteChar; set => this.Entity.QuoteChar = value; }
 
 
         public string DirectoryPath { get; set; }

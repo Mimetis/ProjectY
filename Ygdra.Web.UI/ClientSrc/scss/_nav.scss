@@ -1,5 +1,4 @@
 ﻿
-
 .navtop {
     background-color: rgba(0,0,0,.85);
     grid-area: header;
@@ -20,9 +19,12 @@
         white-space: nowrap;
         display: flex;
         flex-direction: row;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
-
+        font-family: pe;
+        color: #cccccc;
+        font-weight: 600;
+        text-decoration: none;
 
         #span-title-long {
             visibility: visible;

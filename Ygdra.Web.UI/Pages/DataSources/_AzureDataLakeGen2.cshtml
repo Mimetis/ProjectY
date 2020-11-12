@@ -1,6 +1,23 @@
 ﻿@model DataSourceViewAzureBlobFS
 
 <div class="form-group row">
+    <div class="col-12 col-lg-2 col-form-label d-flex">
+        <div class="svg-22x22-icon">
+            <div class="svg-icon @Model?.Icon"></div>
+        </div>
+        <span class="ml-2 mr-2">
+            Properties:
+        </span>
+    </div>
+    <div class="col-12 col-lg-8 btn-sm">
+        <a href="#" class="btn btn-outline-light2 btn-sm text-nowrap" id="dataSourceTestButton">
+            <i class="fas fa-plug"></i>
+            Test Storage Connection
+        </a>
+    </div>
+</div>
+
+<div class="form-group row">
     <div class="col-12 col-lg-2 col-form-label">
         <label asp-for="StorageAccountName"></label>
         <label class="text-danger">*</label>

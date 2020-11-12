@@ -2,16 +2,18 @@
 
 export class entitiesAzureSql {
 
+    constructor() {
+        this.isLoaded = false;
+    }
 	/**
      * @param {JQuery<HTMLElement>} element
      * @param {string} engineId
-     * @param {string} loadMethod
      */
-    async loadAsync(htmlFieldPrefix, element, engineId, loadMethod) {
+    async loadAsync(htmlFieldPrefix, element, engineId) {
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
-        if (loadMethod !== 'POST') {
+        if (!this.isLoaded) {
             await element.loadAsync(`/entities/new/entities?dvt=AzureSqlTable&engineId=${engineId}`);
         }
 
@@ -30,9 +32,11 @@ export class entitiesAzureSql {
         // on table change, set the correct attributes for the preview button
         this.$tablesSelect.change(() => { this.setPreviewDataAttributes(engineId) });
 
-        if (loadMethod !== 'POST') {
+        if (!this.isLoaded) {
             setTimeout(() => this.refreshDataSourcesAsync(engineId), 10);
         }
+
+        this.isLoaded = true;
     }
 
     async refreshDataSourcesAsync(engineId) {

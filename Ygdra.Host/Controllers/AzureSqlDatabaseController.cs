@@ -65,6 +65,10 @@ namespace Ygdra.Host.Controllers
             // Get connection string
             var cs = await keyVaultsController.GetKeyVaultSecret(engineId, dataSourceName);
 
+            if (cs == null)
+                throw new Exception($"Can't get secret for DataSource {dataSourceName}");
+
+
             var dataSource = await this.dataFactoriesController.GetDataSourceAsync(engineId, dataSourceName);
 
             if (dataSource.Value == null)

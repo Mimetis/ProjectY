@@ -11,14 +11,9 @@ namespace Ygdra.Core.DataSources.Entities
     public class YDataSourceAzureBlobFS : YDataSource
     {
 
-        public YDataSourceAzureBlobFS()
+        public YDataSourceAzureBlobFS(YDataSource other = null) : base(other)
         {
-            this.DataSourceType = YDataSourceType.AzureBlobFS;
-
-        }
-        public YDataSourceAzureBlobFS(YDataSource other) : base(other)
-        {
-            if (other.DataSourceType != YDataSourceType.AzureBlobFS)
+            if (other != null && other.DataSourceType != YDataSourceType.None && other.DataSourceType != YDataSourceType.AzureBlobFS)
                 throw new Exception($"Can't create a type YDataSourceAzureBlobFS from this YDataSource {other}");
         }
 

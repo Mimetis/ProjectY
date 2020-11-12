@@ -33,24 +33,28 @@ export class entitiesNewPage extends wizardPage {
                     if (this.$engineIdElement) {
                         let engineId = this.$engineIdElement.val().toString();
 
-                        if (!engineId?.length)
+                        if (!engineId?.length) {
+                            this.$smartWizard.smartWizard("goToStep", 1);
                             return;
+                        }
 
                         let type = $(`input[name="EntityView.EntityType"]:checked`).val();
 
-                        if (!type)
+                        if (!type) {
+                            this.$smartWizard.smartWizard("goToStep", 1);
+                            return;
+                        }
+
+                        if (this.lastTypeSelected === type.toString())
                             return;
 
-                        if (this.lastTypeSelected === type)
-                            return;
-
-                        this.lastTypeSelected = type;
+                        this.lastTypeSelected = type.toString();
 
                         if (type == 'AzureSqlTable')
-                            await this.entitiesAzureSql.loadAsync(this.htmlFieldPrefix, this.$properties, engineId, this.loadMethod);
+                            await this.entitiesAzureSql.loadAsync(this.htmlFieldPrefix, this.$properties, engineId);
 
                         if (type == 'DelimitedText')
-                            await this.entitiesDelimitedText.loadAsync(this.htmlFieldPrefix, this.$properties, engineId, this.loadMethod);
+                            await this.entitiesDelimitedText.loadAsync(this.htmlFieldPrefix, this.$properties, engineId);
 
                     }
 

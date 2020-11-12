@@ -18,12 +18,11 @@ namespace Ygdra.Core.DataSources.Entities
     public class YDataSource
     {
 
-        public YDataSource()
+        public YDataSource(YDataSource other = null)
         {
+            if (other == null)
+                return;
 
-        }
-        public YDataSource(YDataSource other)
-        {
             this.Name = other.Name;
             this.Type = other.Type;
             this.DataSourceType = other.DataSourceType;

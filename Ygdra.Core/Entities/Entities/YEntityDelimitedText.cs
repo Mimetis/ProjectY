@@ -8,21 +8,10 @@ namespace Ygdra.Core.Entities.Entities
 {
     public class YEntityDelimitedText : YEntity
     {
-
-        public YEntityDelimitedText()
+        public YEntityDelimitedText(YEntity other = null) : base(other)
         {
-            this.EntityType = YEntityType.DelimitedText;
-        }
-        public YEntityDelimitedText(YEntity other)
-        {
-            if (other.EntityType != YEntityType.DelimitedText)
+            if (other != null && other.EntityType != YEntityType.None && other.EntityType != YEntityType.DelimitedText)
                 throw new Exception($"Can't create a type YEntityAzureSqlTable from this YEntity {other}");
-
-            this.Name = other.Name;
-            this.Type = other.Type;
-            this.EntityType = other.EntityType;
-            this.AdditionalData = other.AdditionalData;
-            this.OnDeserialized(this.AdditionalData?["properties"] as JObject);
         }
 
         public override void OnDeserialized(JObject properties)

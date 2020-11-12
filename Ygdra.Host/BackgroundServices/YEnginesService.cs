@@ -79,12 +79,12 @@ namespace Ygdra.Host.BackgroundServices
                 // Create Keyvault
                 var keyvault = await CreateAzureKeyVaultAsync(engine, callerUserId, token).ConfigureAwait(false);
 
+                var storage = await CreateStorageAsync(engine, callerUserId, token).ConfigureAwait(false);
+
                 // Create Databricks Workspace
                 var clusterWorkspace = await CreateDatabricksWorkspaceAsync(engine, callerUserId, token).ConfigureAwait(false);
 
                 var cluster = await CreateDatabricksClusterAsync(engine, clusterWorkspace, callerUserId, token).ConfigureAwait(false);
-
-                var storage = await CreateStorageAsync(engine, callerUserId, token).ConfigureAwait(false);
 
                 // Create Azure Data Factory 
                 var dataFactory = await CreateDataFactoryAsync(engine, callerUserId, token).ConfigureAwait(false);

@@ -11,21 +11,16 @@ namespace Ygdra.Core.DataSources.Entities
 {
     public class YDataSourceAzureSqlDatabase : YDataSource
     {
-
-        public YDataSourceAzureSqlDatabase()
-        {
-            this.DataSourceType = YDataSourceType.AzureSqlDatabase;
-        }
-        public YDataSourceAzureSqlDatabase(YDataSourceType sqlCompatibleType)
+        public YDataSourceAzureSqlDatabase(YDataSourceType sqlCompatibleType) : base()
         {
             if (sqlCompatibleType != YDataSourceType.AzureSqlDatabase && sqlCompatibleType != YDataSourceType.AzureSqlDW)
                 throw new Exception($"Can't create a type YDataSourceAzureSqlDatabase from this YDataSourceType {sqlCompatibleType}");
 
             this.DataSourceType = sqlCompatibleType;
         }
-        public YDataSourceAzureSqlDatabase(YDataSource other) : base(other)
+        public YDataSourceAzureSqlDatabase(YDataSource other = null) : base(other)
         {
-            if (other.DataSourceType != YDataSourceType.AzureSqlDatabase && other.DataSourceType != YDataSourceType.AzureSqlDW)
+            if (other != null && other.DataSourceType  != YDataSourceType.None && other.DataSourceType != YDataSourceType.AzureSqlDatabase && other.DataSourceType != YDataSourceType.AzureSqlDW)
                 throw new Exception($"Can't create a type YDataSourceAzureSqlDatabase from this YDataSource {other}");
         }
 

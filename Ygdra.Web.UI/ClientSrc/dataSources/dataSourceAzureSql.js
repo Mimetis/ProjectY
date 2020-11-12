@@ -1,19 +1,20 @@
 ﻿// @ts-check
 export class dataSourceAzureSql {
 
-
-    async loadAsync(engineId, htmlFieldPrefix, element, loadMethod) {
+    constructor() {
+        this.isLoaded = false;
+    }
+    async loadAsync(engineId, htmlFieldPrefix, element) {
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
 
-        if (loadMethod !== 'POST') {
+        if (!this.isLoaded) {
             await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=AzureSqlDatabase`);
         }
+ 
+        this.isLoaded = true;
 
-        //if (loadMethod !== 'POST') {
-        //}
-        
     }
 
 }

@@ -42,14 +42,16 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
                 var dataSource = response.Value;
 
-                this.DataSourceView = DataSourceViewFactory.GetTypedDatSourceView(dataSource);
-
+                this.DataSourceView = DataSourceViewFactory.GetTypedDatSourceView(new DataSourceView(dataSource));
+                this.DataSourceView.IsNew = false;
                 this.DataSourceView.EngineId = engineId;
 
             }
             catch (Exception)
             {
                 this.DataSourceView = new DataSourceView();
+                this.DataSourceView.IsNew = true;
+                this.DataSourceView.EngineId = engineId;
             }
 
             return Page();
@@ -65,7 +67,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
             {
 
                 await this.client.ProcessRequestApiAsync<JObject>($"api/DataFactories/{this.DataSourceView.EngineId}/links/{this.DataSourceView.Name}",
-                    null, this.DataSourceView.dataSource, HttpMethod.Put).ConfigureAwait(false);
+                    null, this.DataSourceView.DataSource, HttpMethod.Put).ConfigureAwait(false);
 
             }
             catch (Exception ex)

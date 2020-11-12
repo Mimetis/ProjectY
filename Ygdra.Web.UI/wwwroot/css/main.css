@@ -38,6 +38,12 @@ mgt-people-picker {
 *::after {
   box-sizing: border-box; }
 
+@font-face {
+  font-family: 'pe';
+  src: url("/webfonts/pe-webfont.woff2") format("woff2"), url("/webfonts/pe-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal; }
+
 body {
   margin: 0;
   font-size: .850rem;
@@ -120,8 +126,12 @@ body {
     white-space: nowrap;
     display: flex;
     flex-direction: row;
-    justify-content: center;
-    align-items: center; }
+    justify-content: flex-start;
+    align-items: center;
+    font-family: pe;
+    color: #cccccc;
+    font-weight: 600;
+    text-decoration: none; }
     .navtop .title #span-title-long {
       visibility: visible; }
     .navtop .title #span-title-short {

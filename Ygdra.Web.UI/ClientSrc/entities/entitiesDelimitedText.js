@@ -2,16 +2,19 @@
 
 export class entitiesDelimitedText {
 
-	/**
+    constructor() {
+        this.isLoaded = false;
+    }
+
+    /**
      * @param {JQuery<HTMLElement>} element
      * @param {string} engineId
-     * @param {string} loadMethod
      */
-    async loadAsync(htmlFieldPrefix, element, engineId, loadMethod) {
+    async loadAsync(htmlFieldPrefix, element, engineId) {
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
-        if (loadMethod !== 'POST') {
+        if (!this.isLoaded) {
             await element.loadAsync(`/entities/new/entities?dvt=DelimitedText&engineId=${engineId}`);
         }
 
@@ -24,9 +27,10 @@ export class entitiesDelimitedText {
         this.$dataSourcesSelect = $(`#${this.htmlFieldPrefix}DataSourceName`);
         this.$dataSourcesSelectString = $(`#${this.htmlFieldPrefix}DataSourcesItemsString`);
 
-        if (loadMethod !== 'POST') {
+        if (!this.isLoaded) {
             setTimeout(() => this.refreshDataSourcesAsync(engineId), 10);
         }
+        this.isLoaded = true;
     }
 
 
