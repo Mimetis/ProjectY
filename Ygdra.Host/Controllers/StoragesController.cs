@@ -179,26 +179,8 @@ namespace Ygdra.Host.Controllers
 
             await foreach (var containerItem in allContainers)
             {
-
-
-                var blobsArray = new JArray();
                 var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
-                //var blobs = blobContainerClient.GetBlobsByHierarchyAsync();
-
-
-                ListBlobsHierarchicalListing(blobContainerClient, default, default, ref blobsArray);
-
-                //await foreach (var blobItem in blobs)
-                //{
-                //    if (blobItem.IsPrefix)
-                //        blobsArray.Add(new JObject { { "prefix", blobItem.Prefix } });
-
-                //    if (blobItem.IsBlob)
-                //        blobsArray.Add(new JObject { { "name", blobItem.Blob.Name } });
-                //}
-
-                var container = new JObject { { containerItem.Name, blobsArray } };
-                root.Add(container);
+                ListBlobsHierarchicalListing(blobContainerClient, default, default, ref root);
             }
 
             return root;
@@ -224,16 +206,18 @@ namespace Ygdra.Host.Controllers
                             if (blobhierarchyItem.IsPrefix)
                             {
                                 // Write out the prefix of the virtual directory.
-                                var dirArray = new JArray();
 
-                                arrayJson.Add(new JObject { { blobhierarchyItem.Prefix, dirArray } });
+                                // if hierarchical; uncomment here
+                                //var dirArray = new JArray();
+                                //arrayJson.Add(new JObject { { blobhierarchyItem.Prefix, dirArray } });
+                                //ListBlobsHierarchicalListing(container, blobhierarchyItem.Prefix, null, ref dirArray);
 
                                 // Call recursively with the prefix to traverse the virtual directory.
-                                ListBlobsHierarchicalListing(container, blobhierarchyItem.Prefix, null, ref dirArray);
+                                ListBlobsHierarchicalListing(container, blobhierarchyItem.Prefix, null, ref arrayJson);
                             }
                             else
                             {
-                                arrayJson.Add(new JObject { { "name", blobhierarchyItem.Blob.Name } });
+                                arrayJson.Add(new JObject { { "name", $"{container.Name}/{blobhierarchyItem.Blob.Name}" } });
 
                             }
                         }

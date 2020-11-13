@@ -14,16 +14,17 @@ export class modalPanel {
         this._position = "right";
         this._center = "";
 
-        $(() => {
-            let modalHtmlDiv = this.generateModalHtml();
+    }
 
-            $('body').append(modalHtmlDiv);
+    generate() {
 
-            this.panel().on('shown.bs.modal', this._shownPanel);
-            this.panel().on('show.bs.modal', this._showPanel);
-            this.panel().on('hide.bs.modal', this._unloadPanel);
+        if (this.panel() && this.panel().length > 0)
+            return this;
 
-        });
+        let modalHtmlDiv = this._generateModalHtml();
+        $('body').append(modalHtmlDiv);
+
+        return this;
     }
 
     /** @returns modalPanel */
@@ -57,28 +58,14 @@ export class modalPanel {
         this._center = "modal-dialog-centered modal-dialog-scrollable";
         return this;
     }
-    /**
-    *
-    * @callback onModalEvent
-    * @param {import("bootstrap").ModalEventHandler<HTMLElement>} event
-    */
 
 
+    onShown(shownPanelEvent) { this.panel().on('shown.bs.modal', shownPanelEvent) }
 
-    /**
-     * @param {onModalEvent} shownPanelEvent - Called when the panel is shown.
-     */
-    onShown(shownPanelEvent) { this._shownPanel = shownPanelEvent; }
+    onShow(showPanelEvent) { this.panel().on('show.bs.modal', showPanelEvent) }
 
-    /**
-     * @param {onModalEvent} showPanelEvent - Called when the panel is loading, before shown.
-     */
-    onShow(showPanelEvent) { this._showPanel = showPanelEvent; }
+    onUnLoad(unloadPanelEvent) { this.panel().on('hide.bs.modal', unloadPanelEvent) }
 
-    /**
-     * @param {onModalEvent} unloadPanelEvent - Called when the panel is unloading.
-     */
-    onUnLoad(unloadPanelEvent) { this._unloadPanel = unloadPanelEvent; }
 
     /** @returns {JQuery<HTMLElement>} */
     panel() { return $(`#${this.id}`) }
@@ -108,7 +95,7 @@ export class modalPanel {
     title() { return $(`#${this.id}Title`) }
 
 
-    generateModalHtml() {
+    _generateModalHtml() {
 
         let modal = `
         <div class="modal ${this._position} fade" id="${this.id}" tabindex="-1" ${this._data_readonly}aria-labelledby="${this.id}" aria-hidden="true">

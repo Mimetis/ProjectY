@@ -42,7 +42,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
                 var dataSource = response.Value;
 
-                this.DataSourceView = DataSourceViewFactory.GetTypedDatSourceView(dataSource.DataSourceType, new DataSourceViewUnknown(dataSource));
+                this.DataSourceView = dataSource.ToTypedDataSourceView();
                 this.DataSourceView.IsNew = false;
                 this.DataSourceView.EngineId = engineId;
 

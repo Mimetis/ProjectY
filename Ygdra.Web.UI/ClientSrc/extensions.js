@@ -76,29 +76,34 @@ let jqueryExtends = function () {
             $messageSpan.hide();
             $spinnerSpan.show();
 
-            let r = await $btn.postAsync(url, false);
+            try {
 
-            $spinnerSpan.hide();
+                let r = await $btn.postAsync(url, false);
 
-            if (r.errors || r === false) {
+                $spinnerSpan.hide();
 
-                let errors = [];
+                if (r.errors || r === false) {
 
-                if (r && r.errors) {
-                    errors = Object.values(r.errors).flatMap(e => e);
+                    let errors = [];
+
+                    if (r && r.errors) {
+                        errors = Object.values(r.errors).flatMap(e => e);
+                    } else {
+                        errors = ["Can't connect"];
+                    }
+
+                    let html = `<i class="fas fa-exclamation"></i> ${errors[0]}`;
+                    $messageSpan.html(html);
+                    $messageSpan.addClass("text-danger").removeClass("text-success");
                 } else {
-                    errors = ["Can't connect"];
+                    let html = '<i class="fas fa-check"></i> connection successful';
+                    $messageSpan.html(html);
+                    $messageSpan.addClass("text-success").removeClass("text-danger");
                 }
-
-                let html = `<i class="fas fa-exclamation"></i> ${errors[0]}`;
-                $messageSpan.html(html);
-                $messageSpan.addClass("text-danger").removeClass("text-success");
-            } else {
-                let html = '<i class="fas fa-check"></i> connection successful';
-                $messageSpan.html(html);
-                $messageSpan.addClass("text-success").removeClass("text-danger");
+                $messageSpan.show();
+            } catch (e) {
+                new modalPanelError("errorExtensionPost", e).show();
             }
-            $messageSpan.show();
 
         }
     })

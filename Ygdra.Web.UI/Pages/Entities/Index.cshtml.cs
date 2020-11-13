@@ -32,8 +32,6 @@ namespace Ygdra.Web.UI.Pages.Entities
         {
         }
 
-
-
         public async Task<IActionResult> OnGetEnginesAsync()
         {
 
@@ -58,9 +56,9 @@ namespace Ygdra.Web.UI.Pages.Entities
                 return entitiesAction;
 
             var entities = entitiesAction.Value;
-            var entitiesView = entities?.Select(er => EntityViewFactory.GetTypedEntityVieweView(new EntityView(er))).ToList() ?? new List<EntityView>();
+            var entitiesView = entities?.Select(er => er.ToTypedEntityView()).ToList() ?? new List<EntityView>();
 
-            return new YJsonResult<List<EntityView>>(entitiesView);
+            return new JsonResult(entitiesView);
         }
 
     }

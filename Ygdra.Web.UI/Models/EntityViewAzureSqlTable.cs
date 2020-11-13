@@ -10,23 +10,18 @@ namespace Ygdra.Web.UI.Models
 {
     public class EntityViewAzureSqlTable : EntityView
     {
-        public EntityViewAzureSqlTable() : base()
-        {
+        private YEntityAzureSqlTable entity;
 
-        }
-        public EntityViewAzureSqlTable(EntityView entityView = null) : base(entityView)
-        {
-            this.Entity = new YEntityAzureSqlTable(entityView.Entity);
-        }
-
-        public new YEntityAzureSqlTable Entity { get; set; }
-
+        public EntityViewAzureSqlTable() => this.entity = new YEntityAzureSqlTable();
+        public override YEntity Entity => this.entity;
+        public override bool IsNew { get; set; }
+        public override Guid EngineId { get; set; }
         public override string Icon => "svg-i-100x100-AzureSQLDatabase";
         public override string PartialView => "_AzureSqlDatabaseTablesPartial";
         public override string TypeString => "Azure SQL Table";
 
-        public string Schema { get => Entity.Schema; set => Entity.Schema = value; }
-        public string Table { get => Entity.Table; set => Entity.Table = value; }
+        public string Schema { get => this.entity.Schema; set => this.entity.Schema = value; }
+        public string Table { get => this.entity.Table; set => this.entity.Table = value; }
 
 
         /// <summary>

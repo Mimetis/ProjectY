@@ -17,7 +17,7 @@ export class modalPanelDataFactory {
 
         this.modal_data_target = modal_data_target;
         // Get the small modal
-        this.modalEngine = new modalPanel(modal_data_target).lg();
+        this.modalEngine = new modalPanel(modal_data_target).lg().generate();
 
         this.modalEngine.onShown(e => this.shownPanel(e));
         this.modalEngine.onUnLoad(e => this.unloadPanel(e));

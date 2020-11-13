@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,30 +15,16 @@ using Ygdra.Web.UI.Controllers;
 
 namespace Ygdra.Web.UI.Models
 {
-    public class EntityView
+    public abstract class EntityView
     {
+        public abstract YEntity Entity { get; }
 
-        public EntityView()
-        {
-            this.Entity = new YEntity();
-        }
-
-        public EntityView(YEntity entity = null)
-        {
-            this.Entity = entity == null ? new YEntity() : entity;
-        }
-
-
-        public EntityView(EntityView other)
-        {
-            this.Entity = other.Entity;
-            this.IsNew = other.IsNew;
-            this.EngineId = other.EngineId;
-
-        }
-
-        [JsonIgnore]
-        public bool IsNew { get; set; }
+        public abstract bool IsNew { get; set; }
+        public abstract Guid EngineId { get; set; }
+        public abstract string PartialView { get; }
+        public abstract string Icon { get; }
+        public abstract string TypeString { get; }
+        public YEntityType EntityType => this.Entity.EntityType;
 
         [Required]
         [StringLength(20, MinimumLength = 5)]
@@ -62,27 +49,12 @@ namespace Ygdra.Web.UI.Models
         }
 
 
-
-        [Required(ErrorMessage = "You should select an engine")]
-        public Guid EngineId { get; set; }
-
         public string Type
         {
             get => this.Entity.Type;
             set => this.Entity.Type = value;
         }
 
-        [Required(ErrorMessage = "You should select an entity source type")]
-        public YEntityType EntityType
-        {
-            get => this.Entity.EntityType;
-            set => this.Entity.EntityType = value;
-        }
-
-        public virtual string PartialView { get; }
-        public virtual string Icon => "svg-i-100x100-HTTP";
-        public virtual string TypeString => "Azure DataSet";
-        public virtual YEntity Entity { get; set; }
     }
 
     /// <summary>
@@ -90,24 +62,60 @@ namespace Ygdra.Web.UI.Models
     /// </summary>
     public class EntityViewUnknown : EntityView
     {
+        private readonly YEntity entity;
+
+        public EntityViewUnknown() => this.entity = new YEntity() { EntityType = YEntityType.None };
+
+        public EntityViewUnknown(YEntity entity) => this.entity = entity;
+
+        public override YEntity Entity => this.entity;
+
+        public override bool IsNew { get; set; }
+        public override Guid EngineId { get; set; }
+
+        public override string PartialView => null;
+
+        public override string Icon => "svg-i-100x100-HTTP";
+
+        public override string TypeString => "Azure DataSet";
+
     }
 
 
 
     public class EntityViewFactory
     {
-        public static EntityView GetTypedEntityVieweView(EntityView entityView)
+        public static EntityView GetTypedEntityView(YEntityType entityType, EntityView entityView = null)
         {
-            switch (entityView.EntityType)
+            EntityView ev = entityType switch
             {
-                case YEntityType.AzureSqlTable:
-                    return new EntityViewAzureSqlTable(entityView);
-                case YEntityType.DelimitedText:
-                    return new EntityViewDelimitedText(entityView);
-                case YEntityType.None:
-                default:
-                    return new EntityView(entityView);
+                YEntityType.AzureSqlTable => new EntityViewAzureSqlTable(),
+                YEntityType.DelimitedText => new EntityViewDelimitedText(),
+                _ => new EntityViewUnknown(),
+            };
+
+            if (entityView != null)
+            {
+                ev.Entity.Name = entityView.Entity.Name;
+                ev.Entity.AdditionalData = entityView.Entity.AdditionalData;
+                ev.Entity.DataSourceName = entityView.Entity.DataSourceName;
+                ev.Entity.EntityType = entityView.Entity.EntityType;
+                ev.Entity.Type = entityView.Entity.Type;
+                ev.Entity.Version = entityView.Entity.Version;
+
+                ev.EngineId = entityView.EngineId;
+                ev.IsNew = entityView.IsNew;
+
+                if (ev.Entity.AdditionalData?["properties"] is JObject props)
+                    ev.Entity.OnDeserialized(props);
             }
+
+            return ev;
         }
+    }
+    public static class EntityViewFactoryExtensions
+    {
+        public static EntityView ToTypedEntityView(this EntityView entityView, YEntityType entityType) => EntityViewFactory.GetTypedEntityView(entityType, entityView);
+        public static EntityView ToTypedEntityView(this YEntity entity) => EntityViewFactory.GetTypedEntityView(entity.EntityType, new EntityViewUnknown(entity));
     }
 }

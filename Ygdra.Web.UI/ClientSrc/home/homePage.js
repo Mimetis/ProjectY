@@ -22,6 +22,22 @@ export class homePage {
     }
 
     async onLoad() {
+
+        // Get the notification modal
+        this.notifModal = new modalPanel("notif").sm().generate();
+
+        // auto bind with arrow function
+        this.notifModal.onShown(e => this.shownPanel(e));
+        this.notifModal.onUnLoad(e => this.unloadPanel(e));
+        // manual binding for fun
+        this.notifModal.onShow(this.showPanel.bind(this));
+
+        this.settingsModal = new modalPanel("settings").lg().generate();
+
+        this.settingsModal.onShown(e => this.shownSettingsPanel(e));
+        this.settingsModal.onUnLoad(e => this.unloadSettingsPanel(e));
+
+
         //notification.current.on(notification.OnStarted, async () => await console.log("Backend server started."));
         //notification.current.on(notification.OnConnecting, async () => await console.log("Backend server connecting..."));
         //notification.current.on(notification.OnConnected, async () => await console.log("Backend server connected..."));
@@ -68,20 +84,7 @@ export class homePage {
 
     constructor() {
 
-        // Get the notification modal
-        this.notifModal = new modalPanel("notif").sm();
-
-        // auto bind with arrow function
-        this.notifModal.onShown(e => this.shownPanel(e));
-        this.notifModal.onUnLoad(e => this.unloadPanel(e));
-        // manual binding for fun
-        this.notifModal.onShow(this.showPanel.bind(this));
-
-        this.settingsModal = new modalPanel("settings").lg();
-
-        this.settingsModal.onShown(e => this.shownSettingsPanel(e));
-        this.settingsModal.onUnLoad(e => this.unloadSettingsPanel(e));
-
+ 
 
         auth.current.on(auth.OnAuthenticated, async isAuth => {
             if (isAuth)

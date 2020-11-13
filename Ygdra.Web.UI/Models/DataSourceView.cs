@@ -24,6 +24,10 @@ namespace Ygdra.Web.UI.Models
 
         public abstract bool IsNew { get; set; }
         public abstract Guid EngineId { get; set; }
+        public abstract YDataSourceType DataSourceType { get; }
+        public abstract string PartialView { get; }
+        public abstract string Icon { get; }
+        public abstract string TypeString { get; }
 
         [Required]
         [StringLength(255, MinimumLength = 5)]
@@ -44,11 +48,6 @@ namespace Ygdra.Web.UI.Models
             set => this.DataSource.Type = value;
         }
 
-
-        public abstract YDataSourceType DataSourceType { get; }
-        public abstract string PartialView { get; }
-        public abstract string Icon { get; }
-        public abstract string TypeString { get; }
 
     }
 
@@ -74,30 +73,16 @@ namespace Ygdra.Web.UI.Models
     {
         public static DataSourceView GetTypedDatSourceView(YDataSourceType dataSourceType, DataSourceView dataSourceView = null)
         {
-            DataSourceView ds;
-
-            switch (dataSourceType)
+            DataSourceView ds = dataSourceType switch
             {
-                case YDataSourceType.AzureBlobStorage:
-                case YDataSourceType.AzureBlobFS:
-                    ds = new DataSourceViewAzureBlobFS();
-                    break;
-                case YDataSourceType.AzureSqlDatabase:
-                case YDataSourceType.AzureSqlDW:
-                    ds = new DataSourceViewAzureSqlDatabase();
-                    break;
-                case YDataSourceType.AzureDatabricks:
-                    ds = new DataSourceViewAzureDatabricks();
-                    break;
-                case YDataSourceType.CosmosDb:
-                    ds = new DataSourceViewCosmosDb();
-                    break;
-                case YDataSourceType.None:
-                default:
-                    ds = new DataSourceViewUnknown();
-                    break;
-
-            }
+                YDataSourceType.AzureBlobStorage => new DataSourceViewAzureBlobFS(),
+                YDataSourceType.AzureBlobFS => new DataSourceViewAzureBlobFS(),
+                YDataSourceType.AzureSqlDatabase => new DataSourceViewAzureSqlDatabase(),
+                YDataSourceType.AzureSqlDW => new DataSourceViewAzureSqlDatabase(),
+                YDataSourceType.AzureDatabricks => new DataSourceViewAzureDatabricks(),
+                YDataSourceType.CosmosDb => new DataSourceViewCosmosDb(),
+                _ => new DataSourceViewUnknown()
+            };
 
             // clone 
             if (dataSourceView != null)
@@ -108,8 +93,6 @@ namespace Ygdra.Web.UI.Models
                 ds.DataSource.Type = dataSourceView.DataSource.Type;
                 ds.EngineId = dataSourceView.EngineId;
                 ds.IsNew = dataSourceView.IsNew;
-                ds.Name = dataSourceView.Name;
-                ds.Type = dataSourceView.Type;
 
                 if (ds.DataSource.AdditionalData?["properties"] is JObject props)
                     ds.DataSource.OnDeserialized(props);
@@ -118,6 +101,11 @@ namespace Ygdra.Web.UI.Models
             return ds;
 
         }
+    }
+    public static class DataSourceViewFactoryExtensions
+    {
+        public static DataSourceView ToTypedDataSourceView(this DataSourceView dataSourceView, YDataSourceType dataSourceType) => DataSourceViewFactory.GetTypedDatSourceView(dataSourceType, dataSourceView);
+        public static DataSourceView ToTypedDataSourceView(this YDataSource dataSource) => DataSourceViewFactory.GetTypedDatSourceView(dataSource.DataSourceType, new DataSourceViewUnknown(dataSource));
     }
 
 }

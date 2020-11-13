@@ -12,11 +12,12 @@ namespace Ygdra.Core.Entities.Entities
     {
         public YEntityAzureSqlTable(YEntity other = null) : base(other)
         {
-            if (other == null)
-                return;
-
-            if (other.EntityType != YEntityType.None && other.EntityType != YEntityType.AzureSqlTable)
+        
+            if (other != null && other.EntityType != YEntityType.None && other.EntityType != YEntityType.AzureSqlTable)
                 throw new Exception($"Can't create a type YEntityAzureSqlTable from this YEntity {other}");
+
+            this.EntityType = YEntityType.AzureSqlTable;
+
         }
 
         [JsonIgnore]

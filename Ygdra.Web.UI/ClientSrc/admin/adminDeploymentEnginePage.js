@@ -9,14 +9,14 @@ export class adminDeploymentEnginePage {
 
     constructor() {
 
-        modalPanelUsers.initialize("panelDeploymentOwners");
-        modalPanelUsers.initialize("panelDeploymentMembers");
-        modalPanelUsers.initialize("panelRequestOwners");
-        modalPanelUsers.initialize("panelRequestMembers");
     }
 
     async onLoad() {
 
+        modalPanelUsers.initialize("panelDeploymentOwners");
+        modalPanelUsers.initialize("panelDeploymentMembers");
+        modalPanelUsers.initialize("panelRequestOwners");
+        modalPanelUsers.initialize("panelRequestMembers");
 
         this.id = $("#EngineView_Id");
         this.console2 = new console2($("#console"), $('div.docking-form'));

@@ -32,8 +32,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
                 $"api/Datafactories/{engineId}/links").ConfigureAwait(false);
             var all = response.Value;
 
-            var views = all?.Select(item => DataSourceViewFactory.GetTypedDatSourceView(item.DataSourceType, new DataSourceViewUnknown(item)))
-                            .ToList() ?? new List<DataSourceView>();
+            var views = all?.Select(item => item.ToTypedDataSourceView()).ToList() ?? new List<DataSourceView>();
 
             return new JsonResult(views);
         }

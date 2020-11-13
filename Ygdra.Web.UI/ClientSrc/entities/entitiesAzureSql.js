@@ -1,11 +1,12 @@
 ﻿// @ts-check
+import { modalPanel, modalPanelError } from '../modal/index';
 
 export class entitiesAzureSql {
 
     constructor() {
         this.isLoaded = false;
     }
-	/**
+    /**
      * @param {JQuery<HTMLElement>} element
      * @param {string} engineId
      */
@@ -44,18 +45,20 @@ export class entitiesAzureSql {
         this.$labelErrorDataSources.empty();
         this.$labelErrorTables.empty();
 
-
         let dataSourcesUrl = `/entities/new/datasources?engineId=${engineId}&dataSourceType=AzureSqlDatabase`;
-        let r = await fetch(dataSourcesUrl);
-        let dataSources = [];
 
-        if (r.status >= 400) {
-            var text = await r.json();
-            this.$labelErrorDataSources.text(text.error.message);
-            return;
-        }
+        try {
 
-        if (r.status != 400) {
+            let r = await fetch(dataSourcesUrl);
+            let dataSources = [];
+
+            if (r.status >= 400) {
+                let contentType = r.headers.get("content-type");
+                var text = (contentType && contentType.indexOf("json") !== -1) ? (await r.json()).error.message : await r.text();
+                this.$labelErrorDataSources.text(text.error.message);
+                return;
+            }
+
             let dataSourcesJson = await r.json();
 
             dataSources = dataSourcesJson.map(item => item.name);
@@ -63,23 +66,28 @@ export class entitiesAzureSql {
             $.each(dataSources, (i, item) => {
                 this.$dataSourcesSelect.append($('<option>', { value: item, text: item }))
             });
-        }
 
-        if (!dataSources.length) {
-            this.$dataSourcesSelect.data("noneSelectedText", "No Data Sources...");
-            this.$dataSourcesSelectString.val('');
+            if (!dataSources.length) {
+                this.$dataSourcesSelect.data("noneSelectedText", "No Data Sources...");
+                this.$dataSourcesSelectString.val('');
 
-        } else {
-            this.$dataSourcesSelectString.val(dataSources.join());
+            } else {
+                this.$dataSourcesSelectString.val(dataSources.join());
 
+            }
+            var dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
+
+            if (dataSourceSelected)
+                await this.refreshTablesAsync(engineId);
+
+        } catch (e) {
+            this.$labelErrorDataSources.text("Unexpected Server error");
+            this.$dataSourcesSelect.data("noneSelectedText", "Can't load Data Sources...");
+
+            new modalPanelError("errorDataSources", e).show();
         }
 
         this.$dataSourcesSelect.enablePicker();
-
-        var dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
-
-        if (dataSourceSelected)
-            await this.refreshTablesAsync(engineId);
 
     }
 
@@ -88,43 +96,55 @@ export class entitiesAzureSql {
 
         this.$tablesSelect.disablePicker("loading tables ...");
 
-        var dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
-
+        let dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
         let tables = [];
-
         let tablesUrl = `/api/AzureSqlDatabase/${engineId}/${dataSourceSelected}/tables`;
-        let r = await fetch(tablesUrl);
 
-        if (r.status >= 400) {
-            var text = await r.json();
-            this.$labelErrorTables.text(text.error.message);
-            return;
-        }
+        try {
 
-        if (r.status != 400) {
-            let tablesJson = await r.json();
 
-            tables = tablesJson.map(item => `${item.schemaName}.${item.tableName}`);
+            let r = await fetch(tablesUrl);
 
-            $.each(tables, (i, item) => {
-                this.$tablesSelect.append($('<option>', { value: item, text: item }))
-            });
-        }
+            if (r.status >= 400) {
+                let contentType = r.headers.get("content-type");
+                var text = (contentType && contentType.indexOf("json") !== -1) ? (await r.json()).error.message : await r.text();
+                this.$labelErrorTables.text(text.error.message);
+                return;
+            }
 
-        if (!tables.length) {
-            this.$tablesSelect.data("noneSelectedText", "No Tables...");
-            this.$tablesSelectString.val('');
-        }
-        else {
-            this.$tablesSelectString.val(tables.join());
+            if (r.status != 400) {
+                let tablesJson = await r.json();
+
+                tables = tablesJson.map(item => `${item.schemaName}.${item.tableName}`);
+
+                $.each(tables, (i, item) => {
+                    this.$tablesSelect.append($('<option>', { value: item, text: item }))
+                });
+            }
+
+            if (!tables.length) {
+                this.$tablesSelect.data("noneSelectedText", "No Tables...");
+                this.$tablesSelectString.val('');
+            }
+            else {
+                this.$tablesSelectString.val(tables.join());
+            }
+
+            var tableSelected = $(`#${this.htmlFieldPrefix}TableName option:selected`).val();
+
+            if (tableSelected)
+                this.setPreviewDataAttributes(engineId);
+
+        } catch (e) {
+
+            this.$labelErrorTables.text("Unexpected Server error");
+            this.$tablesSelect.data("noneSelectedText", "Can't load Data Sources...");
+
+            new modalPanelError("errorDataSources", e).show();
+
         }
 
         this.$tablesSelect.enablePicker();
-
-        var tableSelected = $(`#${this.htmlFieldPrefix}TableName option:selected`).val();
-
-        if (tableSelected)
-            this.setPreviewDataAttributes(engineId);
 
     }
 

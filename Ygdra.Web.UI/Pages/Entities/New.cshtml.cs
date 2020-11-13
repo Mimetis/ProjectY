@@ -39,7 +39,8 @@ namespace Ygdra.Web.UI.Pages.Entities
         }
         public void OnGet()
         {
-            this.EntityView = new EntityView
+            // we don't know yet what kind of EntityView we will have at the end of the wizard
+            this.EntityView = new EntityViewUnknown 
             {
                 IsNew = true,
                 Version = "1.0.0"
@@ -95,13 +96,11 @@ namespace Ygdra.Web.UI.Pages.Entities
         {
             EntityView typedEntityView = null;
 
-            if (Enum.TryParse(typeof(YEntityType), dvt, out var t))
-            {
-                var entityView = new EntityView { EntityType = (YEntityType)t };
-                typedEntityView = EntityViewFactory.GetTypedEntityVieweView(entityView);
-            }
 
-            if (typedEntityView == null)
+            if (Enum.TryParse(typeof(YEntityType), dvt, out var t))
+                typedEntityView = EntityViewFactory.GetTypedEntityView((YEntityType)t);
+
+            if (typedEntityView == null || typedEntityView.EntityType == YEntityType.None)
                 return null;
 
             typedEntityView.EngineId = engineId;

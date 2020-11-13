@@ -1,5 +1,5 @@
 ﻿// @ts-check
-import { modalPanelPreview } from "../modal/index.js";
+import { modalPanelError, modalPanelPreview } from "../modal/index.js";
 import { entitiesAzureSql } from "./entitiesAzureSql.js";
 import { entitiesDelimitedText } from "./entitiesDelimitedText.js";
 import { wizardPage } from '../wizard/index.js';
@@ -12,7 +12,7 @@ export class entitiesNewPage extends wizardPage {
         this.entitiesAzureSql = new entitiesAzureSql();
         this.entitiesDelimitedText = new entitiesDelimitedText();
         this.lastTypeSelected = '';
-}
+    }
 
     async onLoad() {
         // call base onLoad method
@@ -23,6 +23,28 @@ export class entitiesNewPage extends wizardPage {
 
         // transform all select picker into selectpicker
         $('select').selectpicker();
+
+        this.$smartWizard.on("leaveStep", (e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) => {
+
+            if (currentStepIndex == 1 && nextStepIndex == 2) {
+
+                let type = $(`input[name="EntityView.EntityType"]:checked`).val();
+
+                if (!type) {
+                    return false;
+                }
+
+                if (type !== 'AzureSqlTable' && type !== 'DelimitedText') {
+                    new modalPanelError('entityStepNotExist', 'this entity is not yet implemented...').show();
+                    return false;
+                }
+
+                this.$smartWizard.smartWizard("goToStep", 1);
+
+            }
+
+            return true;
+        });
 
         this.$smartWizard.on("stepContent", async (e, anchorObject, stepNumber, stepDirection) => {
 
@@ -53,7 +75,7 @@ export class entitiesNewPage extends wizardPage {
                         if (type == 'AzureSqlTable')
                             await this.entitiesAzureSql.loadAsync(this.htmlFieldPrefix, this.$properties, engineId);
 
-                        if (type == 'DelimitedText')
+                        else if (type == 'DelimitedText')
                             await this.entitiesDelimitedText.loadAsync(this.htmlFieldPrefix, this.$properties, engineId);
 
                     }

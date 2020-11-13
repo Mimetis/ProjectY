@@ -36,9 +36,11 @@ export class wizardPage {
         // hidden fields
         this.$engineIdElement = $(`#${this.htmlFieldPrefix}EngineId`);
         this.$isNew = $(`#${this.htmlFieldPrefix}IsNew`);
-        this.$step = $(`#${this.htmlFieldPrefix}Step`);
 
-        this.step = this.$step ? this.$step.val() : 0;
+        // No prefix for hiddent Step field, since it's directly binded into the PageModel
+        this.$step = $(`#Step`);
+
+        this.step = this.$step  && this.$step.val() ? parseInt(this.$step.val()) : 0;
 
         if (this.$spinner)
             this.$spinner.hide();
@@ -56,7 +58,9 @@ export class wizardPage {
         // Step show event
         this.$smartWizard.on("showStep", async (e, anchorObject, stepNumber, stepDirection, stepPosition) => {
 
+            // Update step
             this.$step.val(stepNumber);
+
             this.$nextButton.enable();
             this.$previousButton.enable();
             this.$nextButton.enable();

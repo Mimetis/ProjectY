@@ -15,8 +15,7 @@ export class modalPanelPreview {
     constructor(modal_data_target) {
 
         this.modal_data_target = modal_data_target;
-        // Get the small modal
-        this.modalPreview = new modalPanel(modal_data_target).xl().center();
+        this.modalPreview = new modalPanel(modal_data_target).xl().center().generate();
 
         this.modalPreview.onShown(e => this.shownPanel(e));
         this.modalPreview.onUnLoad(e => this.unloadPanel(e));
@@ -60,37 +59,43 @@ export class modalPanelPreview {
         var schemaName = button.data('schema-name')
         var tableName = button.data('table-name')
 
+        try {
 
-        let previewRowsResponse = await fetch(`/api/AzureSqlDatabase/${engineId}/${dataSourceName}/tables/${schemaName}/${tableName}/preview`);
+            let previewRowsResponse = await fetch(`/api/AzureSqlDatabase/${engineId}/${dataSourceName}/tables/${schemaName}/${tableName}/preview`);
 
-        if (previewRowsResponse.status != 400) {
-            let previewRows = await previewRowsResponse.json();
+            if (previewRowsResponse.status != 400) {
+                let previewRows = await previewRowsResponse.json();
 
-            if (previewRows.length) {
+                if (previewRows.length) {
 
-                this.modalPreview.body().empty();
-                this.modalPreview.body().append("<table id='table'></table>");
+                    this.modalPreview.body().empty();
+                    this.modalPreview.body().append("<table id='table'></table>");
 
-                var row1 = previewRows[0];
+                    var row1 = previewRows[0];
 
-                var columns = [];
-                for (var o in row1) {
-                    columns.push({
-                        field: o,
-                        title: o
+                    var columns = [];
+                    for (var o in row1) {
+                        columns.push({
+                            field: o,
+                            title: o
+                        });
+                    }
+
+                    $('#table').bootstrapTable({
+                        columns: columns,
+                        data: previewRows
                     });
+
+
+                } else {
+                    this.modalPreview.body().text('No rows...');
                 }
-
-                $('#table').bootstrapTable({
-                    columns: columns,
-                    data: previewRows
-                });
-
-
-            } else {
-                this.modalPreview.body().text('No rows...');
             }
+        } catch (e) {
+            new modalPanelError("errorPreview", e).show();
+
         }
+
     }
 
     /** @param {import("bootstrap").ModalEventHandler<HTMLElement>} event */

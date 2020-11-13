@@ -16,7 +16,7 @@ export class modalPanelUsers {
 
         this.modal_data_target = modal_data_target;
         // Get the small modal
-        this.modalUsers = new modalPanel(modal_data_target).sm();
+        this.modalUsers = new modalPanel(modal_data_target).sm().generate();
 
         this.modalUsers.onShown(e => this.shownPanel(e));
         this.modalUsers.onUnLoad(e => this.unloadPanel(e));

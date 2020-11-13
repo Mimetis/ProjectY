@@ -43,6 +43,9 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
         [BindProperty]
         public DataSourceView DataSourceView { get; set; }
+        
+        [BindProperty]
+        public int Step { get; set; }
 
         public PartialViewResult OnGetProperties(Guid engineId, string dvt)
         {
@@ -86,27 +89,23 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
         }
 
-        public async Task<IActionResult> OnPostCheckDataSourceAsync()
-        {
-            try
-            {
-                var isOk = await this.dataFactoriesController.TestAsync(this.DataSourceView.EngineId, this.DataSourceView.Name, this.DataSourceView.DataSource);
-                return new JsonResult(isOk);
-
-            }
-            catch (Exception ex)
-            {
-                return new JsonResult(ex.Message);
-            }
-        }
-
         public async Task<IActionResult> OnPost()
         {
             if (!ModelState.IsValid)
                 return Page();
 
-            await this.client.ProcessRequestApiAsync<JObject>($"api/DataFactories/{this.DataSourceView.EngineId}/links/{this.DataSourceView.Name}",
-                null, this.DataSourceView.DataSource, HttpMethod.Put).ConfigureAwait(false);
+            try
+            {
+                await this.client.ProcessRequestApiAsync<YDataSource>($"api/DataFactories/{this.DataSourceView.EngineId}/links/{this.DataSourceView.Name}",
+                    null, this.DataSourceView.DataSource, HttpMethod.Put).ConfigureAwait(false);
+
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                return Page();
+            }
+
 
             return Redirect("/DataSources/Index");
 

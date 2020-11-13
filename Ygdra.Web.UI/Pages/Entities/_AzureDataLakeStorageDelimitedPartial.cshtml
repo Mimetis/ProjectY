@@ -5,7 +5,7 @@
         <div class="svg-icon svg-i-100x100-AzureSQLDatabase"></div>
     </div>
     <span class="ml-2 mr-2">
-        Azure Sql Database properties:
+        Azure Storage properties:
     </span>
 </div>
 
@@ -24,27 +24,25 @@
         </select>
     </div>
     <div class="col-2 col-lg-1">
-        <a href="#" class="btn btn-outline-light2 btn-sm" id="testConnectionButton">
-            <i class="fas fa-plug"></i>
-            Test
-        </a>
-    </div>
-    <div class="col-2 col-lg-1">
         <a asp-page="/DataSources/New" class="btn btn-outline-light2 btn-sm">
             <i class="fas fa-plus-circle"></i>
             New
         </a>
     </div>
-    <div><span id="labelErrorDataSources" class="alert-warning">Can't load table ?</span></div>
+    <div class="col-12 col-lg-8 offset-lg-2"><span id="labelErrorDataSources" class="text-danger"></span></div>
 </div>
 <div class="form-group row">
     <div class="col-12 col-lg-2 col-form-label">
-        <label asp-for="DirectoryPath"></label>
+        <label asp-for="FullPath"></label>
         <label class="text-danger">*</label>
     </div>
     <div class="col-8 col-lg-3">
-        <input type="text" class="form-control" asp-for="DirectoryPath">
+        <select class="form-control"
+                data-container="body"
+                asp-for="FullPath">
+        </select>
     </div>
+    <div class="col-12 col-lg-8 offset-lg-2"><span id="labelErrorDirectoryPath" class="text-danger"></span></div>
 </div>
 <div class="form-group row">
     <div class="col-12 col-lg-2 col-form-label">

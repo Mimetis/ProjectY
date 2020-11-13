@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Ygdra.Core.Entities.Entities;
@@ -10,19 +11,12 @@ namespace Ygdra.Web.UI.Models
 {
     public class EntityViewDelimitedText : EntityView
     {
+        private YEntityDelimitedText entity;
 
-        public new YEntityDelimitedText Entity { get; set; }
-
-        public EntityViewDelimitedText() : base()
-        {
-
-        }
-
-        public EntityViewDelimitedText(EntityView entityView = null) : base(entityView)
-        {
-            this.Entity = new YEntityDelimitedText(entityView.Entity);
-        }
-
+        public EntityViewDelimitedText() => this.entity = new YEntityDelimitedText();
+        public override YEntity Entity => this.entity;
+        public override bool IsNew { get; set; }
+        public override Guid EngineId { get; set; }
         public override string Icon => "svg-i-100x100-DelimitedText";
         public override string PartialView => "_AzureDataLakeStorageDelimitedPartial";
         public override string TypeString => "Delimited Text (csv)";
@@ -37,39 +31,60 @@ namespace Ygdra.Web.UI.Models
         /// </summary>
         public List<SelectListItem> DataSourcesItems => DataSourcesItemsString?.Split(",").OrderBy(l => l).Select(l => new SelectListItem(l, l)).ToList();
 
-        [Required(ErrorMessage = "Directory Path is required")]
-        [Display(Name = "Directory Path")]
-        public string FolderPath { get => Entity.FolderPath; set => Entity.FolderPath = value; }
+
+        [Display(Name = "File or Directory Path")]
+        public string FullPath
+        {
+            get
+            {
+                var path = Path.Join(new[] { this.FileSystem, this.FolderPath, this.FileName });
+                return path;
+            }
+            set
+            {
+                var fileSystem = value.Split("/")[0];
+                var fileName = new FileInfo(value).Name;
+
+                this.FileSystem = fileSystem;
+                this.FileName = fileName;
+                this.FolderPath = value.Replace(fileSystem, "").Replace(fileName, "");
+
+            }
+        }
+
+
+        [Display(Name = "Folder Path")]
+        public string FolderPath { get => this.entity.FolderPath; set => this.entity.FolderPath = value; }
 
         [Display(Name = "File System")]
-        public string FileSystem { get => Entity.FileSystem; set => Entity.FileSystem = value; }
+        public string FileSystem { get => this.entity.FileSystemOrContainer; set => this.entity.FileSystemOrContainer = value; }
 
         [Display(Name = "File Name")]
-        public string FileName { get => Entity.FileName; set => Entity.FileName = value; }
+        public string FileName { get => this.entity.FileName; set => this.entity.FileName = value; }
 
         [Display(Name = "Null Value")]
-        public string NullValue { get => Entity.NullValue; set => Entity.NullValue = value; }
+        public string NullValue { get => this.entity.NullValue; set => this.entity.NullValue = value; }
 
         [Display(Name = "First Row As Header")]
-        public bool FirstRowAsHeader { get => Entity.FirstRowAsHeader; set => Entity.FirstRowAsHeader = value; }
+        public bool FirstRowAsHeader { get => this.entity.FirstRowAsHeader; set => this.entity.FirstRowAsHeader = value; }
 
         [Display(Name = "Compression Type")]
-        public string CompressionCodec { get => this.Entity.CompressionCodec; set => this.Entity.CompressionCodec = value; }
+        public string CompressionCodec { get => this.entity.CompressionCodec; set => this.entity.CompressionCodec = value; }
 
         [Display(Name = "Column Delimited")]
-        public string ColumnDelimiter { get => this.Entity.ColumnDelimiter; set => this.Entity.ColumnDelimiter = value; }
+        public string ColumnDelimiter { get => this.entity.ColumnDelimiter; set => this.entity.ColumnDelimiter = value; }
 
         [Display(Name = "Row Delimiter")]
-        public string RowDelimiter { get => this.Entity.RowDelimiter; set => this.Entity.RowDelimiter = value; }
+        public string RowDelimiter { get => this.entity.RowDelimiter; set => this.entity.RowDelimiter = value; }
 
         [Display(Name = "Encoding Type")]
-        public string EncodingName { get => this.Entity.EncodingName; set => this.Entity.EncodingName = value; }
+        public string EncodingName { get => this.entity.EncodingName; set => this.entity.EncodingName = value; }
 
         [Display(Name = "Escape Character")]
-        public string EscapeChar { get => this.Entity.EscapeChar; set => this.Entity.EscapeChar = value; }
+        public string EscapeChar { get => this.entity.EscapeChar; set => this.entity.EscapeChar = value; }
 
         [Display(Name = "Quote Character")]
-        public string QuoteChar { get => this.Entity.QuoteChar; set => this.Entity.QuoteChar = value; }
+        public string QuoteChar { get => this.entity.QuoteChar; set => this.entity.QuoteChar = value; }
 
 
         public string DirectoryPath { get; set; }
