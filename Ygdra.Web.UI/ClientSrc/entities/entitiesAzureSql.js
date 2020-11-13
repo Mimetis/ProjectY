@@ -14,9 +14,7 @@ export class entitiesAzureSql {
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
-        if (!this.isLoaded) {
-            await element.loadAsync(`/entities/new/entities?dvt=AzureSqlTable&engineId=${engineId}`);
-        }
+        await element.loadAsync(`/entities/new/entities?dvt=AzureSqlTable&engineId=${engineId}`);
 
         // get errors labels
         this.$labelErrorDataSources = $("#labelErrorDataSources");
@@ -33,11 +31,7 @@ export class entitiesAzureSql {
         // on table change, set the correct attributes for the preview button
         this.$tablesSelect.change(() => { this.setPreviewDataAttributes(engineId) });
 
-        if (!this.isLoaded) {
-            setTimeout(() => this.refreshDataSourcesAsync(engineId), 10);
-        }
-
-        this.isLoaded = true;
+        setTimeout(() => this.refreshDataSourcesAsync(engineId), 10);
     }
 
     async refreshDataSourcesAsync(engineId) {

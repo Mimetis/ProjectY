@@ -7,13 +7,9 @@
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
-        if (!this.isLoaded) {
-            await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=AzureBlobFS`);
-        }
-
+        await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=AzureBlobFS`);
 
         this.isLoaded = true;
-
     }
 
 }

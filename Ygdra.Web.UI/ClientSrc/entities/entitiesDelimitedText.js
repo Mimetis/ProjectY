@@ -16,9 +16,7 @@ export class entitiesDelimitedText {
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
-        if (!this.isLoaded) {
-            await element.loadAsync(`/entities/new/entities?dvt=DelimitedText&engineId=${engineId}`);
-        }
+        await element.loadAsync(`/entities/new/entities?dvt=DelimitedText&engineId=${engineId}`);
 
         // transform all select picker into selectpicker
         $('select').selectpicker();
@@ -39,7 +37,6 @@ export class entitiesDelimitedText {
         if (!this.isLoaded) {
             setTimeout(() => this.refreshDataSourcesAsync(engineId), 10);
         }
-        this.isLoaded = true;
     }
 
 

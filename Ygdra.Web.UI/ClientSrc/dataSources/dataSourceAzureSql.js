@@ -7,14 +7,8 @@ export class dataSourceAzureSql {
     async loadAsync(engineId, htmlFieldPrefix, element) {
 
         this.htmlFieldPrefix = htmlFieldPrefix;
-
-
-        if (!this.isLoaded) {
-            await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=AzureSqlDatabase`);
-        }
- 
+        await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=AzureSqlDatabase`);
         this.isLoaded = true;
-
     }
 
 }

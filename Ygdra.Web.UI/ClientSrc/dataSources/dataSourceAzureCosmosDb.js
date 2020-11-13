@@ -7,11 +7,8 @@
 
         this.htmlFieldPrefix = htmlFieldPrefix;
 
-        if (!this.isLoaded) {
-            await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=CosmosDb`);
-        }
+        await element.loadAsync(`/dataSources/new/properties?engineId=${engineId}&dvt=CosmosDb`);
 
-        this.isLoaded = true;
 
     }
 }
