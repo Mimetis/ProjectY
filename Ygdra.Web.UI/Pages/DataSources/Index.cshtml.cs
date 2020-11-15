@@ -9,6 +9,7 @@ using Ygdra.Core.DataSources.Entities;
 using Ygdra.Core.Engine.Entities;
 using Ygdra.Core.Http;
 using Ygdra.Web.UI.Components.BreadCrumb;
+using Ygdra.Web.UI.Controllers;
 using Ygdra.Web.UI.Models;
 
 namespace Ygdra.Web.UI.Pages.DataSources
@@ -19,35 +20,48 @@ namespace Ygdra.Web.UI.Pages.DataSources
     {
 
         private readonly IYHttpRequestHandler client;
+        private readonly DataFactoriesController dataFactoriesController;
+        private readonly EnginesController enginesController;
 
-        public IndexModel(IYHttpRequestHandler client)
+        public IndexModel(IYHttpRequestHandler client, DataFactoriesController dataFactoriesController, EnginesController enginesController)
         {
             this.client = client;
+            this.dataFactoriesController = dataFactoriesController;
+            this.enginesController = enginesController;
         }
 
         public async Task<IActionResult> OnGetDataSourcesAsync(string engineId)
         {
+            var all = await dataFactoriesController.GetDataSourcesAsync(Guid.Parse(engineId)).ConfigureAwait(false); ;
 
-            var response = await this.client.ProcessRequestApiAsync<List<YDataSource>>(
-                $"api/Datafactories/{engineId}/links").ConfigureAwait(false);
-            var all = response.Value;
 
-            var views = all?.Select(item => item.ToTypedDataSourceView()).ToList() ?? new List<DataSourceView>();
+            if (!all.HasError)
+            {
+                var views = all.Value?.Select(item => item.ToTypedDataSourceView()).ToList() ?? new List<DataSourceView>();
+                return new JsonResult(views);
+            }
 
-            return new JsonResult(views);
+            return new JsonResult(null);
+
         }
 
         public async Task<IActionResult> OnGetEnginesAsync()
         {
 
-            var response = await this.client.ProcessRequestApiAsync<List<YEngine>>($"api/Engines").ConfigureAwait(false);
-            var allEngineRequests = response.Value;
+            var allEngineRequests = await this.enginesController.GetEnginesAsync().ConfigureAwait(false);
 
-            var engineRequestsView = allEngineRequests?.Select(er => new EngineView(er)).ToList() ?? new List<EngineView>();
+            if (!allEngineRequests.HasError)
+            {
 
-            engineRequestsView = engineRequestsView.Where(erv => erv.Status == YEngineStatus.Deployed).ToList();
+                var engineRequestsView = allEngineRequests.Value?.Select(er => new EngineView(er)).ToList() ?? new List<EngineView>();
 
-            return new JsonResult(engineRequestsView);
+                engineRequestsView = engineRequestsView.Where(erv => erv.Status == YEngineStatus.Deployed).ToList();
+
+                return new JsonResult(engineRequestsView);
+
+            }
+
+            return new JsonResult(null);
 
         }
 

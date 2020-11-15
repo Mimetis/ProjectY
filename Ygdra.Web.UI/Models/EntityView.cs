@@ -64,7 +64,7 @@ namespace Ygdra.Web.UI.Models
     {
         private readonly YEntity entity;
 
-        public EntityViewUnknown() => this.entity = new YEntity() { EntityType = YEntityType.None };
+        public EntityViewUnknown() => this.entity = new YEntityUnknown() { EntityType = YEntityType.None };
 
         public EntityViewUnknown(YEntity entity) => this.entity = entity;
 

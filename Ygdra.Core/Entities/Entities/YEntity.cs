@@ -13,42 +13,24 @@ namespace Ygdra.Core.Entities.Entities
 
     public class YEntities
     {
-        public IList<YEntity> Value { get; set; }
+        public IList<YEntityUnknown> Value { get; set; }
     }
 
-    public class YEntity
+    public abstract class YEntity
     {
-        public YEntity(YEntity other = null)
+        public YEntity()
         {
-            if (other == null)
-                return;
-
-            this.Name = other.Name;
-            this.DataSourceName = other.DataSourceName;
-            this.Type = other.Type;
-            this.Version = other.Version;
-            this.EntityType = other.EntityType;
-            this.AdditionalData = other.AdditionalData;
-
-            if (this.AdditionalData?["properties"] is JObject props)
-                this.OnDeserialized(props);
-
         }
-
         public string DataSourceName { get; set; }
-
         public string Name { get; set; }
-
         public string Type { get; set; }
+        public string Version { get; set; } = string.Empty;
 
         [JsonIgnore]
         public YEntityType EntityType { get; set; }
 
         [JsonExtensionData]
         public Dictionary<string, JToken> AdditionalData { get; set; }
-
-        public string Version { get; set; } = string.Empty;
-
 
         [OnSerializing]
         public void OnSerializing(StreamingContext context)
@@ -63,7 +45,7 @@ namespace Ygdra.Core.Entities.Entities
             AdditionalData["properties"]["linkedServiceName"].Merge("type", "LinkedServiceReference");
             AdditionalData["properties"]["linkedServiceName"].Merge("referenceName", DataSourceName);
 
-            if (!String.IsNullOrEmpty(this.Version))
+            if (!string.IsNullOrEmpty(this.Version))
             {
                 var versionArray = new JArray();
                 versionArray.Add($"ProjectY_Version={this.Version}");
@@ -73,7 +55,7 @@ namespace Ygdra.Core.Entities.Entities
             this.OnSerializing((JObject)AdditionalData["properties"]);
         }
 
-        public virtual void OnSerializing(JObject properties) { }
+        public abstract void OnSerializing(JObject properties);
 
         [OnDeserialized]
         public void OnDeserialized(StreamingContext context)
@@ -90,23 +72,35 @@ namespace Ygdra.Core.Entities.Entities
 
                 this.DataSourceName = AdditionalData?["properties"]?["linkedServiceName"]?["referenceName"].ToString();
 
-                var annotations = AdditionalData?["properties"]?["annotations"] as JArray;
-
-                if (annotations != null && annotations.Count > 0)
+                if (AdditionalData?["properties"]?["annotations"] is JArray annotations && annotations.Count > 0)
                 {
-                    var versionString = annotations.FirstOrDefault(t => ((JValue)t).Value.ToString().StartsWith("ProjectY_Version"));
+                    var versionString = annotations.FirstOrDefault(t =>
+                            ((JValue)t).Value.ToString().StartsWith("ProjectY_Version"));
 
                     if (versionString != null)
                         this.Version = versionString.ToString().Replace("ProjectY_Version=", "");
                 }
 
-
-
                 this.OnDeserialized((JObject)AdditionalData["properties"]);
             }
         }
 
-        public virtual void OnDeserialized(JObject properties) { }
+        public abstract void OnDeserialized(JObject properties);
 
     }
+
+
+    public class YEntityUnknown : YEntity
+    {
+        public override void OnDeserialized(JObject properties)
+        {
+            
+        }
+
+        public override void OnSerializing(JObject properties)
+        {
+            
+        }
+    }
+
 }

@@ -66,20 +66,20 @@ namespace Ygdra.Host.Controllers
             var cs = await keyVaultsController.GetKeyVaultSecret(engineId, dataSourceName);
 
             if (cs == null)
-                throw new Exception($"Can't get secret for DataSource {dataSourceName}");
-
+                throw new Exception($"Can't get secret for Data Source {dataSourceName}");
 
             var dataSource = await this.dataFactoriesController.GetDataSourceAsync(engineId, dataSourceName);
 
             if (dataSource.Value == null)
                 throw new Exception("Can't get datasource");
 
-            var sqlDatabaseSource = YDataSourceFactory.GetTypedDatSource(dataSource.Value) as YDataSourceAzureSqlDatabase;
+            if (dataSource.Value.DataSourceType != YDataSourceType.AzureSqlDatabase)
+                throw new Exception($"Data Source {dataSourceName} is not a Sql Data Source");
 
-            if (sqlDatabaseSource == null)
-                throw new Exception($"Data Source {dataSourceName} is not a Sql data source");
-
-            sqlDatabaseSource.Password = cs.Value;
+            var sqlDatabaseSource = new YDataSourceAzureSqlDatabase(dataSource.Value)
+            {
+                Password = cs.Value
+            };
 
             using var sqlConnection = new SqlConnection(sqlDatabaseSource.ConnectionString);
 
@@ -141,12 +141,13 @@ namespace Ygdra.Host.Controllers
             if (dataSource.Value == null)
                 throw new Exception("Can't get datasource");
 
-            var sqlDatabaseSource = YDataSourceFactory.GetTypedDatSource(dataSource.Value) as YDataSourceAzureSqlDatabase;
+            if (dataSource.Value.DataSourceType != YDataSourceType.AzureSqlDatabase)
+                throw new Exception($"Data Source {dataSourceName} is not a Sql Data Source");
 
-            if (sqlDatabaseSource == null)
-                throw new Exception($"Data Source {dataSourceName} is not a Sql data source");
-
-            sqlDatabaseSource.Password = cs.Value;
+            var sqlDatabaseSource = new YDataSourceAzureSqlDatabase(dataSource.Value)
+            {
+                Password = cs.Value
+            };
 
             using var sqlConnection = new SqlConnection(sqlDatabaseSource.ConnectionString);
 
@@ -212,15 +213,13 @@ namespace Ygdra.Host.Controllers
 
             var dataSource = await this.dataFactoriesController.GetDataSourceAsync(engineId, dataSourceName);
 
-            if (dataSource.Value == null)
-                throw new Exception("Can't get datasource");
+            if (dataSource.Value.DataSourceType != YDataSourceType.AzureSqlDatabase)
+                throw new Exception($"Data Source {dataSourceName} is not a Sql Data Source");
 
-            var sqlDatabaseSource = YDataSourceFactory.GetTypedDatSource(dataSource.Value) as YDataSourceAzureSqlDatabase;
-
-            if (sqlDatabaseSource == null)
-                throw new Exception($"Data Source {dataSourceName} is not a Sql data source");
-
-            sqlDatabaseSource.Password = cs.Value;
+            var sqlDatabaseSource = new YDataSourceAzureSqlDatabase(dataSource.Value)
+            {
+                Password = cs.Value
+            };
 
             using var sqlConnection = new SqlConnection(sqlDatabaseSource.ConnectionString);
 

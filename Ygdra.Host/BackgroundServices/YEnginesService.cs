@@ -93,7 +93,7 @@ namespace Ygdra.Host.BackgroundServices
                 var linkedServiceDatabricks = await CreateDataFactoryDatabricksLinkedService(engine, cluster, clusterWorkspace, callerUserId).ConfigureAwait(false);
 
                 // Create link service for databricks
-                var linkedServiceStorage = await CreateDataFactoryStorageLinkedService(engine, cluster, storage, callerUserId).ConfigureAwait(false);
+                var linkedServiceStorage = await CreateDataFactoryDataLakeGen2LinkedService(engine, storage, callerUserId).ConfigureAwait(false);
 
                 // Set a datetime to the deployment
                 var message = $"{DateTime.Now.ToShortDateString()}. Deployment of your engine called {engine.EngineName} is done.";
@@ -314,13 +314,14 @@ namespace Ygdra.Host.BackgroundServices
             }
         }
 
-
         private async Task<JObject> CreateDataFactoryDatabricksLinkedService(YEngine engine,
             YDatabricksCluster dbricks, YResource workspace, Guid? callerUserId = default)
         {
+
+            var name = $"dsDatabricks-{engine.ClusterName}";
             var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{engine.ResourceGroupName}/" +
                           $"providers/Microsoft.DataFactory/factories/{engine.FactoryName}/linkedservices/" +
-                          $"LS_{engine.ClusterName}";
+                          $"{name}";
 
             var query = $"api-version={DataFactoryApiVersion}";
 
@@ -353,16 +354,20 @@ namespace Ygdra.Host.BackgroundServices
             var dbricksTokenResponse = await this.client.ProcessRequestManagementAsync<JObject>(
                 pathUri, query, typeProperties, HttpMethod.Put).ConfigureAwait(false);
 
+            await keyVaultsController.SetKeyVaultSecret(engine.Id, engine.ClusterName,
+              new YKeyVaultSecretPayload { Key = name, Value = token });
+
+
             await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
-                $"Data factory {engine.FactoryName}. Linked Service for Databricicks LS_{engine.ClusterName} created.", callerUserId).ConfigureAwait(false);
+                $"Data factory {engine.FactoryName}. Linked Service for Databricicks {name} created.", callerUserId).ConfigureAwait(false);
 
             return dbricksTokenResponse.Value;
 
 
         }
 
-        private async Task<JObject> CreateDataFactoryStorageLinkedService(YEngine engine,
-       YDatabricksCluster dbricks, YResource storageResource, Guid? callerUserId = default)
+        private async Task<JObject> CreateDataFactoryDataLakeGen2LinkedService(YEngine engine,
+            YResource storageResource, Guid? callerUserId = default)
         {
 
             // get keys
@@ -377,27 +382,34 @@ namespace Ygdra.Host.BackgroundServices
                 pathStorageKeysUri, queryStorageKey, null, HttpMethod.Post).ConfigureAwait(false);
 
 
+            var name = $"dsLake-{engine.StorageName}";
+
             var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{engine.ResourceGroupName}/" +
                           $"providers/Microsoft.DataFactory/factories/{engine.FactoryName}/linkedservices/" +
-                          $"LS_{engine.StorageName}";
+                          $"{name}";
 
             var query = $"api-version={DataFactoryApiVersion}";
 
             var storageAccountName = storageResource.Name;
             var storageAccountKey = storageKeyResponse.Value["keys"][0]["value"].ToString();
 
-            var storageDataSource = new YDataSourceAzureBlobFS();
-            storageDataSource.Description = "Storage Linked Service, created during deployment";
-            storageDataSource.Name = $"LS_{engine.StorageName}";
-            storageDataSource.StorageAccountKey = storageAccountKey;
-            storageDataSource.StorageAccountName = storageAccountName;
+            var storageDataSource = new YDataSourceAzureBlobFS
+            {
+                Description = "Data Lake Gen 2 Storage Linked Service, created during deployment",
+                Name = name,
+                StorageAccountKey = storageAccountKey,
+                StorageAccountName = storageAccountName
+            };
 
             // Get the response. we may want to create a real class for this result ?
             var storageLinkResponse = await this.client.ProcessRequestManagementAsync<JObject>(
                 pathUri, query, storageDataSource, HttpMethod.Put).ConfigureAwait(false);
 
+            await keyVaultsController.SetKeyVaultSecret(engine.Id, engine.ClusterName,
+                new YKeyVaultSecretPayload { Key = name, Value = storageAccountKey });
+
             await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
-                $"Data factory {engine.FactoryName}. Linked Service for Azure Data Lake Gen 2 LS_{engine.StorageName} created.", callerUserId).ConfigureAwait(false);
+                $"Data factory {engine.FactoryName}. Linked Service for Azure Data Lake Gen 2 {name} created.", callerUserId).ConfigureAwait(false);
 
             return storageLinkResponse.Value;
 

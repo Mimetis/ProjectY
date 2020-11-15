@@ -55,11 +55,11 @@ namespace Ygdra.Web.UI.Controllers
 
         [HttpGet()]
         [Route("{engineId}/entities")]
-        public Task<YJsonResult<List<YEntity>>> GetEntitiesAsync(Guid engineId)
+        public Task<YJsonResult<List<YEntityUnknown>>> GetEntitiesAsync(Guid engineId)
         {
             return YExecuteAsync(async () =>
             {
-                var response = await this.client.ProcessRequestApiAsync<List<YEntity>>($"api/DataFactories/{engineId}/entities", null).ConfigureAwait(false);
+                var response = await this.client.ProcessRequestApiAsync<List<YEntityUnknown>>($"api/DataFactories/{engineId}/entities", null).ConfigureAwait(false);
                 return response.Value;
             });
 
@@ -67,16 +67,15 @@ namespace Ygdra.Web.UI.Controllers
 
         [HttpGet()]
         [Route("{engineId}/links")]
-        public Task<YJsonResult<List<YDataSource>>> GetDataSourcesAsync(Guid engineId, string dataSourceType = null)
+        public Task<YJsonResult<List<YDataSourceUnknown>>> GetDataSourcesAsync(Guid engineId, string dataSourceType = null)
         {
             return YExecuteAsync(async () =>
             {
-                var response = await this.client.ProcessRequestApiAsync<List<YDataSource>>($"api/DataFactories/{engineId}/links", null).ConfigureAwait(false);
+                var response = await this.client.ProcessRequestApiAsync<List<YDataSourceUnknown>>($"api/DataFactories/{engineId}/links", null).ConfigureAwait(false);
                 var dataSources = response.Value;
 
                 if (!string.IsNullOrEmpty(dataSourceType) && Enum.TryParse<YDataSourceType>(dataSourceType, out var ydt))
                     dataSources = dataSources.Where(ds => ds.DataSourceType == ydt).ToList();
-
 
                 return dataSources;
             });
@@ -86,11 +85,11 @@ namespace Ygdra.Web.UI.Controllers
 
         [HttpPut]
         [Route("{engineId}/links/{dataSourceName}/entities/{entityName}")]
-        public Task<YJsonResult<YEntity>> AddEntityAsync(Guid engineId, string dataSourceName, string entityName, [FromBody] YEntity payload)
+        public Task<YJsonResult<YEntityUnknown>> AddEntityAsync(Guid engineId, string dataSourceName, string entityName, [FromBody] YEntity payload)
         {
             return YExecuteAsync(async () =>
             {
-                var response = await this.client.ProcessRequestApiAsync<YEntity>(
+                var response = await this.client.ProcessRequestApiAsync<YEntityUnknown>(
                     $"api/DataFactories/{engineId}/links/{dataSourceName}/entities/{entityName}",
                     null, payload, HttpMethod.Put).ConfigureAwait(false);
 

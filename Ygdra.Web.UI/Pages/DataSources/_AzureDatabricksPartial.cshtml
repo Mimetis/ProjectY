@@ -5,9 +5,12 @@
         <label asp-for="WorkspaceUrl"></label>
         <label class="text-danger">*</label>
     </div>
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-lg-6">
         <div class="input-group">
-            <input type="text" class="form-control" asp-for="WorkspaceUrl" placeholder="Your Account">
+            <div class="input-group-prepend hide-sm">
+                <span class="input-group-text">https://</span>
+            </div>
+            <input type="text" class="form-control" asp-for="WorkspaceUrl" placeholder="Databricks Account">
             <div class="input-group-append hide-sm">
                 <span class="input-group-text">.azuredatabricks.net</span>
             </div>
@@ -20,10 +23,10 @@
         <label asp-for="AccessToken"></label>
         <label class="text-danger">*</label>
     </div>
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-lg-6">
         <div class="input-group">
             <input type="text" class="form-control" asp-for="AccessToken">
-            <div class="pl-1">
+            <div class="input-group-append hide-sm">
                 <a href="https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication#token-management" target="_blank" class="btn btn-outline-light2 hide-sm" id="testConnectionButton">
                     <span class="hide-lg">About</span>
                     <i class="fas fa-question-circle"></i>
@@ -37,7 +40,7 @@
         <label asp-for="ExistingClusterId"></label>
         <label class="text-danger">*</label>
     </div>
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-lg-6">
         <input type="text" class="form-control" asp-for="ExistingClusterId">
     </div>
 </div>

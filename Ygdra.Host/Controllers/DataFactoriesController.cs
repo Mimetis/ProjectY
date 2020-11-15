@@ -76,7 +76,8 @@ namespace Ygdra.Host.Controllers
 
         [HttpPut()]
         [Route("{engineId}/links/{dataSourceName}")]
-        public async Task<ActionResult<YDataSource>> AddDataSourceAsync(Guid engineId, string dataSourceName, [FromBody] YDataSource dataSource)
+        public async Task<ActionResult<YDataSource>> AddDataSourceAsync(Guid engineId, 
+            string dataSourceName, [FromBody] YDataSourceUnknown dataSource)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
 
@@ -96,11 +97,10 @@ namespace Ygdra.Host.Controllers
 
             var query = $"api-version={DataFactoryApiVersion}";
 
-            // Get typed instance to get the correct call to GetSensitiveString()
-            var typeDataSource = YDataSourceFactory.GetTypedDatSource(dataSource);
+            var typedDataSource = YDataSourceFactory.GetTypedDatSource(dataSource);
 
             // get sensitive string if any
-            string sensitiveString = typeDataSource.GetSensitiveString();
+            string sensitiveString = typedDataSource.GetSensitiveString();
 
             if (!string.IsNullOrEmpty(sensitiveString))
             {
@@ -111,8 +111,8 @@ namespace Ygdra.Host.Controllers
             }
 
             // Get the response. we may want to create a real class for this result ?
-            var response = await this.client.ProcessRequestManagementAsync<YDataSource>(
-                pathUri, query, dataSource, HttpMethod.Put).ConfigureAwait(false);
+            var response = await this.client.ProcessRequestManagementAsync<YDataSourceUnknown>(
+                pathUri, query, typedDataSource, HttpMethod.Put).ConfigureAwait(false);
 
             return response.Value;
         }
@@ -199,7 +199,7 @@ namespace Ygdra.Host.Controllers
  
         [HttpPost()]
         [Route("{engineId}/test")]
-        public async Task<IActionResult> TestAsync(Guid engineId, [FromBody] YDataSource dataSource)
+        public async Task<IActionResult> TestAsync(Guid engineId, [FromBody] YDataSourceUnknown dataSource)
         {
             var isOk = await this.dataSourcesService.TestAsync(dataSource);
             return new JsonResult(isOk);
@@ -232,7 +232,7 @@ namespace Ygdra.Host.Controllers
 
             var dataSources = dbricksTokenResponse.Value.Value;
 
-            return new YJsonResult<List<YDataSource>>(dataSources);
+            return new YJsonResult<List<YDataSourceUnknown>>(dataSources);
         }
 
 
@@ -255,7 +255,7 @@ namespace Ygdra.Host.Controllers
             var query = $"api-version={DataFactoryApiVersion}";
 
             // Get the response. we may want to create a real class for this result ?
-            var dbricksTokenResponse = await this.client.ProcessRequestManagementAsync<YDataSource>(
+            var dbricksTokenResponse = await this.client.ProcessRequestManagementAsync<YDataSourceUnknown>(
                 pathUri, query).ConfigureAwait(false);
 
             if (dbricksTokenResponse.StatusCode == HttpStatusCode.NotFound)
@@ -268,7 +268,7 @@ namespace Ygdra.Host.Controllers
 
         [HttpGet()]
         [Route("{engineId}/entities")]
-        public async Task<ActionResult<List<YEntity>>> GetEntitiesAsync(Guid engineId)
+        public async Task<ActionResult<List<YEntityUnknown>>> GetEntitiesAsync(Guid engineId)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
 

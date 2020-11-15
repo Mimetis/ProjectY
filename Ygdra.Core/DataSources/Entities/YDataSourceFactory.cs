@@ -18,11 +18,13 @@ namespace Ygdra.Core.DataSources.Entities
             switch (dataSource.DataSourceType)
             {
                 case YDataSourceType.AzureBlobStorage:
+                    return new YDataSourceAzureBlobStorage(dataSource);
                 case YDataSourceType.AzureBlobFS:
                     return new YDataSourceAzureBlobFS(dataSource);
                 case YDataSourceType.AzureSqlDatabase:
-                case YDataSourceType.AzureSqlDW:
                     return new YDataSourceAzureSqlDatabase(dataSource);
+                case YDataSourceType.AzureSqlDW:
+                    return new YDataSourceAzureSqlDW(dataSource);
                 case YDataSourceType.AzureDatabricks:
                     return new YDataSourceAzureDatabricks(dataSource);
                 case YDataSourceType.CosmosDb:

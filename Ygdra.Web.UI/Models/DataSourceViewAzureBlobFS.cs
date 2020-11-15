@@ -10,11 +10,11 @@ namespace Ygdra.Web.UI.Models
     public class DataSourceViewAzureBlobFS : DataSourceView
     {
 
-        private readonly YDataSourceAzureBlobFS dataSource;
+        private readonly YDataSourceAzureBlob dataSource;
 
         public DataSourceViewAzureBlobFS()
         {
-            this.dataSource = new YDataSourceAzureBlobFS { DataSourceType = YDataSourceType.AzureBlobStorage };
+            this.dataSource = new YDataSourceAzureBlobFS();
         }
 
         public override YDataSource DataSource { get => this.dataSource; }

@@ -12,17 +12,19 @@ namespace Ygdra.Core.DataSources.Entities
 
     public class YDataSources
     {
-        public List<YDataSource> Value { get; set; }
+        public List<YDataSourceUnknown> Value { get; set; }
     }
 
-    public class YDataSource
+    public abstract class YDataSource
     {
 
-        public YDataSource(YDataSource other = null)
+        public YDataSource()
         {
-            if (other == null)
-                return;
 
+        }
+
+        public YDataSource(YDataSource other)
+        {
             this.Name = other.Name;
             this.Type = other.Type;
             this.DataSourceType = other.DataSourceType;
@@ -34,18 +36,14 @@ namespace Ygdra.Core.DataSources.Entities
         }
 
         public string Name { get; set; }
-
         public string Type { get; set; }
+        public string Description { get; set; }
 
         [JsonIgnore]
         public YDataSourceType DataSourceType { get; set; }
 
         [JsonExtensionData]
         public Dictionary<string, JToken> AdditionalData { get; set; }
-
-        public string Description { get; set; }
-
-
 
         [OnSerializing]
         public void OnSerializing(StreamingContext context)
@@ -61,8 +59,6 @@ namespace Ygdra.Core.DataSources.Entities
             this.OnSerializing((JObject)AdditionalData["properties"]);
 
         }
-
-        public virtual void OnSerializing(JObject properties) { }
 
         [OnDeserialized]
         public void OnDeserialized(StreamingContext context)
@@ -86,10 +82,24 @@ namespace Ygdra.Core.DataSources.Entities
             }
         }
 
-        public virtual void OnDeserialized(JObject properties) { }
+        public abstract void OnDeserialized(JObject properties);
+        public abstract void OnSerializing(JObject properties);
 
 
         public virtual string GetSensitiveString() => null;
 
     }
+
+    public class YDataSourceUnknown : YDataSource
+    {
+
+        public override void OnDeserialized(JObject properties)
+        {
+        }
+
+        public override void OnSerializing(JObject properties)
+        {
+        }
+    }
+
 }

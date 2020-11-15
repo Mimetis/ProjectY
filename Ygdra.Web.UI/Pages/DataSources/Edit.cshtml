@@ -60,6 +60,12 @@ else
                 <partial name="_AzureDataLakeGen2" model="Model.DataSourceView" />
 
             }
+            @if ((Model.DataSourceView as DataSourceViewAzureBlobStorage) != null)
+            {
+                ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                <partial name="_AzureBlobStorage" model="Model.DataSourceView" />
+
+            }
             @if ((Model.DataSourceView is DataSourceViewAzureDatabricks))
             {
                 ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);

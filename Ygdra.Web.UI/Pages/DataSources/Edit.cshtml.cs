@@ -34,7 +34,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
             try
             {
-                var response = await this.client.ProcessRequestApiAsync<YDataSource>(
+                var response = await this.client.ProcessRequestApiAsync<YDataSourceUnknown>(
                     $"api/Datafactories/{engineId}/links/{dataSourceName}").ConfigureAwait(false);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)

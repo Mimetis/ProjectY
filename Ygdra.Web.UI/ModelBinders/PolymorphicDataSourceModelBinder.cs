@@ -20,6 +20,8 @@ namespace Ygdra.Web.UI.ModelBinders
             var subclasses = new[] { typeof(DataSourceView),
                                      typeof(DataSourceViewUnknown),
                                      typeof(DataSourceViewAzureSqlDatabase),
+                                     typeof(DataSourceViewAzureSqlDatabase),
+                                     typeof(DataSourceViewAzureBlobStorage),
                                      typeof(DataSourceViewAzureBlobFS),
                                      typeof(DataSourceViewAzureDatabricks),
                                      typeof(DataSourceViewCosmosDb),
@@ -60,6 +62,8 @@ namespace Ygdra.Web.UI.ModelBinders
                 switch (dataSourceType)
                 {
                     case YDataSourceType.AzureBlobStorage:
+                        (modelMetadata, modelBinder) = binders[typeof(DataSourceViewAzureBlobStorage)];
+                        break;
                     case YDataSourceType.AzureBlobFS:
                         (modelMetadata, modelBinder) = binders[typeof(DataSourceViewAzureBlobFS)];
                         break;

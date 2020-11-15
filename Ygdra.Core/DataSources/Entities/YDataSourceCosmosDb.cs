@@ -11,11 +11,9 @@ namespace Ygdra.Core.DataSources.Entities
     public class YDataSourceCosmosDb : YDataSource
     {
 
-        public YDataSourceCosmosDb(YDataSource other = null) : base(other)
-        {
-            if (other != null && other.DataSourceType != YDataSourceType.None && other.DataSourceType != YDataSourceType.CosmosDb)
-                throw new Exception($"Can't create a type YDataSourceCosmosDb from this YDataSource {other}");
-        }
+        public YDataSourceCosmosDb() => this.DataSourceType = YDataSourceType.CosmosDb;
+        public YDataSourceCosmosDb(YDataSource dataSource) : base(dataSource)
+                => DataSourceType = YDataSourceType.CosmosDb;
 
         [JsonIgnore]
         public string AccountKey { get; set; }

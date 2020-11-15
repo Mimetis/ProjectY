@@ -24,7 +24,7 @@ namespace Ygdra.Web.UI.Controllers
 
         [HttpGet()]
         [Route("{engineId}/containers/{dataSourceName}")]
-        public Task<YJsonResult<JArray>> GetSettingsAsync(Guid engineId, string dataSourceName)
+        public Task<YJsonResult<JArray>> GetStoragesAsync(Guid engineId, string dataSourceName)
         {
             return YExecuteAsync(async () =>
             {

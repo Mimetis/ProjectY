@@ -93,9 +93,16 @@
                             </div>
                             <div class="card mb-4 shadow-sm">
                                 <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
-                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureBlobFS" id="DataSourceView.AzureDatabricks">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureBlobFS" id="DataSourceView.AzureBlobFs">
                                     <div class="svg-i-100x100-AzureBlob"></div>
                                     <div class="my-0 font-weight-normal">Azure Data Lake Storage V2</div>
+                                </div>
+                            </div>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
+                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureBlobStorage" id="DataSourceView.AzureBlobStorage">
+                                    <div class="svg-i-100x100-AzureBlob"></div>
+                                    <div class="my-0 font-weight-normal">Azure Blob Storage</div>
                                 </div>
                             </div>
                             <div class="card mb-4 shadow-sm">
@@ -106,12 +113,12 @@
                                 </div>
                             </div>
                             @*<div class="card mb-4 shadow-sm disabled">
-                                <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
-                                    <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureDatabricks" id="DataSourceView.AzureDatabricks" disabled>
-                                    <div class="svg-i-100x100-DataBricks"></div>
-                                    <div class="my-0 font-weight-normal">Azure Databricks</div>
-                                </div>
-                            </div>*@
+            <div class="btn btn-outline-dark card-body d-flex flex-column align-items-center">
+                <input type="radio" asp-for="DataSourceView.DataSourceType" value="AzureDatabricks" id="DataSourceView.AzureDatabricks" disabled>
+                <div class="svg-i-100x100-DataBricks"></div>
+                <div class="my-0 font-weight-normal">Azure Databricks</div>
+            </div>
+        </div>*@
                         </div>
 
                     </div>
@@ -145,6 +152,12 @@
                         {
                             ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
                             <partial name="_AzureDataLakeGen2" model="Model.DataSourceView" />
+
+                        }
+                        @if ((Model.DataSourceView as DataSourceViewAzureBlobStorage) != null)
+                        {
+                            ViewData.TemplateInfo.HtmlFieldPrefix = nameof(DataSourceView);
+                            <partial name="_AzureBlobStorage" model="Model.DataSourceView" />
 
                         }
                         @if ((Model.DataSourceView as DataSourceViewAzureDatabricks) != null)

@@ -11,11 +11,11 @@ namespace Ygdra.Core.DataSources.Entities
     public class YDataSourceAzureDatabricks : YDataSource
     {
 
-        public YDataSourceAzureDatabricks(YDataSource other = null) : base(other)
-        {
-            if (other != null && other.DataSourceType != YDataSourceType.None && other.DataSourceType != YDataSourceType.AzureDatabricks)
-                throw new Exception($"Can't create a type YDataSourceAzureDatabricks from this YDataSource {other}");
-        }
+        public YDataSourceAzureDatabricks() => this.DataSourceType = YDataSourceType.AzureDatabricks;
+
+        public YDataSourceAzureDatabricks(YDataSource dataSource) : base(dataSource)
+            => DataSourceType = YDataSourceType.AzureDatabricks;
+
 
         [JsonIgnore]
         public string AccessToken { get; set; }
@@ -28,7 +28,11 @@ namespace Ygdra.Core.DataSources.Entities
 
         public override void OnDeserialized(JObject properties)
         {
-            this.WorkspaceUrl = properties?["typeProperties"]?["workspaceUrl"]?.ToString();
+            var domain = properties?["typeProperties"]?["domain"]?.ToString();
+
+            if (!string.IsNullOrEmpty(domain))
+                this.WorkspaceUrl = domain.Replace("https://", "").Replace(".azuredatabricks.net", "");
+
             this.AccessToken = properties?["typeProperties"]?["accessToken"]?.ToString();
             this.ExistingClusterId = properties?["typeProperties"]?["existingClusterId"]?.ToString();
         }
@@ -39,7 +43,13 @@ namespace Ygdra.Core.DataSources.Entities
 
             var typeProperties = (JObject)properties["typeProperties"];
 
-            typeProperties.Merge("workspaceUrl", this.WorkspaceUrl);
+            if (!string.IsNullOrEmpty(this.WorkspaceUrl))
+            {
+                var domain = this.WorkspaceUrl.ToLower().StartsWith("https://") ? this.WorkspaceUrl : $"https://{this.WorkspaceUrl}";
+                domain = domain.EndsWith(".azuredatabricks.net") ? domain : $"{domain}.azuredatabricks.net";
+                typeProperties.Merge("domain", domain);
+            }
+
             typeProperties.Merge("accessToken", this.AccessToken);
             typeProperties.Merge("existingClusterId", this.ExistingClusterId);
         }

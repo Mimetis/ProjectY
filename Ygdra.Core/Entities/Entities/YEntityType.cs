@@ -5,7 +5,6 @@ using System.Text;
 
 namespace Ygdra.Core.Entities.Entities
 {
-
     public enum YEntityType
     { 
         None = 0,

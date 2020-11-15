@@ -71,6 +71,7 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
             var response = await this.client.ProcessRequestApiAsync<List<YDataSource>>(
                 $"api/Datafactories/{engineId}/links").ConfigureAwait(false);
+
             var all = response.Value;
             var views = all?.Select(item => new DataSourceViewUnknown(item));
             return new JsonResult(views);
@@ -96,7 +97,8 @@ namespace Ygdra.Web.UI.Pages.DataSources
 
             try
             {
-                await this.client.ProcessRequestApiAsync<YDataSource>($"api/DataFactories/{this.DataSourceView.EngineId}/links/{this.DataSourceView.Name}",
+                await this.client.ProcessRequestApiAsync<YDataSourceUnknown>($"api/DataFactories/{this.DataSourceView.EngineId}/links/{this.DataSourceView.Name}",
+
                     null, this.DataSourceView.DataSource, HttpMethod.Put).ConfigureAwait(false);
 
             }

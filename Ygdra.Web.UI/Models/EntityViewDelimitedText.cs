@@ -57,7 +57,7 @@ namespace Ygdra.Web.UI.Models
         public string FolderPath { get => this.entity.FolderPath; set => this.entity.FolderPath = value; }
 
         [Display(Name = "File System")]
-        public string FileSystem { get => this.entity.FileSystemOrContainer; set => this.entity.FileSystemOrContainer = value; }
+        public string FileSystem { get => this.entity.FileSystem; set => this.entity.FileSystem = value; }
 
         [Display(Name = "File Name")]
         public string FileName { get => this.entity.FileName; set => this.entity.FileName = value; }

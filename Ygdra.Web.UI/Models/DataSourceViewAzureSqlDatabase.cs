@@ -9,11 +9,11 @@ namespace Ygdra.Web.UI.Models
 {
     public class DataSourceViewAzureSqlDatabase : DataSourceView
     {
-        private YDataSourceAzureSqlDatabase dataSource;
+        private YDataSourceAzureSql dataSource;
 
         public DataSourceViewAzureSqlDatabase() 
         {
-            this.dataSource = new YDataSourceAzureSqlDatabase() { DataSourceType = YDataSourceType.AzureSqlDatabase };
+            this.dataSource = new YDataSourceAzureSqlDatabase();
         }
 
         public override YDataSource DataSource { get => this.dataSource;}

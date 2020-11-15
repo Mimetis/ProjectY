@@ -56,7 +56,7 @@ namespace Ygdra.Web.UI.Models
     {
         private YDataSource dataSource;
 
-        public DataSourceViewUnknown() => this.dataSource = new YDataSource();
+        public DataSourceViewUnknown() => this.dataSource = new YDataSourceUnknown();
 
         public DataSourceViewUnknown(YDataSource dataSource) => this.dataSource = dataSource;
 
@@ -75,7 +75,7 @@ namespace Ygdra.Web.UI.Models
         {
             DataSourceView ds = dataSourceType switch
             {
-                YDataSourceType.AzureBlobStorage => new DataSourceViewAzureBlobFS(),
+                YDataSourceType.AzureBlobStorage => new DataSourceViewAzureBlobStorage(),
                 YDataSourceType.AzureBlobFS => new DataSourceViewAzureBlobFS(),
                 YDataSourceType.AzureSqlDatabase => new DataSourceViewAzureSqlDatabase(),
                 YDataSourceType.AzureSqlDW => new DataSourceViewAzureSqlDatabase(),

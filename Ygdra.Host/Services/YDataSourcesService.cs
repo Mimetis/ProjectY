@@ -23,21 +23,24 @@ namespace Ygdra.Host.Services
 
         public async Task<bool> TestAsync(YDataSource dataSource)
         {
-            var typedDataSource = YDataSourceFactory.GetTypedDatSource(dataSource);
+            //var typedDataSource = YDataSourceFactory.GetTypedDatSource(dataSource);
 
-            switch (typedDataSource.DataSourceType)
+
+
+            switch (dataSource.DataSourceType)
             {
                 case YDataSourceType.AzureBlobStorage:
-                    break;
+                    return await TestBlobAccountConnectionAsync(new YDataSourceAzureBlobStorage(dataSource)).ConfigureAwait(false);
                 case YDataSourceType.AzureBlobFS:
-                    return await TestBlobAccountConnectionAsync((YDataSourceAzureBlobFS)typedDataSource).ConfigureAwait(false);
+                    return await TestBlobAccountConnectionAsync(new YDataSourceAzureBlobFS(dataSource)).ConfigureAwait(false);
                 case YDataSourceType.AzureSqlDatabase:
+                    return await TestSqlConnectionAsync(new YDataSourceAzureSqlDatabase(dataSource)).ConfigureAwait(false);
                 case YDataSourceType.AzureSqlDW:
-                    return await TestSqlConnectionAsync((YDataSourceAzureSqlDatabase)typedDataSource).ConfigureAwait(false);
+                    return await TestSqlConnectionAsync(new YDataSourceAzureSqlDW(dataSource)).ConfigureAwait(false);
                 case YDataSourceType.AzureDatabricks:
                     break;
                 case YDataSourceType.CosmosDb:
-                    return await TestCosmosDbAsync((YDataSourceCosmosDb)typedDataSource).ConfigureAwait(false);
+                    return await TestCosmosDbAsync(new YDataSourceCosmosDb(dataSource)).ConfigureAwait(false);
                 case YDataSourceType.None:
                     break;
             }
@@ -58,7 +61,7 @@ namespace Ygdra.Host.Services
 
             return true;
         }
-        private async Task<bool> TestSqlConnectionAsync(YDataSourceAzureSqlDatabase dataSource)
+        private async Task<bool> TestSqlConnectionAsync(YDataSourceAzureSql dataSource)
         {
             SqlConnection sqlConnection = null;
 
@@ -81,13 +84,11 @@ namespace Ygdra.Host.Services
             }
         }
 
-        private async Task<bool> TestBlobAccountConnectionAsync(YDataSourceAzureBlobFS dataSource)
+        private async Task<bool> TestBlobAccountConnectionAsync(YDataSourceAzureBlob dataSource)
         {
-
             StorageSharedKeyCredential sharedKeyCredential = new StorageSharedKeyCredential(dataSource.StorageAccountName, dataSource.StorageAccountKey);
 
-            // be careful, to get account detail, we are targeting ".bob." and not ".dfs"
-            string dfsUri = "https://" + dataSource.StorageAccountName + ".blob.core.windows.net";
+            string dfsUri = $"https://{dataSource.StorageAccountName }.blob.core.windows.net";
 
             var blobServiceClient = new BlobServiceClient(new Uri(dfsUri), sharedKeyCredential);
 
@@ -96,7 +97,6 @@ namespace Ygdra.Host.Services
             return true;
 
         }
-
-
+       
     }
 }

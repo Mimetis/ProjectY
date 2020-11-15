@@ -2,35 +2,35 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 using Ygdra.Core.Extensions;
 
 namespace Ygdra.Core.Entities.Entities
 {
     public class YEntityDelimitedText : YEntity
     {
-        public YEntityDelimitedText(YEntity other = null) : base(other)
-        {
-            if (other != null && other.EntityType != YEntityType.None && other.EntityType != YEntityType.DelimitedText)
-                throw new Exception($"Can't create a type YEntityAzureSqlTable from this YEntity {other}");
-
-            this.EntityType = YEntityType.DelimitedText;
-        }
-
-        public Boolean IsForDataLakeGen2 { get; set; }
+        public YEntityDelimitedText() : base() => this.EntityType = YEntityType.DelimitedText;
 
         public override void OnDeserialized(JObject properties)
         {
+            // Location
+
             this.FileName = properties?["typeProperties"]?["location"]?["fileName"]?.ToString();
             this.FolderPath = properties?["typeProperties"]?["location"]?["folderPath"]?.ToString();
+            var locationTypeString = properties?["typeProperties"]?["location"]?["type"]?.ToString();
+
+            if (!string.IsNullOrEmpty(locationTypeString) && Enum.TryParse<YEntityLocationType>(locationTypeString, out var locationType))
+                this.LocationType = locationType;
+            else
+                this.LocationType = YEntityLocationType.None;
 
             // for ADLS Gen 2
-            this.FileSystemOrContainer = properties?["typeProperties"]?["location"]?["fileSystem"]?.ToString();
-
-            if (!string.IsNullOrEmpty(this.FileSystemOrContainer))
-                this.IsForDataLakeGen2 = true;
+            this.FileSystem = properties?["typeProperties"]?["location"]?["fileSystem"]?.ToString();
 
             // for blob storage
-            this.FileSystemOrContainer = properties?["typeProperties"]?["location"]?["container"]?.ToString();
+            this.Container = properties?["typeProperties"]?["location"]?["container"]?.ToString();
+
+            // Properties
 
             this.ColumnDelimiter = properties?["typeProperties"]?["columnDelimiter"]?.ToString();
             this.RowDelimiter = properties?["typeProperties"]?["rowDelimiter"]?.ToString();
@@ -54,17 +54,26 @@ namespace Ygdra.Core.Entities.Entities
 
             typeProperties.Merge("location", new JObject());
 
+            // Location
+            
             var location = typeProperties["location"] as JObject;
 
-            location.Merge("type", "AzureBlobFSLocation");
-            location.Merge("fileName", this.FileName);
-            location.Merge("folderPath", this.FolderPath);
+            if (this.LocationType != YEntityLocationType.None)
+                location.Merge("type", Enum.GetName(typeof(YEntityLocationType), this.LocationType));
 
-            if (this.IsForDataLakeGen2)
-                location.Merge("fileSystem", this.FileSystemOrContainer);
-            else
-                location.Merge("container", this.FileSystemOrContainer);
+            if (!string.IsNullOrEmpty(this.FileName) && this.FileName.ToLowerInvariant() != "none")
+                location.Merge("fileName", this.FileName);
 
+            if (!string.IsNullOrEmpty(this.FolderPath) && this.FolderPath.ToLowerInvariant() != "none")
+                location.Merge("folderPath", this.FolderPath);
+
+            if (!string.IsNullOrEmpty(this.FileSystem) && this.FileSystem.ToLowerInvariant() != "none")
+                location.Merge("fileSystem", this.FileSystem);
+
+            if (!string.IsNullOrEmpty(this.Container) && this.Container.ToLowerInvariant() != "none")
+                location.Merge("container", this.Container);
+
+            // Properties
 
             if (!string.IsNullOrEmpty(this.ColumnDelimiter) && this.ColumnDelimiter.ToLowerInvariant() != "none")
                 typeProperties.Merge("columnDelimiter", this.ColumnDelimiter);
@@ -94,17 +103,35 @@ namespace Ygdra.Core.Entities.Entities
                 typeProperties.Merge("quoteChar", this.QuoteChar);
         }
 
-        public string FileSystemOrContainer { get; set; }
+
+        [JsonIgnore]
+        public YEntityLocationType LocationType { get; set; }
+
+        [JsonIgnore]
+        public string FileSystem { get; set; }
+        [JsonIgnore]
+        public string Container { get; set; }
+        [JsonIgnore]
         public string FolderPath { get; set; }
+        [JsonIgnore]
         public string FileName { get; set; }
+        [JsonIgnore]
         public string ColumnDelimiter { get; set; }
+        [JsonIgnore]
         public string RowDelimiter { get; set; }
+        [JsonIgnore]
         public string CompressionCodec { get; set; }
+        [JsonIgnore]
         public string CompressionLevel { get; set; } = "Fastest";
+        [JsonIgnore]
         public string EncodingName { get; set; }
+        [JsonIgnore]
         public string EscapeChar { get; set; }
+        [JsonIgnore]
         public bool FirstRowAsHeader { get; set; }
+        [JsonIgnore]
         public string NullValue { get; set; }
+        [JsonIgnore]
         public string QuoteChar { get; set; }
 
 

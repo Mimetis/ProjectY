@@ -3,6 +3,7 @@ import { wizardPage } from '../wizard/index.js';
 import { dataSourceAzureSql } from './dataSourceAzureSql.js';
 import { dataSourceAzureDataLakeV2 } from './dataSourceAzureDataLakeV2.js';
 import { dataSourceAzureCosmosDb } from './dataSourceAzureCosmosDb.js';
+import { dataSourceAzureBlobStorage } from './dataSourceAzureBlobStorage.js';
 
 export class dataSourceNew extends wizardPage {
 
@@ -12,6 +13,7 @@ export class dataSourceNew extends wizardPage {
         this.dataSourceAzureSql = new dataSourceAzureSql();
         this.dataSourceAzureDataLakeV2 = new dataSourceAzureDataLakeV2();
         this.dataSourceAzureCosmosDb = new dataSourceAzureCosmosDb();
+        this.dataSourceAzureBlobStorage = new dataSourceAzureBlobStorage();
         this.lastTypeSelected = '';
 
     }
@@ -57,6 +59,9 @@ export class dataSourceNew extends wizardPage {
                         if (type.toString().toLowerCase() == 'azureblobfs')
                             await this.dataSourceAzureDataLakeV2.loadAsync(engineId, this.htmlFieldPrefix, this.$properties);
 
+                        if (type.toString().toLowerCase() == 'azureblobstorage')
+                            await this.dataSourceAzureBlobStorage.loadAsync(engineId, this.htmlFieldPrefix, this.$properties);
+
                         if (type.toString().toLowerCase() == 'cosmosdb')
                             await this.dataSourceAzureCosmosDb.loadAsync(engineId, this.htmlFieldPrefix, this.$properties);
 
@@ -71,24 +76,6 @@ export class dataSourceNew extends wizardPage {
 
             }
         });
-
-
-        // Getting test button
-        this.$dataSourceTestButton = $("#dataSourceTestButton");
-
-        if (this.$dataSourceTestButton.length) {
-
-            this.$dataSourceTestButton.click(async (evt) => {
-
-                evt.preventDefault();
-
-                let engineId = $("#DataSourceView_EngineId").val();
-
-                if (engineId)
-                    await this.$dataSourceTestButton.testAsync(`/api/datafactories/${engineId}/test`);
-            });
-        }
-
     }
 
 
