@@ -24,11 +24,10 @@ namespace Ygdra.Core.Entities.Entities
             else
                 this.LocationType = YEntityLocationType.None;
 
-            // for ADLS Gen 2
-            this.FileSystem = properties?["typeProperties"]?["location"]?["fileSystem"]?.ToString();
-
-            // for blob storage
-            this.Container = properties?["typeProperties"]?["location"]?["container"]?.ToString();
+            if (this.LocationType == YEntityLocationType.AzureBlobFSLocation)
+                this.Container = properties?["typeProperties"]?["location"]?["fileSystem"]?.ToString();
+            else
+                this.Container = properties?["typeProperties"]?["location"]?["container"]?.ToString();
 
             // Properties
 
@@ -55,7 +54,7 @@ namespace Ygdra.Core.Entities.Entities
             typeProperties.Merge("location", new JObject());
 
             // Location
-            
+
             var location = typeProperties["location"] as JObject;
 
             if (this.LocationType != YEntityLocationType.None)
@@ -67,10 +66,9 @@ namespace Ygdra.Core.Entities.Entities
             if (!string.IsNullOrEmpty(this.FolderPath) && this.FolderPath.ToLowerInvariant() != "none")
                 location.Merge("folderPath", this.FolderPath);
 
-            if (!string.IsNullOrEmpty(this.FileSystem) && this.FileSystem.ToLowerInvariant() != "none")
-                location.Merge("fileSystem", this.FileSystem);
-
-            if (!string.IsNullOrEmpty(this.Container) && this.Container.ToLowerInvariant() != "none")
+            if (!string.IsNullOrEmpty(this.Container) && this.LocationType == YEntityLocationType.AzureBlobFSLocation)
+                location.Merge("fileSystem", this.Container);
+            else if (!string.IsNullOrEmpty(this.Container))
                 location.Merge("container", this.Container);
 
             // Properties
@@ -107,8 +105,6 @@ namespace Ygdra.Core.Entities.Entities
         [JsonIgnore]
         public YEntityLocationType LocationType { get; set; }
 
-        [JsonIgnore]
-        public string FileSystem { get; set; }
         [JsonIgnore]
         public string Container { get; set; }
         [JsonIgnore]

@@ -29,17 +29,16 @@ namespace Ygdra.Web.UI.Controllers
 
         [HttpPut()]
         [Route("{engineId}/links/{dataSourceName}")]
-        public Task<YJsonResult<YDataSource>> AddDataSourceAsync(Guid engineId, string dataSourceName, [FromBody] YDataSource payload)
+        public Task<YJsonResult<YDataSourceUnknown>> AddDataSourceAsync(Guid engineId, string dataSourceName, [FromBody] YDataSource payload)
         {
             return YExecuteAsync(async () =>
             {
-                var response = await this.client.ProcessRequestApiAsync<YDataSource>($"api/DataFactories/{engineId}/links/{dataSourceName}",
+                var response = await this.client.ProcessRequestApiAsync<YDataSourceUnknown>($"api/DataFactories/{engineId}/links/{dataSourceName}",
                     null, payload, HttpMethod.Put).ConfigureAwait(false);
 
                 return response.Value;
             });
         }
-
 
         [HttpGet()]
         [Route("{engineId}")]
@@ -89,6 +88,7 @@ namespace Ygdra.Web.UI.Controllers
         {
             return YExecuteAsync(async () =>
             {
+
                 var response = await this.client.ProcessRequestApiAsync<YEntityUnknown>(
                     $"api/DataFactories/{engineId}/links/{dataSourceName}/entities/{entityName}",
                     null, payload, HttpMethod.Put).ConfigureAwait(false);
@@ -100,19 +100,19 @@ namespace Ygdra.Web.UI.Controllers
         }
 
 
-        [HttpPost()]
-        [Route("{engineId}/links/{dataSourceName}/test")]
-        public Task<YJsonResult<bool>> TestAsync(Guid engineId, string dataSourceName, [FromBody] YDataSource dataSource)
-        {
-            return YExecuteAsync(async () =>
-            {
-                var response = await this.client.ProcessRequestApiAsync<bool>(
-                    $"api/DataFactories/{engineId}/links/{dataSourceName}/test",
-                    null, dataSource, HttpMethod.Post).ConfigureAwait(false);
+        //[HttpPost()]
+        //[Route("{engineId}/links/{dataSourceName}/test")]
+        //public Task<YJsonResult<bool>> TestAsync(Guid engineId, string dataSourceName, [FromBody] YDataSource dataSource)
+        //{
+        //    return YExecuteAsync(async () =>
+        //    {
+        //        var response = await this.client.ProcessRequestApiAsync<bool>(
+        //            $"api/DataFactories/{engineId}/links/{dataSourceName}/test",
+        //            null, dataSource, HttpMethod.Post).ConfigureAwait(false);
 
-                return response.Value;
-            });
-        }
+        //        return response.Value;
+        //    });
+        //}
 
         [HttpPost()]
         [Route("{engineId}/test")]

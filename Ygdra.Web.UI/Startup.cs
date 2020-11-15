@@ -31,6 +31,7 @@ using Ygdra.Web.UI.SignalR;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.SignalR;
 using Ygdra.Web.UI.ModelBinders;
+using Newtonsoft.Json.Converters;
 
 namespace Ygdra.WebUI
 {
@@ -49,16 +50,18 @@ namespace Ygdra.WebUI
             services.AddControllers()
                 .AddControllersAsServices()
                 // Adding option to ignore Null values when sending back JsonResult from any Web Api
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.IgnoreNullValues = true;
-                    options.JsonSerializerOptions.WriteIndented = true;
-                })
+                //.AddJsonOptions(options =>
+                //{
+                //    options.JsonSerializerOptions.IgnoreNullValues = true;
+                //    options.JsonSerializerOptions.WriteIndented = true;
+                //    optin
+                //})
                 // Adding this option to be able to send back JObjet from any Web Api
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 });
 
             services.AddHttpClient();

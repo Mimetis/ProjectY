@@ -40,7 +40,7 @@ namespace Ygdra.Web.UI.Pages.Entities
         public void OnGet()
         {
             // we don't know yet what kind of EntityView we will have at the end of the wizard
-            this.EntityView = new EntityViewUnknown 
+            this.EntityView = new EntityViewUnknown
             {
                 IsNew = true,
                 Version = "1.0.0"
@@ -84,8 +84,6 @@ namespace Ygdra.Web.UI.Pages.Entities
 
             var views = dataSources?.Select(item => new DataSourceViewUnknown(item)).ToList() ?? new List<DataSourceViewUnknown>();
 
-            var enginesAction = await this.enginesController.GetEngineAsync(engineId);
-
             foreach (var ds in views)
                 ds.EngineId = engineId;
 
@@ -117,17 +115,14 @@ namespace Ygdra.Web.UI.Pages.Entities
             if (!ModelState.IsValid)
                 return Page();
 
-            try
-            {
-                await this.client.ProcessRequestApiAsync<YEntity>(
-                    $"api/DataFactories/{this.EntityView.EngineId}/links/{this.EntityView.DataSourceName}/entities/{this.EntityView.Name}",
-                    null, this.EntityView.Entity, HttpMethod.Put).ConfigureAwait(false);
 
 
-            }
-            catch (Exception ex)
+            var entityAddedResponse = await this.dataFactoriesController.AddEntityAsync(this.EntityView.EngineId, this.EntityView.DataSourceName, this.EntityView.Name, 
+                this.EntityView.Entity);
+
+            if (entityAddedResponse.HasError)
             {
-                ModelState.AddModelError("", ex.Message);
+                ModelState.AddModelError("", entityAddedResponse.Error.ToString());
                 return Page();
             }
 

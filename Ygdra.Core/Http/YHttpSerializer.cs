@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,9 +17,11 @@ namespace Ygdra.Core.Http
         {
             this.serializer = new JsonSerializer
             {
-                NullValueHandling = NullValueHandling.Ignore
+                NullValueHandling = NullValueHandling.Ignore,
+                Formatting = Formatting.Indented
             };
             this.serializer.Converters.Add(new YResourceJsonConverter());
+            this.serializer.Converters.Add(new StringEnumConverter());
         }
         public Task<T> DeserializeAsync<T>(Stream ms)
         {

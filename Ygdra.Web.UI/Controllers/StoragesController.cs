@@ -23,12 +23,12 @@ namespace Ygdra.Web.UI.Controllers
         }
 
         [HttpGet()]
-        [Route("{engineId}/containers/{dataSourceName}")]
+        [Route("{engineId}/{dataSourceName}/files")]
         public Task<YJsonResult<JArray>> GetStoragesAsync(Guid engineId, string dataSourceName)
         {
             return YExecuteAsync(async () =>
             {
-                var response = await this.client.ProcessRequestApiAsync<JArray>($"api/Storages/{engineId}/containers/{dataSourceName}", null).ConfigureAwait(false);
+                var response = await this.client.ProcessRequestApiAsync<JArray>($"api/Storages/{engineId}/{dataSourceName}/files", null).ConfigureAwait(false);
                 return response.Value;
             });
         }

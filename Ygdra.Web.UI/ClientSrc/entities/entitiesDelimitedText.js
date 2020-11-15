@@ -56,10 +56,13 @@ export class entitiesDelimitedText {
                 return;
             }
             let dataSourcesJson = await r.json();
-            dataSources = dataSourcesJson.map(item => item.name);
+            dataSources = dataSourcesJson;
 
             $.each(dataSources, (i, item) => {
-                this.$dataSourcesSelect.append($('<option>', { value: item, text: item }))
+
+                let value = JSON.stringify(item);
+
+                this.$dataSourcesSelect.append($('<option>', { value: value, text: item.name }))
             });
 
             r = await fetch(`/entities/new/datasources?engineId=${engineId}&dataSourceType=AzureBlobFS`);
@@ -71,10 +74,12 @@ export class entitiesDelimitedText {
                 return;
             }
             dataSourcesJson = await r.json();
-            dataSources = dataSourcesJson.map(item => item.name);
+            dataSources = dataSourcesJson;
+            //dataSources = dataSourcesJson.map(item => item.name);
 
             $.each(dataSources, (i, item) => {
-                this.$dataSourcesSelect.append($('<option>', { value: item, text: item }))
+                let value = JSON.stringify(item);
+                this.$dataSourcesSelect.append($('<option>', { value: value, text: item.name }))
             });
 
 
@@ -109,13 +114,23 @@ export class entitiesDelimitedText {
         this.$directoryPathSelect.disablePicker("Loading all paths ...");
         this.$labelErrorDirectoryPath.empty();
 
-        var dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
+        let dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
+
+        let dataSource = JSON.parse(dataSourceSelected);
+
+        let entityLocationTypeElement = $(`#${this.htmlFieldPrefix}LocationType`);
+
+        if (dataSource.dataSourceType === 'AzureBlobStorage')
+            entityLocationTypeElement.val('AzureBlobStorageLocation');
+        else if (dataSource.dataSourceType === 'AzureBlobFS')
+            entityLocationTypeElement.val('AzureBlobFSLocation');
+
 
 
         let directories = [];
         try {
 
-            let r = await fetch(`/api/storages/${engineId}/containers/${dataSourceSelected}`);
+            let r = await fetch(`/api/storages/${engineId}/${dataSource.name}/files`);
 
             if (r.status >= 400) {
                 let contentType = r.headers.get("content-type");

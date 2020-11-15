@@ -164,7 +164,7 @@
                         @if ((Model.EntityView as EntityViewDelimitedText) != null)
                         {
                             ViewData.TemplateInfo.HtmlFieldPrefix = nameof(EntityView);
-                            <partial name="_AzureDataLakeStorageDelimitedPartial" model="Model.EntityView" />
+                            <partial name="_AzureDelimitedTextPartial" model="Model.EntityView" />
                         }
 
                     </div>

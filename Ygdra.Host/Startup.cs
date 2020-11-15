@@ -27,6 +27,7 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Ygdra.Core.Auth;
 using Ygdra.Core.Cloud;
 using Ygdra.Core.Http;
@@ -59,6 +60,7 @@ namespace Ygdra.Host
                 {
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 });
 
             // Allow Any origin

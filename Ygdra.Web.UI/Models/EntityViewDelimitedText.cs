@@ -18,7 +18,7 @@ namespace Ygdra.Web.UI.Models
         public override bool IsNew { get; set; }
         public override Guid EngineId { get; set; }
         public override string Icon => "svg-i-100x100-DelimitedText";
-        public override string PartialView => "_AzureDataLakeStorageDelimitedPartial";
+        public override string PartialView => "_AzureDelimitedTextPartial";
         public override string TypeString => "Delimited Text (csv)";
 
         /// <summary>
@@ -32,12 +32,16 @@ namespace Ygdra.Web.UI.Models
         public List<SelectListItem> DataSourcesItems => DataSourcesItemsString?.Split(",").OrderBy(l => l).Select(l => new SelectListItem(l, l)).ToList();
 
 
+        public YEntityLocationType LocationType { get => this.entity.LocationType; set => this.entity.LocationType = value; }
+
+
+
         [Display(Name = "File or Directory Path")]
         public string FullPath
         {
             get
             {
-                var path = Path.Join(new[] { this.FileSystem, this.FolderPath, this.FileName });
+                var path = Path.Join(new[] { this.Container, this.FolderPath, this.FileName });
                 return path;
             }
             set
@@ -45,7 +49,7 @@ namespace Ygdra.Web.UI.Models
                 var fileSystem = value.Split("/")[0];
                 var fileName = new FileInfo(value).Name;
 
-                this.FileSystem = fileSystem;
+                this.Container = fileSystem;
                 this.FileName = fileName;
                 this.FolderPath = value.Replace(fileSystem, "").Replace(fileName, "");
 
@@ -56,8 +60,8 @@ namespace Ygdra.Web.UI.Models
         [Display(Name = "Folder Path")]
         public string FolderPath { get => this.entity.FolderPath; set => this.entity.FolderPath = value; }
 
-        [Display(Name = "File System")]
-        public string FileSystem { get => this.entity.FileSystem; set => this.entity.FileSystem = value; }
+        [Display(Name = "Container")]
+        public string Container { get => this.entity.Container; set => this.entity.Container= value; }
 
         [Display(Name = "File Name")]
         public string FileName { get => this.entity.FileName; set => this.entity.FileName = value; }

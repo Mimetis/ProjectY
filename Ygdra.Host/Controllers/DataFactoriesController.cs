@@ -255,13 +255,13 @@ namespace Ygdra.Host.Controllers
             var query = $"api-version={DataFactoryApiVersion}";
 
             // Get the response. we may want to create a real class for this result ?
-            var dbricksTokenResponse = await this.client.ProcessRequestManagementAsync<YDataSourceUnknown>(
+            var response = await this.client.ProcessRequestManagementAsync<YDataSourceUnknown>(
                 pathUri, query).ConfigureAwait(false);
 
-            if (dbricksTokenResponse.StatusCode == HttpStatusCode.NotFound)
+            if (response.StatusCode == HttpStatusCode.NotFound)
                 return new NotFoundResult();
 
-            var dataSource = dbricksTokenResponse.Value;
+            var dataSource = response.Value;
 
             return dataSource;
         }
@@ -297,32 +297,48 @@ namespace Ygdra.Host.Controllers
 
         [HttpPut]
         [Route("{engineId}/links/{dataSourceName}/entities/{entityName}")]
-        public async Task<ActionResult<YEntity>> AddEntityAsync(Guid engineId, string dataSourceName, string entityName, [FromBody] YEntity entity)
+        public async Task<ActionResult<YEntity>> AddEntityAsync(Guid engineId, string dataSourceName, string entityName, [FromBody] YEntityUnknown entity)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
 
             if (engine == null)
                 throw new Exception("Engine does not exists");
 
+            
+            // Get Datasource
             var regex = new Regex(@"^[a-zA-Z0-9--]{3,24}$");
+            
             if (!regex.IsMatch(dataSourceName))
                 throw new Exception($"DataSource name {dataSourceName} is incorrect");
 
-            var resourceGroupName = engine.ResourceGroupName;
-            var factoryName = engine.FactoryName;
+            //var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{engine.ResourceGroupName}" +
+            //              $"/providers/Microsoft.DataFactory/factories/{engine.FactoryName}" +
+            //              $"/linkedservices/{dataSourceName}";
 
-            var pathUri = $"/subscriptions/{options.SubscriptionId}" +
-                          $"/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory" +
-                          $"/factories/{factoryName}/datasets/{entityName}";
+            //var query = $"api-version={DataFactoryApiVersion}";
 
-            var query = $"api-version={DataFactoryApiVersion}";
+            //// Get the response. we may want to create a real class for this result ?
+            //var response = await this.client.ProcessRequestManagementAsync<YDataSourceUnknown>(
+            //    pathUri, query).ConfigureAwait(false);
+
+            //if (response.StatusCode == HttpStatusCode.NotFound)
+            //    return new NotFoundResult();
+
+            //var dataSource = response.Value;
+
+
+            var entityPathUri = $"/subscriptions/{options.SubscriptionId}" +
+                          $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
+                          $"/factories/{engine.FactoryName}/datasets/{entityName}";
+
+            var entityQuery = $"api-version={DataFactoryApiVersion}";
 
 
             // Get the response. we may want to create a real class for this result ?
-            var response = await this.client.ProcessRequestManagementAsync<YEntity>(
-                pathUri, query, entity, HttpMethod.Put).ConfigureAwait(false);
+            var responseEntity = await this.client.ProcessRequestManagementAsync<YEntityUnknown>(
+                entityPathUri, entityQuery, entity, HttpMethod.Put).ConfigureAwait(false);
 
-            return response.Value;
+            return responseEntity.Value;
         }
     }
 }

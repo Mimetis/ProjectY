@@ -140,56 +140,7 @@ namespace Ygdra.Host.Controllers
 
 
         [HttpGet()]
-        [Route("{engineId}/blob/{dataSourceName}/files")]
-        public async Task<ActionResult<JArray>> GetStorageBlobFilesAsync(Guid engineId, string dataSourceName)
-        {
-            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
-
-            if (engine == null)
-                throw new Exception("Engine does not exists");
-
-            var dataSourceResponse = await this.dataFactoriesController.GetDataSourceAsync(engineId, dataSourceName);
-
-            if (dataSourceResponse.Value == null)
-                throw new Exception("DataSource does not exists");
-
-            var dataSource = dataSourceResponse.Value;
-
-            if (dataSource.DataSourceType != YDataSourceType.AzureBlobStorage)
-                throw new Exception("DataSource is not a blob container source");
-
-            // Get typed instance to get the correct call to GetSensitiveString()
-            var typeDataSource = new YDataSourceAzureBlobStorage(dataSource);
-
-            var accountKey = await this.keyVaultsController.GetKeyVaultSecret(engineId, dataSource.Name);
-
-            if (accountKey == null || accountKey.Value == null)
-                throw new Exception("DataSource Account key is not present in th keyvault");
-
-            StorageSharedKeyCredential sharedKeyCredential = new StorageSharedKeyCredential(typeDataSource.StorageAccountName, accountKey.Value);
-
-            // be careful, to get account detail, we are targeting ".bob." and not ".dfs"
-            string dfsUri = "https://" + typeDataSource.StorageAccountName + ".blob.core.windows.net";
-
-            var blobServiceClient = new BlobServiceClient(new Uri(dfsUri), sharedKeyCredential);
-
-            AsyncPageable<BlobContainerItem> allContainers = blobServiceClient.GetBlobContainersAsync();
-
-            var lstContainers = new List<BlobContainerItem>();
-
-            var root = new JArray();
-
-            await foreach (var containerItem in allContainers)
-            {
-                var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
-                ListBlobsHierarchicalListing(blobContainerClient, default, default, ref root);
-            }
-
-            return root;
-        }
-
-        [HttpGet()]
-        [Route("{engineId}/dfs/{dataSourceName}/blobs")]
+        [Route("{engineId}/{dataSourceName}/files")]
         public async Task<ActionResult<JArray>> GetStorageDfsFilesAsync(Guid engineId, string dataSourceName)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
@@ -204,8 +155,8 @@ namespace Ygdra.Host.Controllers
 
             var dataSource = dataSourceResponse.Value;
 
-            if (dataSource.DataSourceType != YDataSourceType.AzureBlobFS)
-                throw new Exception("DataSource is not a dfs container source");
+            if (dataSource.DataSourceType != YDataSourceType.AzureBlobFS && dataSource.DataSourceType != YDataSourceType.AzureBlobStorage)
+                throw new Exception("DataSource is not a Azure Blob or Azure Data Lake Gen2 Data Source.");
 
             // Get typed instance to get the correct call to GetSensitiveString()
             var typeDataSource = new YDataSourceAzureBlobFS(dataSource);
@@ -217,71 +168,69 @@ namespace Ygdra.Host.Controllers
 
             StorageSharedKeyCredential sharedKeyCredential = new StorageSharedKeyCredential(typeDataSource.StorageAccountName, accountKey.Value);
 
-            // be careful, to get account detail, we are targeting ".bob." and not ".dfs"
-            string dfsUri = "https://" + typeDataSource.StorageAccountName + ".dfs.core.windows.net";
-
-            var dataLakeServiceClient = new DataLakeServiceClient (new Uri(dfsUri), sharedKeyCredential);
-
-           
-            AsyncPageable<FileSystemItem> allFileSystems = dataLakeServiceClient.GetFileSystemsAsync();
-
             var root = new JArray();
 
-            await foreach (var fileSystemItem in allFileSystems)
+            if (typeDataSource.DataSourceType == YDataSourceType.AzureBlobStorage)
             {
-                var fileSystemClient = dataLakeServiceClient.GetFileSystemClient(fileSystemItem.Name);
-                ListFilesHierarchicalListing(fileSystemClient, default, ref root);
+                // be careful, to get account detail, we are targeting ".bob." and not ".dfs"
+                string dfsUri = "https://" + typeDataSource.StorageAccountName + ".blob.core.windows.net";
+
+                var blobServiceClient = new BlobServiceClient(new Uri(dfsUri), sharedKeyCredential);
+
+                AsyncPageable<BlobContainerItem> allContainers = blobServiceClient.GetBlobContainersAsync();
+
+                await foreach (var containerItem in allContainers)
+                {
+                    var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
+                    ListBlobsHierarchicalListing(blobContainerClient, default, default, ref root);
+                }
+            }
+            else
+            {
+                // be careful, to get account detail, we are targeting ".bob." and not ".dfs"
+                string dfsUri = "https://" + typeDataSource.StorageAccountName + ".dfs.core.windows.net";
+
+                var dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), sharedKeyCredential);
+
+                AsyncPageable<FileSystemItem> allFileSystems = dataLakeServiceClient.GetFileSystemsAsync();
+
+                await foreach (var fileSystemItem in allFileSystems)
+                {
+                    var fileSystemClient = dataLakeServiceClient.GetFileSystemClient(fileSystemItem.Name);
+                    ListFilesHierarchicalListing(fileSystemClient,  ref root);
+                }
+
             }
 
             return root;
         }
 
-        private static void ListFilesHierarchicalListing(DataLakeFileSystemClient fileSystemClient, int? segmentSize, ref JArray arrayJson)
+        private static void ListFilesHierarchicalListing(DataLakeFileSystemClient fileSystemClient, ref JArray arrayJson)
         {
-            string continuationToken = null;
-
             try
             {
                 // Call the listing operation and enumerate the result segment.
                 // When the continuation token is empty, the last segment has been returned and
                 // execution can exit the loop.
-                do
+
+                var enumerator = fileSystemClient.GetPaths(null, true).GetEnumerator();
+
+                enumerator.MoveNext();
+
+                PathItem pathItem = enumerator.Current;
+
+                while (pathItem != null)
                 {
-                    var resultSegment = fileSystemClient.GetPaths(null, true).AsPages(continuationToken, segmentSize);
+                    arrayJson.Add(new JObject { { "name", $"{fileSystemClient.Name}/{pathItem.Name}" } });
 
+                    if (!enumerator.MoveNext())
+                        break;
 
-                    foreach (Page<PathItem> blobPage in resultSegment)
-                    {
-                        // A hierarchical listing may return both virtual directories and blobs.
-                        foreach (PathItem pathItem in blobPage.Values)
-                        {
-                            if (pathItem.IsDirectory.HasValue && pathItem.IsDirectory.Value)
-                            {
-                                // Write out the prefix of the virtual directory.
+                    pathItem = enumerator.Current;
+                }
 
-                                // if hierarchical; uncomment here
-                                //var dirArray = new JArray();
-                                //arrayJson.Add(new JObject { { blobhierarchyItem.Prefix, dirArray } });
-                                //ListBlobsHierarchicalListing(container, blobhierarchyItem.Prefix, null, ref dirArray);
-
-                                // Call recursively with the prefix to traverse the virtual directory.
-                                //ListBlobsHierarchicalListing(fileSystemClient, pathItem.Prefix, null, ref arrayJson);
-                            }
-
-                            arrayJson.Add(new JObject { { "name", $"{fileSystemClient.Name}/{pathItem.Name}" } });
-
-                        }
-
-                        Console.WriteLine();
-
-                        // Get the continuation token and loop until it is empty.
-                        continuationToken = blobPage.ContinuationToken;
-                    }
-
-
-                } while (continuationToken != "");
             }
-            catch (RequestFailedException e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 Console.ReadLine();

@@ -39,7 +39,6 @@ namespace Ygdra.Core.DataSources.Entities
         public string Type { get; set; }
         public string Description { get; set; }
 
-        [JsonIgnore]
         public YDataSourceType DataSourceType { get; set; }
 
         [JsonExtensionData]
