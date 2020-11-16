@@ -167,6 +167,12 @@
                             <partial name="_AzureDelimitedTextPartial" model="Model.EntityView" />
                         }
 
+                        @if ((Model.EntityView as EntityViewParquet) != null)
+                        {
+                            ViewData.TemplateInfo.HtmlFieldPrefix = nameof(EntityView);
+                            <partial name="_AzureParquetPartial" model="Model.EntityView" />
+                        }
+
                     </div>
                 </div>
                 <div id="step-4" class="tab-pane" role="tabpanel">

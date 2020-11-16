@@ -116,7 +116,6 @@ namespace Ygdra.Web.UI.Pages.Entities
                 return Page();
 
 
-
             var entityAddedResponse = await this.dataFactoriesController.AddEntityAsync(this.EntityView.EngineId, this.EntityView.DataSourceName, this.EntityView.Name, 
                 this.EntityView.Entity);
 

@@ -10,5 +10,6 @@ namespace Ygdra.Core.Entities.Entities
         None = 0,
         AzureSqlTable,
         DelimitedText,
+        Parquet
     }
 }

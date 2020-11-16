@@ -25,6 +25,7 @@ export class entitiesDelimitedText {
         // once loaded, get the selectors
         this.$dataSourcesSelect = $(`#${this.htmlFieldPrefix}DataSourceName`);
         this.$dataSourcesSelectString = $(`#${this.htmlFieldPrefix}DataSourcesItemsString`);
+        this.$dataSourcesJsonSelectString = $(`#${this.htmlFieldPrefix}DataSourcesJsonItemsString`);
         this.$labelErrorDataSources = $("#labelErrorDataSources");
         // on data sources changes, refresh the tables
         this.$dataSourcesSelect.change(async () => { await this.refreshStoragesPaths(engineId) });
@@ -44,6 +45,8 @@ export class entitiesDelimitedText {
         this.$dataSourcesSelect.disablePicker("Loading Data Sources ...");
         this.$labelErrorDataSources.empty();
 
+
+        this.mapDataSources = new Map();
         let dataSources = [];
         try {
 
@@ -56,13 +59,10 @@ export class entitiesDelimitedText {
                 return;
             }
             let dataSourcesJson = await r.json();
-            dataSources = dataSourcesJson;
+            let dataSources1 = dataSourcesJson.map(item => { let i = {}; i.name = item.name; i.dataSourceType = item.dataSourceType; return i; });
 
-            $.each(dataSources, (i, item) => {
-
-                let value = JSON.stringify(item);
-
-                this.$dataSourcesSelect.append($('<option>', { value: value, text: item.name }))
+            $.each(dataSources1, (i, item) => {
+                this.$dataSourcesSelect.append($('<option>', { value: item.name, text: item.name }))
             });
 
             r = await fetch(`/entities/new/datasources?engineId=${engineId}&dataSourceType=AzureBlobFS`);
@@ -74,22 +74,24 @@ export class entitiesDelimitedText {
                 return;
             }
             dataSourcesJson = await r.json();
-            dataSources = dataSourcesJson;
-            //dataSources = dataSourcesJson.map(item => item.name);
+            let dataSources2 = dataSourcesJson.map(item => { let i = {}; i.name = item.name; i.dataSourceType = item.dataSourceType; return i; });
 
-            $.each(dataSources, (i, item) => {
-                let value = JSON.stringify(item);
-                this.$dataSourcesSelect.append($('<option>', { value: value, text: item.name }))
+            $.each(dataSources2, (i, item) => {
+                this.$dataSourcesSelect.append($('<option>', { value: item.name, text: item.name }))
             });
 
+
+            dataSources = dataSources1.concat(dataSources2);
 
             if (!dataSources.length) {
                 this.$dataSourcesSelect.data("noneSelectedText", "No Data Sources...");
                 this.$dataSourcesSelectString.val('');
+                this.$dataSourcesJsonSelectString.val('');
 
             } else {
-                this.$dataSourcesSelectString.val(dataSources.join());
 
+                this.$dataSourcesSelectString.val(dataSources.map(ds => ds.name).join());
+                this.$dataSourcesJsonSelectString.val(JSON.stringify(dataSources));
             }
             var dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
 
@@ -99,7 +101,8 @@ export class entitiesDelimitedText {
         } catch (e) {
             this.$labelErrorDataSources.text("Unexpected Server error");
             this.$dataSourcesSelect.data("noneSelectedText", "Can't load Data Sources...");
-
+            this.$dataSourcesSelectString.val('');
+            this.$dataSourcesJsonSelectString.val('');
             new modalPanelError("error", e).show();
         }
 
@@ -115,8 +118,10 @@ export class entitiesDelimitedText {
         this.$labelErrorDirectoryPath.empty();
 
         let dataSourceSelected = $(`#${this.htmlFieldPrefix}DataSourceName option:selected`).val();
+        let dataSources = JSON.parse(this.$dataSourcesJsonSelectString.val());
 
-        let dataSource = JSON.parse(dataSourceSelected);
+
+        let dataSource = dataSources.find(e => e.name == dataSourceSelected);
 
         let entityLocationTypeElement = $(`#${this.htmlFieldPrefix}LocationType`);
 

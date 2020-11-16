@@ -2,6 +2,7 @@
 import { modalPanelError, modalPanelPreview } from "../modal/index.js";
 import { entitiesAzureSql } from "./entitiesAzureSql.js";
 import { entitiesDelimitedText } from "./entitiesDelimitedText.js";
+import { entitiesParquet } from "./entitiesParquet.js";
 import { wizardPage } from '../wizard/index.js';
 
 export class entitiesNewPage extends wizardPage {
@@ -11,6 +12,7 @@ export class entitiesNewPage extends wizardPage {
 
         this.entitiesAzureSql = new entitiesAzureSql();
         this.entitiesDelimitedText = new entitiesDelimitedText();
+        this.entitiesParquet = new entitiesParquet();
         this.lastTypeSelected = '';
     }
 
@@ -34,7 +36,7 @@ export class entitiesNewPage extends wizardPage {
                     return false;
                 }
 
-                if (type !== 'AzureSqlTable' && type !== 'DelimitedText') {
+                if (type !== 'AzureSqlTable' && type !== 'DelimitedText' && type !== 'Parquet') {
                     new modalPanelError('entityStepNotExist', 'this entity is not yet implemented...').show();
                     return false;
                 }
@@ -77,6 +79,9 @@ export class entitiesNewPage extends wizardPage {
 
                         else if (type == 'DelimitedText')
                             await this.entitiesDelimitedText.loadAsync(this.htmlFieldPrefix, this.$properties, engineId);
+
+                        else if (type == 'Parquet')
+                            await this.entitiesParquet.loadAsync(this.htmlFieldPrefix, this.$properties, engineId);
 
                     }
 

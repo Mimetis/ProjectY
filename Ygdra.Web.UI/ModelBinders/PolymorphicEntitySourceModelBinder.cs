@@ -20,6 +20,7 @@ namespace Ygdra.Web.UI.ModelBinders
             var subclasses = new[] { typeof(EntityView),
                                      typeof(EntityViewAzureSqlTable),
                                      typeof(EntityViewDelimitedText),
+                                     typeof(EntityViewParquet),
                                      typeof(EntityViewUnknown),
             };
 
@@ -62,6 +63,9 @@ namespace Ygdra.Web.UI.ModelBinders
                         break;
                     case YEntityType.DelimitedText:
                         (modelMetadata, modelBinder) = binders[typeof(EntityViewDelimitedText)];
+                        break;
+                    case YEntityType.Parquet:
+                        (modelMetadata, modelBinder) = binders[typeof(EntityViewParquet)];
                         break;
                     case YEntityType.None:
                     default:

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -26,10 +27,21 @@ namespace Ygdra.Web.UI.Models
         /// Gets or Sets the hidden fields to store data sources for postback
         /// </summary>
         public string DataSourcesItemsString { get; set; }
+        public string DataSourcesJsonItemsString { get; set; }
 
         /// Gets the select items for data sources
         /// </summary>
-        public List<SelectListItem> DataSourcesItems => DataSourcesItemsString?.Split(",").OrderBy(l => l).Select(l => new SelectListItem(l, l)).ToList();
+        public List<SelectListItem> DataSourcesItems
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(DataSourcesItemsString))
+                    return null;
+
+                var lstSelectedItems = DataSourcesItemsString.Split(",").OrderBy(l => l).Select(l => new SelectListItem(l, l)).ToList();
+                return lstSelectedItems;
+            }
+        }
 
 
         public YEntityLocationType LocationType { get => this.entity.LocationType; set => this.entity.LocationType = value; }
@@ -61,7 +73,7 @@ namespace Ygdra.Web.UI.Models
         public string FolderPath { get => this.entity.FolderPath; set => this.entity.FolderPath = value; }
 
         [Display(Name = "Container")]
-        public string Container { get => this.entity.Container; set => this.entity.Container= value; }
+        public string Container { get => this.entity.Container; set => this.entity.Container = value; }
 
         [Display(Name = "File Name")]
         public string FileName { get => this.entity.FileName; set => this.entity.FileName = value; }

@@ -14,6 +14,7 @@ namespace Ygdra.Core.Entities.Entities
             {
                 YEntityType.AzureSqlTable => new YEntityAzureSqlTable(),
                 YEntityType.DelimitedText => new YEntityDelimitedText(),
+                YEntityType.Parquet => new YEntityParquet(),
                 _ => new YEntityUnknown(),
             };
 

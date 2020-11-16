@@ -24,7 +24,17 @@ namespace Ygdra.Web.UI.Models
         public abstract string PartialView { get; }
         public abstract string Icon { get; }
         public abstract string TypeString { get; }
-        public YEntityType EntityType => this.Entity.EntityType;
+        public YEntityType EntityType
+        {
+            get
+            {
+                return this.Entity.EntityType;
+            }
+            set
+            {
+                this.Entity.EntityType = value;
+            }
+        }
 
         [Required]
         [StringLength(20, MinimumLength = 5)]
@@ -91,6 +101,7 @@ namespace Ygdra.Web.UI.Models
             {
                 YEntityType.AzureSqlTable => new EntityViewAzureSqlTable(),
                 YEntityType.DelimitedText => new EntityViewDelimitedText(),
+                YEntityType.Parquet => new EntityViewParquet(),
                 _ => new EntityViewUnknown(),
             };
 
