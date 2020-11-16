@@ -159,7 +159,7 @@ namespace Ygdra.Host.Controllers
                 throw new Exception("DataSource is not a Azure Blob or Azure Data Lake Gen2 Data Source.");
 
             // Get typed instance to get the correct call to GetSensitiveString()
-            var typeDataSource = new YDataSourceAzureBlobFS(dataSource);
+            var typeDataSource = YDataSourceFactory.GetTypedDatSource(dataSource) as YDataSourceAzureBlob;
 
             var accountKey = await this.keyVaultsController.GetKeyVaultSecret(engineId, dataSource.Name);
 

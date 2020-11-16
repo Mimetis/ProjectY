@@ -95,6 +95,8 @@ namespace Ygdra.Host.BackgroundServices
                 // Create link service for databricks
                 var linkedServiceStorage = await CreateDataFactoryDataLakeGen2LinkedService(engine, storage, callerUserId).ConfigureAwait(false);
 
+                var outputDataSet = await CreateDataFactoryParameterizedParquetOuputDataSet(engine, linkedServiceStorage, callerUserId).ConfigureAwait(false);
+
                 // Set a datetime to the deployment
                 var message = $"{DateTime.Now.ToShortDateString()}. Deployment of your engine called {engine.EngineName} is done.";
                 engine.Status = YEngineStatus.Deployed;
@@ -354,7 +356,7 @@ namespace Ygdra.Host.BackgroundServices
             var dbricksTokenResponse = await this.client.ProcessRequestManagementAsync<JObject>(
                 pathUri, query, typeProperties, HttpMethod.Put).ConfigureAwait(false);
 
-            await keyVaultsController.SetKeyVaultSecret(engine.Id, engine.ClusterName,
+            await keyVaultsController.SetKeyVaultSecret(engine.Id, name,
               new YKeyVaultSecretPayload { Key = name, Value = token });
 
 
@@ -405,7 +407,7 @@ namespace Ygdra.Host.BackgroundServices
             var storageLinkResponse = await this.client.ProcessRequestManagementAsync<JObject>(
                 pathUri, query, storageDataSource, HttpMethod.Put).ConfigureAwait(false);
 
-            await keyVaultsController.SetKeyVaultSecret(engine.Id, engine.ClusterName,
+            await keyVaultsController.SetKeyVaultSecret(engine.Id, name,
                 new YKeyVaultSecretPayload { Key = name, Value = storageAccountKey });
 
             await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
@@ -415,6 +417,64 @@ namespace Ygdra.Host.BackgroundServices
 
 
         }
+
+        private async Task<JObject> CreateDataFactoryParameterizedParquetOuputDataSet(YEngine engine, JObject linkedService, Guid? callerUserId = default)
+        {
+
+            var name = $"destinationOutput";
+            var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{engine.ResourceGroupName}/" +
+                          $"providers/Microsoft.DataFactory/factories/{engine.FactoryName}/datasets/{name}";
+
+            var query = $"api-version={DataFactoryApiVersion}";
+
+            var typeProperties = new JObject
+                {
+                    { "properties", new JObject {
+                        { "type", "Parquet" },
+                        { "linkedServiceName", new JObject {
+                                {"referenceName", linkedService["name"] },
+                                { "type", "LinkedServiceReference" }
+                            } 
+                        },
+                        { "parameters", new JObject {
+                                { "folderPath" , new JObject { { "type", "string" } } },
+                                { "fileSystem" , new JObject { { "type", "string" } } },
+                            }
+                        },
+                        { "typeProperties", new JObject {
+                            { "location", new JObject
+                                {
+                                    { "type", "AzureBlobFSLocation" },
+                                    { "folderPath", new JObject{
+                                            {"value", "@dataset().folderPath" },
+                                            {"type" , "Expression" }
+                                        }
+                                    },
+                                    { "fileSystem", new JObject{
+                                            {"value", "@dataset().fileSystem" },
+                                            {"type" , "Expression" }
+                                        }
+                                    }
+                                }
+                            },
+                            { "compressionCodec", "snappy" },
+                        }
+                    }}},
+                };
+
+            // Get the response. we may want to create a real class for this result ?
+            var dbricksTokenResponse = await this.client.ProcessRequestManagementAsync<JObject>(
+                pathUri, query, typeProperties, HttpMethod.Put).ConfigureAwait(false);
+
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                $"Data factory {engine.FactoryName}. output parameterized dataset {name} created.", callerUserId).ConfigureAwait(false);
+
+            return dbricksTokenResponse.Value;
+
+
+        }
+
+
 
 
         private async Task<YResource> CreateDatabricksWorkspaceAsync(YEngine engine, Guid? callerUserId = default, CancellationToken token = default)
@@ -640,7 +700,7 @@ namespace Ygdra.Host.BackgroundServices
                 {
                     await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
                          $"Deploying Keyvault {engine.KeyVaultName}...", callerUserId).ConfigureAwait(false);
-        
+
                     await Task.Delay(10000).ConfigureAwait(false);
 
                     keyVaultResourceResponse = await this.clientResource.GetAsync

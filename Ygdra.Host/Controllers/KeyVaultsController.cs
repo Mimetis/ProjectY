@@ -205,16 +205,16 @@ namespace Ygdra.Host.Controllers
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
 
             if (engine == null)
-                throw new Exception("Engine does not exists");
+                throw new Exception($"Engine {engineId} does not exists");
 
             if (string.IsNullOrEmpty(engine.ResourceGroupName))
-                throw new Exception("Resource group name does not exists");
+                throw new Exception($"Resource group name {engine.ResourceGroupName} does not exists");
 
             if (string.IsNullOrEmpty(engine.KeyVaultName))
-                throw new Exception("Keyvault name does not exists");
+                throw new Exception($"Keyvault name {engine.KeyVaultName} does not exists");
 
             if (!string.Equals(secret.Key, key, StringComparison.InvariantCulture))
-                throw new Exception("Mismatch between the GET url secret key and the payload secret key. Both should be same");
+                throw new Exception($"Mismatch between the GET url secret key {key} and the payload secret key {secret.Key}. Both should be same");
 
             var kvUri = $"https://{engine.KeyVaultName}.vault.azure.net/";
 

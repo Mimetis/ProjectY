@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Ygdra.Core.Auth;
 using Ygdra.Core.Cloud;
@@ -22,6 +23,7 @@ using Ygdra.Core.Entities.Entities;
 using Ygdra.Core.Http;
 using Ygdra.Core.Options;
 using Ygdra.Core.Payloads;
+using Ygdra.Core.Pipelines.Entities;
 using Ygdra.Host.Extensions;
 using Ygdra.Host.Services;
 
@@ -47,7 +49,7 @@ namespace Ygdra.Host.Controllers
             IYEngineProvider engineProvider,
             IOptions<YMicrosoftIdentityOptions> azureAdOptions,
             KeyVaultsController keyVaultsController,
-            IYDataSourcesService dataSourcesService )
+            IYDataSourcesService dataSourcesService)
         {
             this.resourceClient = resourceClient;
             this.client = client;
@@ -76,7 +78,7 @@ namespace Ygdra.Host.Controllers
 
         [HttpPut()]
         [Route("{engineId}/links/{dataSourceName}")]
-        public async Task<ActionResult<YDataSource>> AddDataSourceAsync(Guid engineId, 
+        public async Task<ActionResult<YDataSource>> AddDataSourceAsync(Guid engineId,
             string dataSourceName, [FromBody] YDataSourceUnknown dataSource)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
@@ -196,7 +198,7 @@ namespace Ygdra.Host.Controllers
 
         }
 
- 
+
         [HttpPost()]
         [Route("{engineId}/test")]
         public async Task<IActionResult> TestAsync(Guid engineId, [FromBody] YDataSourceUnknown dataSource)
@@ -304,10 +306,10 @@ namespace Ygdra.Host.Controllers
             if (engine == null)
                 throw new Exception("Engine does not exists");
 
-            
+
             // Get Datasource
             var regex = new Regex(@"^[a-zA-Z0-9--]{3,24}$");
-            
+
             if (!regex.IsMatch(dataSourceName))
                 throw new Exception($"DataSource name {dataSourceName} is incorrect");
 
@@ -337,6 +339,96 @@ namespace Ygdra.Host.Controllers
             // Get the response. we may want to create a real class for this result ?
             var responseEntity = await this.client.ProcessRequestManagementAsync<YEntityUnknown>(
                 entityPathUri, entityQuery, entity, HttpMethod.Put).ConfigureAwait(false);
+
+
+            // -------------------------
+            // PIPELINE
+
+
+            string version = entity.Version.Replace(".", "_");
+
+
+            if (string.IsNullOrEmpty(version))
+                version = "v1";
+
+            // try to create a Copy Pipeline
+            string pipelineName = $"Copy_{dataSourceName.ToLower()}_{entityName.ToLower()}_{version.ToLower()}";
+
+
+            var pipelinePathUri = $"/subscriptions/{options.SubscriptionId}" +
+              $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
+              $"/factories/{engine.FactoryName}/pipelines/{pipelineName}";
+
+            var pipelineQuery = $"api-version={DataFactoryApiVersion}";
+
+
+            var copyPipeline = new Pipeline
+            {
+                Name = pipelineName
+            };
+
+            var copyActivity = new Activity
+            {
+                Name = "Copy",
+                Type = "Copy"
+            };
+
+            copyActivity.TypeProperties.Source.Type = entity.EntityType switch
+            {
+                YEntityType.DelimitedText => "DelimitedTextSource",
+                YEntityType.AzureSqlTable => "AzureSqlSource",
+                YEntityType.Parquet => "ParquetSource",
+                _ => "DelimitedTextSource",
+            };
+
+
+            if (entity.EntityType == YEntityType.Parquet || entity.EntityType == YEntityType.DelimitedText)
+            {
+                copyActivity.TypeProperties.Source.StoreSettings = new StoreSettings();
+                copyActivity.TypeProperties.Source.StoreSettings.Recursive = true;
+                copyActivity.TypeProperties.Source.StoreSettings.WildcardFileName = "*";
+                copyActivity.TypeProperties.Source.StoreSettings.Type = "AzureBlobStorageReadSettings";
+            }
+            else
+            {
+                copyActivity.TypeProperties.Source.PartitionOption = "none";
+            }
+
+            copyActivity.TypeProperties.Sink.Type = "ParquetSink";
+            copyActivity.TypeProperties.Sink.StoreSettings.Type = "AzureBlobFSWriteSettings";
+            copyActivity.TypeProperties.Sink.FormatSettings.Type = "ParquetWriteSettings";
+
+            copyActivity.Inputs.Add(new Input
+            {
+                ReferenceName = entity.Name,
+                Type = "DatasetReference"
+            });
+
+            var output = new Output
+            {
+                ReferenceName = "destinationOutput",
+                Type = "DatasetReference",
+            };
+            output.Parameters.FileSystem.Type = "Expression";
+            output.Parameters.FileSystem.Value = "@pipeline().parameters.destinationContainer";
+            output.Parameters.FolderPath.Type = "Expression";
+            output.Parameters.FolderPath.Value = "@{pipeline().parameters.destinationFolderPath}/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}";
+
+            copyActivity.Outputs.Add(output);
+
+            copyPipeline.Properties.Activities.Add(copyActivity);
+
+            copyPipeline.Properties.Parameters.DestinationContainer.DefaultValue = "bronze";
+            copyPipeline.Properties.Parameters.DestinationFolderPath.DefaultValue = $"{dataSourceName}/{entityName}/{version}";
+            copyPipeline.Properties.Parameters.WindowStart.DefaultValue = DateTime.Now;
+
+
+            var jsonPipeline = JsonConvert.SerializeObject(copyPipeline);
+
+            // Get the response. we may want to create a real class for this result ?
+            var pipeline = await this.client.ProcessRequestManagementAsync<JObject>(
+                pipelinePathUri, pipelineQuery, copyPipeline, HttpMethod.Put).ConfigureAwait(false);
+
 
             return responseEntity.Value;
         }
