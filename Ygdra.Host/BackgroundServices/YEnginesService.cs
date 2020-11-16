@@ -1,4 +1,7 @@
-﻿using Hangfire;
+﻿using Azure.Storage;
+using Azure.Storage.Files.DataLake;
+using Azure.Storage.Files.DataLake.Models;
+using Hangfire;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Extensions.Options;
@@ -80,6 +83,8 @@ namespace Ygdra.Host.BackgroundServices
                 var keyvault = await CreateAzureKeyVaultAsync(engine, callerUserId, token).ConfigureAwait(false);
 
                 var storage = await CreateStorageAsync(engine, callerUserId, token).ConfigureAwait(false);
+
+                //await CreateFoldersAsync(engine, callerUserId, token).ConfigureAwait(false);
 
                 // Create Databricks Workspace
                 var clusterWorkspace = await CreateDatabricksWorkspaceAsync(engine, callerUserId, token).ConfigureAwait(false);
@@ -383,6 +388,10 @@ namespace Ygdra.Host.BackgroundServices
             var storageKeyResponse = await this.client.ProcessRequestManagementAsync<JObject>(
                 pathStorageKeysUri, queryStorageKey, null, HttpMethod.Post).ConfigureAwait(false);
 
+            var storageAccountName = storageResource.Name;
+            var storageAccountKey = storageKeyResponse.Value["keys"][0]["value"].ToString();
+
+            // create linked service
 
             var name = $"dsLake-{engine.StorageName}";
 
@@ -392,8 +401,6 @@ namespace Ygdra.Host.BackgroundServices
 
             var query = $"api-version={DataFactoryApiVersion}";
 
-            var storageAccountName = storageResource.Name;
-            var storageAccountKey = storageKeyResponse.Value["keys"][0]["value"].ToString();
 
             var storageDataSource = new YDataSourceAzureBlobFS
             {
@@ -434,7 +441,7 @@ namespace Ygdra.Host.BackgroundServices
                         { "linkedServiceName", new JObject {
                                 {"referenceName", linkedService["name"] },
                                 { "type", "LinkedServiceReference" }
-                            } 
+                            }
                         },
                         { "parameters", new JObject {
                                 { "folderPath" , new JObject { { "type", "string" } } },
@@ -646,6 +653,50 @@ namespace Ygdra.Host.BackgroundServices
 
             }
         }
+
+
+        public async Task CreateFoldersAsync(YEngine engine, Guid? callerUserId = default, CancellationToken token = default)
+        {
+
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                    $"Get Storage key {engine.StorageName}...", callerUserId).ConfigureAwait(false);
+
+            var pathStorageKeysUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{engine.ResourceGroupName}/" +
+                          $"providers/Microsoft.Storage/storageAccounts/{engine.StorageName}/listKeys";
+
+            var queryStorageKey = $"api-version={StorageApiVersion}&expand=kerb";
+
+            // Get the response. we may want to create a real class for this result ?
+            var storageKeyResponse = await this.client.ProcessRequestManagementAsync<JObject>(
+                pathStorageKeysUri, queryStorageKey, null, HttpMethod.Post).ConfigureAwait(false);
+
+            var storageAccountName = engine.StorageName;
+            var storageAccountKey = storageKeyResponse.Value["keys"][0]["value"].ToString();
+
+            // be careful, to get account detail, we are targeting ".bob." and not ".dfs"
+            string dfsUri = $"https://{storageAccountName}.dfs.core.windows.net";
+
+            var sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
+
+            var dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), sharedKeyCredential);
+
+            var fileSystemsAsync = dataLakeServiceClient.GetFileSystemsAsync();
+
+            var lstContainers = new List<FileSystemItem>();
+
+            await foreach (var fileSystem in fileSystemsAsync)
+                lstContainers.Add(fileSystem);
+
+            if (!lstContainers.Any(fs => fs.Name == "bronze"))
+                await dataLakeServiceClient.CreateFileSystemAsync("bronze");
+
+            if (!lstContainers.Any(fs => fs.Name == "silver"))
+                await dataLakeServiceClient.CreateFileSystemAsync("silver");
+            
+            if (!lstContainers.Any(fs => fs.Name == "gold"))
+                await dataLakeServiceClient.CreateFileSystemAsync("gold");
+        }
+
 
         private async Task<YResource> CreateAzureKeyVaultAsync(YEngine engine, Guid? callerUserId = default, CancellationToken token = default)
         {

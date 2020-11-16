@@ -313,22 +313,6 @@ namespace Ygdra.Host.Controllers
             if (!regex.IsMatch(dataSourceName))
                 throw new Exception($"DataSource name {dataSourceName} is incorrect");
 
-            //var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{engine.ResourceGroupName}" +
-            //              $"/providers/Microsoft.DataFactory/factories/{engine.FactoryName}" +
-            //              $"/linkedservices/{dataSourceName}";
-
-            //var query = $"api-version={DataFactoryApiVersion}";
-
-            //// Get the response. we may want to create a real class for this result ?
-            //var response = await this.client.ProcessRequestManagementAsync<YDataSourceUnknown>(
-            //    pathUri, query).ConfigureAwait(false);
-
-            //if (response.StatusCode == HttpStatusCode.NotFound)
-            //    return new NotFoundResult();
-
-            //var dataSource = response.Value;
-
-
             var entityPathUri = $"/subscriptions/{options.SubscriptionId}" +
                           $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
                           $"/factories/{engine.FactoryName}/datasets/{entityName}";
@@ -367,38 +351,49 @@ namespace Ygdra.Host.Controllers
                 Name = pipelineName
             };
 
+            // Copy Pipeline
+
             var copyActivity = new Activity
             {
-                Name = "Copy",
+                Name = "Loading",
                 Type = "Copy"
             };
 
-            copyActivity.TypeProperties.Source.Type = entity.EntityType switch
+            var source = new Source
             {
-                YEntityType.DelimitedText => "DelimitedTextSource",
-                YEntityType.AzureSqlTable => "AzureSqlSource",
-                YEntityType.Parquet => "ParquetSource",
-                _ => "DelimitedTextSource",
+                Type = entity.EntityType switch
+                {
+                    YEntityType.DelimitedText => "DelimitedTextSource",
+                    YEntityType.AzureSqlTable => "AzureSqlSource",
+                    YEntityType.Parquet => "ParquetSource",
+                    _ => "DelimitedTextSource",
+                }
             };
-
 
             if (entity.EntityType == YEntityType.Parquet || entity.EntityType == YEntityType.DelimitedText)
             {
-                copyActivity.TypeProperties.Source.StoreSettings = new StoreSettings();
-                copyActivity.TypeProperties.Source.StoreSettings.Recursive = true;
-                copyActivity.TypeProperties.Source.StoreSettings.WildcardFileName = "*";
-                copyActivity.TypeProperties.Source.StoreSettings.Type = "AzureBlobStorageReadSettings";
+                source.StoreSettings = new StoreSettings();
+                source.StoreSettings.Recursive = true;
+                source.StoreSettings.WildcardFileName = "*";
+                source.StoreSettings.Type = "AzureBlobStorageReadSettings";
             }
             else
             {
-                copyActivity.TypeProperties.Source.PartitionOption = "none";
+                source.PartitionOption = "none";
             }
 
-            copyActivity.TypeProperties.Sink.Type = "ParquetSink";
-            copyActivity.TypeProperties.Sink.StoreSettings.Type = "AzureBlobFSWriteSettings";
-            copyActivity.TypeProperties.Sink.FormatSettings.Type = "ParquetWriteSettings";
+            copyActivity.TypeProperties.Add("source", JObject.FromObject(source));
 
-            copyActivity.Inputs.Add(new Input
+            var sink = new Sink { Type = "ParquetSink" };
+            sink.StoreSettings.Type = "AzureBlobFSWriteSettings";
+            sink.FormatSettings.Type = "ParquetWriteSettings";
+            copyActivity.TypeProperties.Add("sink", JObject.FromObject(sink));
+
+            copyActivity.TypeProperties.Add("enableStaging", false);
+
+
+            copyActivity.Inputs = new List<Reference>();
+            copyActivity.Inputs.Add(new Reference
             {
                 ReferenceName = entity.Name,
                 Type = "DatasetReference"
@@ -414,13 +409,46 @@ namespace Ygdra.Host.Controllers
             output.Parameters.FolderPath.Type = "Expression";
             output.Parameters.FolderPath.Value = "@{pipeline().parameters.destinationFolderPath}/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}";
 
+            copyActivity.Outputs = new List<Output>();
             copyActivity.Outputs.Add(output);
 
             copyPipeline.Properties.Activities.Add(copyActivity);
 
-            copyPipeline.Properties.Parameters.DestinationContainer.DefaultValue = "bronze";
-            copyPipeline.Properties.Parameters.DestinationFolderPath.DefaultValue = $"{dataSourceName}/{entityName}/{version}";
-            copyPipeline.Properties.Parameters.WindowStart.DefaultValue = DateTime.Now;
+            // databricks 
+
+            var dbricksActivity = new Activity
+            {
+                Name = "Transform",
+                Type = "DatabricksNotebook"
+            };
+
+            var dependOn = new DependsOn { Activity = "Loading" };
+            dependOn.DependencyConditions.Add("Succeeded");
+            dbricksActivity.DependsOn.Add(dependOn);
+
+            dbricksActivity.LinkedServiceName = new Reference { ReferenceName = $"dsDatabricks-{engine.ClusterName}", Type = "LinkedServiceReference" };
+
+            dbricksActivity.TypeProperties.Add("notebookPath", "/transform/main");
+            dbricksActivity.TypeProperties.Add("baseParameters", new JObject {
+                        { "engineId", new JObject { { "value", "@{pipeline().parameters.engineId}" },{ "type", "Expression" } } },
+                        { "dataSourceName", new JObject { { "value", "@{pipeline().parameters.dataSourceName}" },{ "type", "Expression" } } },
+                        { "entityName", new JObject { { "value", "@{pipeline().parameters.entityName}" },{ "type", "Expression" } } },
+                        { "deltaContainer", new JObject { { "value", "@{pipeline().parameters.deltaContainer}" },{ "type", "Expression" } } },
+                        { "deltaFolderPath", new JObject { { "value", "@{pipeline().parameters.deltaFolderPath}" },{ "type", "Expression" } } }
+
+                    });
+
+            copyPipeline.Properties.Activities.Add(dbricksActivity);
+
+
+            copyPipeline.Properties.Parameters.Add("windowStart", JObject.FromObject(new Parameter { DefaultValue = DateTime.Now }));
+            copyPipeline.Properties.Parameters.Add("destinationContainer", JObject.FromObject(new Parameter { DefaultValue = "bronze" }));
+            copyPipeline.Properties.Parameters.Add("destinationFolderPath", JObject.FromObject(new Parameter { DefaultValue = $"{dataSourceName}/{entityName}/{version}" }));
+            copyPipeline.Properties.Parameters.Add("deltaContainer", JObject.FromObject(new Parameter { DefaultValue = "silver" }));
+            copyPipeline.Properties.Parameters.Add("deltaFolderPath", JObject.FromObject(new Parameter { DefaultValue = $"{dataSourceName}/{entityName}/{version}" }));
+            copyPipeline.Properties.Parameters.Add("engineId", JObject.FromObject(new Parameter { DefaultValue = engine.Id }));
+            copyPipeline.Properties.Parameters.Add("dataSourceName", JObject.FromObject(new Parameter { DefaultValue = dataSourceName }));
+            copyPipeline.Properties.Parameters.Add("entityName", JObject.FromObject(new Parameter { DefaultValue = entityName }));
 
 
             var jsonPipeline = JsonConvert.SerializeObject(copyPipeline);

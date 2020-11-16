@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -18,44 +19,21 @@ namespace Ygdra.Core.Pipelines.Entities
         [JsonProperty("activities")]
         public List<Activity> Activities { get; set; } = new List<Activity>();
         [JsonProperty("parameters")]
-        public Parameters Parameters { get; set; } = new Parameters();
+        public JObject Parameters { get; set; } = new JObject();
         [JsonProperty("annotations")]
         public List<string> Annotations { get; set; } = new List<string>();
     }
 
-    public class Parameters
-    {
-        [JsonProperty("windowStart")]
-        public WindowStart WindowStart { get; set; } = new WindowStart();
-        [JsonProperty("destinationContainer")]
-        public DestinationContainer DestinationContainer { get; set; } = new DestinationContainer();
-        [JsonProperty("destinationFolderPath")]
-        public DestinationFolderpath DestinationFolderPath { get; set; } = new DestinationFolderpath();
-    }
 
-    public class WindowStart
+    public class Parameter
     {
         [JsonProperty("type")]
         public string Type { get; set; } = "String";
+
         [JsonProperty("defaultValue")]
-        public DateTime DefaultValue { get; set; } = DateTime.Now;
+        public Object DefaultValue { get; set; }
     }
 
-    public class DestinationContainer
-    {
-        [JsonProperty("type")]
-        public string Type { get; set; } = "string";
-        [JsonProperty("defaultValue")]
-        public string DefaultValue { get; set; }
-    }
-
-    public class DestinationFolderpath
-    {
-        [JsonProperty("type")]
-        public string Type { get; set; } = "string";
-        [JsonProperty("defaultValue")]
-        public string DefaultValue { get; set; }
-    }
 
     public class Activity
     {
@@ -64,18 +42,32 @@ namespace Ygdra.Core.Pipelines.Entities
         [JsonProperty("type")]
         public string Type { get; set; }
         [JsonProperty("dependsOn")]
-        public object[] DependsOn { get; set; }
+        public List<DependsOn> DependsOn { get; set; } = new List<DependsOn>();
         [JsonProperty("policy")]
         public Policy Policy { get; set; } = new Policy();
         [JsonProperty("userProperties")]
         public object[] UserProperties { get; set; }
         [JsonProperty("typeProperties")]
-        public TypeProperties TypeProperties { get; set; } = new TypeProperties();
+        public JObject TypeProperties { get; set; } = new JObject();
         [JsonProperty("inputs")]
-        public List<Input> Inputs { get; set; } = new List<Input>();
+        public List<Reference> Inputs { get; set; }
         [JsonProperty("outputs")]
-        public List<Output> Outputs { get; set; } = new List<Output>();
+        public List<Output> Outputs { get; set; }
+
+        [JsonProperty("linkedServiceName")]
+        public Reference LinkedServiceName { get; set; }
     }
+
+
+    public class DependsOn
+    {
+        [JsonProperty("activity")]
+        public string Activity { get; set; }
+
+        [JsonProperty("dependencyConditions")]
+        public List<string> DependencyConditions { get; set; } = new List<string>();
+    }
+
 
     public class Policy
     {
@@ -91,17 +83,17 @@ namespace Ygdra.Core.Pipelines.Entities
         public bool SecureInput { get; set; } = false;
     }
 
-    public class TypeProperties
-    {
-        [JsonProperty("source")]
-        public Source Source { get; set; } = new Source();
-        [JsonProperty("sink")]
-        public Sink Sink { get; set; } = new Sink();
-        [JsonProperty("enableStaging")]
-        public bool EnableStaging { get; set; } = false;
-        [JsonProperty("validateDataConsistency")]
-        public bool ValidateDataConsistency { get; set; } = false;
-    }
+    //public class TypeProperties
+    //{
+    //    [JsonProperty("source")]
+    //    public Source Source { get; set; } = new Source();
+    //    [JsonProperty("sink")]
+    //    public Sink Sink { get; set; } = new Sink();
+    //    [JsonProperty("enableStaging")]
+    //    public bool EnableStaging { get; set; } = false;
+    //    [JsonProperty("validateDataConsistency")]
+    //    public bool ValidateDataConsistency { get; set; } = false;
+    //}
 
     public class Source
     {
@@ -147,7 +139,7 @@ namespace Ygdra.Core.Pipelines.Entities
         public string Type { get; set; }
     }
 
-    public class Input
+    public class Reference
     {
         [JsonProperty("referenceName")]
         public string ReferenceName { get; set; }
@@ -155,12 +147,8 @@ namespace Ygdra.Core.Pipelines.Entities
         public string Type { get; set; }
     }
 
-    public class Output
+    public class Output : Reference
     {
-        [JsonProperty("referenceName")]
-        public string ReferenceName { get; set; }
-        [JsonProperty("type")]
-        public string Type { get; set; }
         [JsonProperty("parameters")]
         public Parameters1 Parameters { get; set; } = new Parameters1();
     }
