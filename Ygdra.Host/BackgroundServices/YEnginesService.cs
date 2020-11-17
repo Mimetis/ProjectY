@@ -84,10 +84,11 @@ namespace Ygdra.Host.BackgroundServices
 
                 var storage = await CreateStorageAsync(engine, callerUserId, token).ConfigureAwait(false);
 
-                //await CreateFoldersAsync(engine, callerUserId, token).ConfigureAwait(false);
-
                 // Create Databricks Workspace
                 var clusterWorkspace = await CreateDatabricksWorkspaceAsync(engine, callerUserId, token).ConfigureAwait(false);
+
+                // TODO : Why it's not working ?
+                // await CreateDatabricksAzureKeyvaultSecretScopeAsync(engine, clusterWorkspace, keyvault, callerUserId, token).ConfigureAwait(false);
 
                 var cluster = await CreateDatabricksClusterAsync(engine, clusterWorkspace, callerUserId, token).ConfigureAwait(false);
 
@@ -692,7 +693,7 @@ namespace Ygdra.Host.BackgroundServices
 
             if (!lstContainers.Any(fs => fs.Name == "silver"))
                 await dataLakeServiceClient.CreateFileSystemAsync("silver");
-            
+
             if (!lstContainers.Any(fs => fs.Name == "gold"))
                 await dataLakeServiceClient.CreateFileSystemAsync("gold");
         }
@@ -722,6 +723,17 @@ namespace Ygdra.Host.BackgroundServices
                             new JObject{
                                 { "tenantId", this.options.TenantId },
                                 { "objectId", this.options.ClientObjectId},
+                                { "permissions",
+                                           new JObject {
+                                                    {"keys", new JArray { "get", "list", "create", "update", "delete", "backup", "restore", "recover", "purge" } },
+                                                    {"secrets", new JArray { "get", "list", "set", "delete", "backup", "restore", "recover", "purge" } },
+                                                    {"certificates", new JArray { "get", "list", "create", "update", "delete", "recover", "purge" } }
+                                                }
+                                }
+                            },
+                            new JObject{
+                                { "tenantId", this.options.TenantId },
+                                { "objectId", "fe597bb2-377c-44f1-8515-82c8a1a62e3d"}, // fe597bb2-377c-44f1-8515-82c8a1a62e3d is object_id for databricks (where app_id = 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d )
                                 { "permissions",
                                            new JObject {
                                                     {"keys", new JArray { "get", "list", "create", "update", "delete", "backup", "restore", "recover", "purge" } },
@@ -964,6 +976,81 @@ namespace Ygdra.Host.BackgroundServices
             return clusterStateResponse.Value;
 
         }
+
+        private async Task<YDatabricksCluster> CreateDatabricksAzureKeyvaultSecretScopeAsync(YEngine engine, YResource workspace, YResource keyvault, Guid? callerUserId = default, CancellationToken cancellationToken = default)
+        {
+
+            var dbricksResourceId = workspace.Id;
+
+            if (!workspace.Properties.ContainsKey("workspaceUrl"))
+                throw new Exception("Can't get the workspace url");
+
+            var dbricksWorkspaceName = workspace.Properties["workspaceUrl"];
+
+            // Url for creating a cluster
+            var dbricksUriBuilder = new UriBuilder($"https://{dbricksWorkspaceName}")
+            {
+                Path = "api/2.0/secrets/scopes/create"
+            };
+
+            var dbricksWorkspaceUrl = dbricksUriBuilder.Uri;
+
+
+            // this GUID is the Databricks Worskspace resource Id
+            var dbricksWorkspaceToken = await this.authProvider.GetAccessTokenForAsync("2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default").ConfigureAwait(false);
+
+            // the double // before .default IS IMPORTANT
+            var mgtToken = await this.authProvider.GetAccessTokenForAsync("https://management.core.windows.net//.default").ConfigureAwait(false);
+
+            // Build the request
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            headers.Add("X-Databricks-Azure-SP-Management-Token", mgtToken);
+            headers.Add("X-Databricks-Azure-Workspace-Resource-Id", dbricksResourceId);
+
+            var jsonData = new JObject {
+                { "scope", $"{engine.KeyVaultName}" },
+                { "scope_backend_type", $"AZURE_KEYVAULT" },
+                { "initial_manage_principal", $"users" },
+                { "backend_azure_keyvault", new JObject{
+                        { "resource_id", keyvault.Id },
+                        { "dns_name", keyvault.Properties["vaultUri"].ToString() },
+                    }
+                },
+
+            };
+
+            // Get the response. we may want to create a real class for this result ?
+            var dbricksKeyVaultScope = await this.client.ProcessRequestAsync<JObject>(dbricksWorkspaceUrl, jsonData, HttpMethod.Post, dbricksWorkspaceToken, headers).ConfigureAwait(false);
+
+            if (dbricksKeyVaultScope == null || dbricksKeyVaultScope.StatusCode != HttpStatusCode.OK)
+            {
+                var message = $"Unable to generate a databricks Azure KeyVault backend scope in Databricks workspace {engine.ClusterName}";
+                await ThrowAndNotifyErrorAsync(engine, message, callerUserId).ConfigureAwait(false);
+            }
+
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                $"Databricks Azure backend scope creat in cluster {engine.ClusterName}. ", callerUserId).ConfigureAwait(false);
+
+
+            dbricksUriBuilder.Path = "api/2.0/secrets/scopes/list";
+            dbricksWorkspaceUrl = dbricksUriBuilder.Uri;
+
+            var scopesListResponse = await this.client.ProcessRequestAsync<YDatabricksCluster>(dbricksWorkspaceUrl, null, HttpMethod.Get, dbricksWorkspaceToken, headers).ConfigureAwait(false);
+
+            if (scopesListResponse == null || scopesListResponse.StatusCode != HttpStatusCode.OK || scopesListResponse.Value == null)
+            {
+                var message = $"Unable to get secret scopes list from cluster {engine.ClusterName} from Databricks workspace {engine.ClusterName}";
+                await ThrowAndNotifyErrorAsync(engine, message, callerUserId).ConfigureAwait(false);
+            }
+
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+               $"Cluster {engine.ClusterName} secrets scope list ", callerUserId, scopesListResponse.Value).ConfigureAwait(false);
+
+
+            return scopesListResponse.Value;
+
+        }
+
 
         public async Task ThrowAndNotifyErrorAsync(YEngine engine, string message, Guid? callerUserId = null)
         {

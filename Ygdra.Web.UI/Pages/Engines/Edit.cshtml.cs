@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -85,6 +86,18 @@ namespace Ygdra.Web.UI.Pages.Engines
                 ModelState[key].ValidationState = ModelValidationState.Valid;
             }
 
+
+
+            // Test for IValidatableObject implementation
+            IValidatableObject validatable = this.EngineView;
+
+            var validationContext = new ValidationContext(this.EngineView, this.HttpContext.RequestServices, null);
+            var results = validatable.Validate(validationContext);
+
+            foreach (ValidationResult result in results.Where(r => r != ValidationResult.Success))
+                ModelState.AddModelError("", result.ErrorMessage);
+
+
             if (!ModelState.IsValid)
                 return Page();
 
@@ -99,7 +112,7 @@ namespace Ygdra.Web.UI.Pages.Engines
 
                     if (engineGetAction.HasError)
                         throw new Exception(engineGetAction.Error?.ToString());
-                    
+
                     engine = engineGetAction.Value;
                     engine.EngineName = this.EngineView.EngineName;
                     engine.EngineType = this.EngineView.EngineType;

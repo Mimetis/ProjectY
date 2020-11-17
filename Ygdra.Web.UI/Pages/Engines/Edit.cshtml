@@ -39,15 +39,18 @@
             </div>
             <div class="col-sm-11">
                 <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-outline-dark">
-                        <input type="radio" asp-for="EngineView.EngineType" value="Databricks">
+                    <label class="btn btn-outline-dark d-flex align-items-center">
+                        <input type="radio" asp-for="EngineView.EngineType" value="Databricks" checked>
                         <image src="@Url.Content("~/images/DatabricksIcon.png")" alt="Databricks icon" title="Databricks"></image>
                         Databricks
                     </label>
-                    <label class="btn btn-outline-dark">
-                        <input type="radio" asp-for="EngineView.EngineType" value="Synapse">
+                    <label class="btn btn-outline-dark disabled d-flex align-items-center">
+                        <input type="radio" asp-for="EngineView.EngineType" value="Synapse" disabled>
                         <image src="@Url.Content("~/images/SynapseIcon.png")" alt="Synapse icon" title="Synapse"></image>
-                        Synapse
+                        <div class="d-flex flex-column">
+                            <span>Synapse</span>
+                            <small>Not available yet</small>
+                        </div>
                     </label>
                 </div>
                 <span asp-validation-for="EngineView.EngineType" class="text-danger"></span>

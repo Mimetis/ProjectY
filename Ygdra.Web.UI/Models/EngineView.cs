@@ -189,6 +189,8 @@ namespace Ygdra.Web.UI.Models
             }
         }
 
+
+        [Required]
         public List<Guid> Owners
         {
             get => this.Engine.Owners?.Select(p => p.Id).ToList();
@@ -377,8 +379,11 @@ namespace Ygdra.Web.UI.Models
             // Admin don't have to be part of the owners
             var isAdmin = httpContextAccessor.HttpContext.User.IsInRole("Admin");
 
-            if (!this.Owners.Any(o => o == userId || isAdmin))
-                yield return new ValidationResult($"You should be part of the Owners. Please add {userName} to the owners list.", new string[] { nameof(Owners) });
+            if (this.Owners == null || this.Owners.Count <= 0)
+                yield return new ValidationResult($"You should select at least one Owner. Please add at least your username [{userName}] to the owners list.", new string[] { nameof(Owners) });
+
+            if (this.Owners != null && !this.Owners.Any(o => o == userId || isAdmin))
+                yield return new ValidationResult($"You should be part of the Owners. Please add [{userName}] to the owners list.", new string[] { nameof(Owners) });
 
             if (this.Status == YEngineStatus.NeedMoreInfos && string.IsNullOrWhiteSpace(this.AdminComments))
                 yield return new ValidationResult($"Since this request need more infos, you should provide a feedback to the user, through the admin comments section", new string[] { nameof(AdminComments) });
