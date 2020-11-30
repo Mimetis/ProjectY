@@ -31,7 +31,27 @@ export class entitiesAzureSql {
         // on table change, set the correct attributes for the preview button
         this.$tablesSelect.change(() => { this.setPreviewDataAttributes(engineId) });
 
+        this.$deltaPanel = $(`#deltaPanel`);
+
+        this.$mode = $(`input[name="${this.htmlFieldPrefix.replace("_", "")}.Mode"]:checked`).val();
+        this.hideOrShowDeltaPanel();    
+
+        $(`input[name="${this.htmlFieldPrefix.replace("_", "")}.Mode"]`).change(() => {this.hideOrShowDeltaPanel()});
+
+
         setTimeout(() => this.refreshDataSourcesAsync(engineId), 10);
+    }
+
+    hideOrShowDeltaPanel() {
+
+        this.$mode = $(`input[name="${this.htmlFieldPrefix.replace("_", "")}.Mode"]:checked`).val();
+
+        if (this.$mode === "Delta") {
+            this.$deltaPanel.show("fast");
+        } else {
+            this.$deltaPanel.hide("fast");
+        }
+
     }
 
     async refreshDataSourcesAsync(engineId) {

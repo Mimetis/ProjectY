@@ -5,3 +5,7 @@ pytest
 pytest-runner
 pytest-cov
 azure-identity
+pandas
+IPython
+ipykernel
+pandas

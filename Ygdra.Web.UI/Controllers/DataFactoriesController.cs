@@ -11,6 +11,7 @@ using Ygdra.Core.DataSources.Entities;
 using Ygdra.Core.Entities.Entities;
 using Ygdra.Core.Http;
 using Ygdra.Core.Payloads;
+using Ygdra.Core.Pipelines.Entities;
 using Ygdra.Web.UI.Models;
 
 namespace Ygdra.Web.UI.Controllers
@@ -65,6 +66,19 @@ namespace Ygdra.Web.UI.Controllers
         }
 
         [HttpGet()]
+        [Route("{engineId}/entities/{entityName}")]
+        public Task<YJsonResult<YEntityUnknown>> GetEntityAsync(Guid engineId, string entityName)
+        {
+            return YExecuteAsync(async () =>
+            {
+                var response = await this.client.ProcessRequestApiAsync<YEntityUnknown>($"api/DataFactories/{engineId}/entities/{entityName}", null).ConfigureAwait(false);
+                return response.Value;
+            });
+
+        }
+
+
+        [HttpGet()]
         [Route("{engineId}/links")]
         public Task<YJsonResult<List<YDataSourceUnknown>>> GetDataSourcesAsync(Guid engineId, string dataSourceType = null)
         {
@@ -77,6 +91,20 @@ namespace Ygdra.Web.UI.Controllers
                     dataSources = dataSources.Where(ds => ds.DataSourceType == ydt).ToList();
 
                 return dataSources;
+            });
+
+        }
+
+
+        [HttpGet()]
+        [Route("{engineId}/pipelines/{dataSourceName}/entities/{entityName}")]
+        public Task<YJsonResult<List<YPipeline>>> GetPipelinesAsync(Guid engineId, string dataSourceName, string entityName)
+        {
+            return YExecuteAsync(async () =>
+            {
+                var response = await this.client.ProcessRequestApiAsync<List<YPipeline>>($"api/DataFactories/{engineId}/pipelines/{dataSourceName}/entities/{entityName}", null).ConfigureAwait(false);
+                var pipelines = response.Value;
+                return pipelines;
             });
 
         }

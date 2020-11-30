@@ -37,7 +37,7 @@ namespace Ygdra.Web.UI.Models
         }
 
         [Required]
-        [StringLength(20, MinimumLength = 5)]
+        [StringLength(20, MinimumLength = 4)]
         [Display(Name = "Entity name")]
         public string Name
         {
@@ -58,6 +58,22 @@ namespace Ygdra.Web.UI.Models
             set => this.Entity.Version = value;
         }
 
+
+        public string Mode
+        {
+            get => this.Entity.Mode;
+            set => this.Entity.Mode = value;
+        }
+        public string KeyColumn
+        {
+            get => this.Entity.KeyColumn;
+            set => this.Entity.KeyColumn = value;
+        }
+        public string TimestampColumn
+        {
+            get => this.Entity.TimestampColumn;
+            set => this.Entity.TimestampColumn = value;
+        }
 
         public string Type
         {

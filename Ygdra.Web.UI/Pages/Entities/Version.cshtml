@@ -1,0 +1,160 @@
+﻿@page "{id?}/{entityName?}"
+@model Ygdra.Web.UI.Pages.Entities.VersionModel
+@{
+}
+<breadcrumb asp-homepage-title="Dashboard"
+            asp-homepage-url="/Dashboard"
+            asp-homepage-glyphicon="glyphicon glyphicon-home"></breadcrumb>
+
+<div class="ml-3 mr-3">
+    <h1 class="h4">Entity details</h1>
+</div>
+
+@if (Model.EntityView == null)
+{
+    <div class="docking-form">
+        <div class="no-item">
+            This entity does not existing. It has been deleted or you just hit a wrong url.
+            <i class="far fa-question-circle"></i>
+        </div>
+    </div>
+
+}
+else
+{
+
+    <div class="ml-3 mr-3">
+        <p>Here are all the processes that are actually runing for your entity. Each process is represented by its version</p>
+    </div>
+
+    <div class="ml-3 mr-3" aria-label="Engines action">
+        <a class="btn btn-dark btn-sm" asp-page="./New">
+            <i class="fas fa-plus-circle"></i>
+            New Version
+        </a>
+    </div>
+
+
+    <div class="docking-form">
+
+        <input type="hidden" asp-for="EntityView.EngineId" />
+        <input type="hidden" asp-for="EntityView.Name" />
+        <input type="hidden" asp-for="EntityView.DataSourceName" />
+
+        <div class="row align-items-center">
+            <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+                <label asp-for="EntityView.Name"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-7 col-lg-3 align-self-md-start">
+                <label>@Model.EntityView.Name</label>
+            </div>
+            <div class="col-4 col-lg-2 font-weight-bold align-self-md-start d-flex justify-content-between">
+                <label asp-for="EntityView.Version"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-7 col-lg-3 align-self-md-start">
+                <label>@Model.EntityView.Version</label>
+            </div>
+
+
+        </div>
+
+        <h2 class="h5">New Entity version</h2>
+
+        <div id="smartWizard">
+            <ul class="nav">
+                <li>
+                    <a class="nav-link" href="#step-1">
+                        Version
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link" href="#step-2">
+                        Advanced
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div id="step-1" class="tab-pane" role="tabpanel">
+                    <div class="form-group row">
+                        <div class="col-12 col-lg-2 col-form-label text-nowrap">
+                            <label class="col-form-label">Version</label>
+                            <label class="text-danger">*</label>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <div class="d-flex">
+                                <div class="mr-2">
+                                    <input data-prefix="Major version" value="1" data-decimals="0" min="0" max="1000" step="1" type="number" />
+                                </div>
+                                <div class="mr-2">
+                                    <input data-prefix="Minor version" value="0" data-decimals="0" min="0" max="1000" step="1" type="number" />
+                                </div>
+                                <div class="mr-2">
+                                    <input data-prefix="Patches " value="0" data-decimals="0" min="0" max="1000" step="1" type="number" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="step-2" class="tab-pane" role="tabpanel">
+                    <div class="form-group row">
+                        <div class="col-12 col-lg-2 col-form-label">
+                            <label>Use query</label>
+                            <label class="text-danger">*</label>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="Table">
+                                <label class="form-check-label" for="inlineRadio1">Table</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="Query">
+                                <label class="form-check-label" for="inlineRadio2">Query</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="StoredProcedure">
+                                <label class="form-check-label" for="inlineRadio3">Stored procedure</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-12 col-lg-2 col-form-label">
+                            <label>Filter by file last modified if Data Lake</label>
+                            <label class="text-danger">*</label>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <input type="datetime" class="form-control" placeholder="File Modified Date Value">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-12 col-lg-2 col-form-label">
+                            <label>Filter by column last modified if Database</label>
+                            <label class="text-danger">*</label>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <input type="text" class="form-control" placeholder="ModifiedDate Column Name">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+    </div>
+
+    <div class="docking-footer">
+        <a class="btn btn-dark btn-sm" asp-page="./Index">
+            <i class="fas fa-undo"></i>
+            Back
+        </a>
+    </div>
+
+
+}

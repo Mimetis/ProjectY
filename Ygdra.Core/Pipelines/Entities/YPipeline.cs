@@ -6,18 +6,23 @@ using System.Collections.Generic;
 namespace Ygdra.Core.Pipelines.Entities
 {
 
-    public class Pipeline
+    public class YPipelines
+    {
+        [JsonProperty("value")]
+        public List<YPipeline> Value { get; set; }
+    }
+    public class YPipeline
     {
         [JsonProperty("name")]
         public string Name { get; set; }
         [JsonProperty("properties")]
-        public Properties Properties { get; set; } = new Properties();
+        public YPipelineProperties Properties { get; set; } = new YPipelineProperties();
     }
 
-    public class Properties
+    public class YPipelineProperties
     {
         [JsonProperty("activities")]
-        public List<Activity> Activities { get; set; } = new List<Activity>();
+        public List<YPipelineActivity> Activities { get; set; } = new List<YPipelineActivity>();
         [JsonProperty("parameters")]
         public JObject Parameters { get; set; } = new JObject();
         [JsonProperty("annotations")]
@@ -25,7 +30,7 @@ namespace Ygdra.Core.Pipelines.Entities
     }
 
 
-    public class Parameter
+    public class YPipelineParameter
     {
         [JsonProperty("type")]
         public string Type { get; set; } = "String";
@@ -35,31 +40,31 @@ namespace Ygdra.Core.Pipelines.Entities
     }
 
 
-    public class Activity
+    public class YPipelineActivity
     {
         [JsonProperty("name")]
         public string Name { get; set; }
         [JsonProperty("type")]
         public string Type { get; set; }
         [JsonProperty("dependsOn")]
-        public List<DependsOn> DependsOn { get; set; } = new List<DependsOn>();
+        public List<YPipelineDependsOn> DependsOn { get; set; } = new List<YPipelineDependsOn>();
         [JsonProperty("policy")]
-        public Policy Policy { get; set; } = new Policy();
+        public YPipelinePolicy Policy { get; set; } = new YPipelinePolicy();
         [JsonProperty("userProperties")]
         public object[] UserProperties { get; set; }
         [JsonProperty("typeProperties")]
         public JObject TypeProperties { get; set; } = new JObject();
         [JsonProperty("inputs")]
-        public List<Reference> Inputs { get; set; }
+        public List<YPipelineReference> Inputs { get; set; }
         [JsonProperty("outputs")]
-        public List<Output> Outputs { get; set; }
+        public List<YPipelineOutput> Outputs { get; set; }
 
         [JsonProperty("linkedServiceName")]
-        public Reference LinkedServiceName { get; set; }
+        public YPipelineReference LinkedServiceName { get; set; }
     }
 
 
-    public class DependsOn
+    public class YPipelineDependsOn
     {
         [JsonProperty("activity")]
         public string Activity { get; set; }
@@ -69,7 +74,7 @@ namespace Ygdra.Core.Pipelines.Entities
     }
 
 
-    public class Policy
+    public class YPipelinePolicy
     {
         [JsonProperty("timeout")]
         public string Timeout { get; set; } = "7.00:00:00";
@@ -83,31 +88,23 @@ namespace Ygdra.Core.Pipelines.Entities
         public bool SecureInput { get; set; } = false;
     }
 
-    //public class TypeProperties
-    //{
-    //    [JsonProperty("source")]
-    //    public Source Source { get; set; } = new Source();
-    //    [JsonProperty("sink")]
-    //    public Sink Sink { get; set; } = new Sink();
-    //    [JsonProperty("enableStaging")]
-    //    public bool EnableStaging { get; set; } = false;
-    //    [JsonProperty("validateDataConsistency")]
-    //    public bool ValidateDataConsistency { get; set; } = false;
-    //}
-
-    public class Source
+    public class YPipelineSource
     {
         [JsonProperty("type")]
         public string Type { get; set; }
 
         [JsonProperty("storeSettings")]
-        public StoreSettings StoreSettings { get; set; }
+        public YPipelineStoreSettings StoreSettings { get; set; }
         
         [JsonProperty("partitionOption")]
         public string PartitionOption { get; set; }
+
+        [JsonProperty("sqlReaderQuery")]
+        public YValueType SqlReaderQuery { get; set; }
+
     }
 
-    public class StoreSettings
+    public class YPipelineStoreSettings
     {
         [JsonProperty("type")]
         public string Type { get; set; }
@@ -117,29 +114,29 @@ namespace Ygdra.Core.Pipelines.Entities
         public string WildcardFileName { get; set; }
     }
 
-    public class Sink
+    public class YPipelineSink
     {
         [JsonProperty("type")]
         public string Type { get; set; }
         [JsonProperty("storeSettings")]
-        public StoreSettings1 StoreSettings { get; set; } = new StoreSettings1();
+        public YPipelineStoreSettings1 StoreSettings { get; set; } = new YPipelineStoreSettings1();
         [JsonProperty("formatSettings")]
-        public FormatSettings FormatSettings { get; set; } = new FormatSettings();
+        public YPipelineFormatSettings FormatSettings { get; set; } = new YPipelineFormatSettings();
     }
 
-    public class StoreSettings1
+    public class YPipelineStoreSettings1
     {
         [JsonProperty("type")]
         public string Type { get; set; }
     }
 
-    public class FormatSettings
+    public class YPipelineFormatSettings
     {
         [JsonProperty("type")]
         public string Type { get; set; }
     }
 
-    public class Reference
+    public class YPipelineReference
     {
         [JsonProperty("referenceName")]
         public string ReferenceName { get; set; }
@@ -147,21 +144,21 @@ namespace Ygdra.Core.Pipelines.Entities
         public string Type { get; set; }
     }
 
-    public class Output : Reference
+    public class YPipelineOutput : YPipelineReference
     {
         [JsonProperty("parameters")]
-        public Parameters1 Parameters { get; set; } = new Parameters1();
+        public YPipelineParameters1 Parameters { get; set; } = new YPipelineParameters1();
     }
 
-    public class Parameters1
+    public class YPipelineParameters1
     {
         [JsonProperty("folderPath")]
-        public FolderPath FolderPath { get; set; } = new FolderPath();
+        public YValueType FolderPath { get; set; } = new YValueType();
         [JsonProperty("fileSystem")]
-        public FileSystem FileSystem { get; set; } = new FileSystem();
+        public YValueType FileSystem { get; set; } = new YValueType();
     }
 
-    public class FolderPath
+    public class YValueType
     {
         [JsonProperty("value")]
         public string Value { get; set; }
@@ -169,12 +166,5 @@ namespace Ygdra.Core.Pipelines.Entities
         public string Type { get; set; }
     }
 
-    public class FileSystem
-    {
-        [JsonProperty("value")]
-        public string Value { get; set; }
-        [JsonProperty("type")]
-        public string Type { get; set; }
-    }
-
+   
 }

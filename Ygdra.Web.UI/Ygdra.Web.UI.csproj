@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ClientSrc>ClientSrc\</ClientSrc>
     <LangVersion>8.0</LangVersion>
+    <UserSecretsId>f78e9421-5df8-4825-9b0c-2e68dbd5e8af</UserSecretsId>
 
   </PropertyGroup>
 

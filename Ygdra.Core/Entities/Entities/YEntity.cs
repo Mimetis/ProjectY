@@ -25,6 +25,11 @@ namespace Ygdra.Core.Entities.Entities
         public string Name { get; set; }
         public string Type { get; set; }
         public string Version { get; set; } = string.Empty;
+        public string Mode { get; set; } = "Full";
+        public string KeyColumn { get; set; }
+        public string TimestampColumn { get; set; }
+
+
 
         [JsonIgnore]
         public YEntityType EntityType { get; set; }
@@ -45,11 +50,38 @@ namespace Ygdra.Core.Entities.Entities
             AdditionalData["properties"]["linkedServiceName"].Merge("type", "LinkedServiceReference");
             AdditionalData["properties"]["linkedServiceName"].Merge("referenceName", DataSourceName);
 
+            var annotations = AdditionalData["properties"]["annotations"] as JArray;
+            if (annotations == null)
+            {
+                annotations = new JArray();
+                ((JObject)AdditionalData["properties"]).Add("annotations", annotations);
+            }
+
             if (!string.IsNullOrEmpty(this.Version))
             {
-                var versionArray = new JArray();
-                versionArray.Add($"ProjectY_Version={this.Version}");
-                AdditionalData["properties"].Merge("annotations", versionArray);
+                var version = annotations.FirstOrDefault(jt => jt.Value<string>().StartsWith("ProjectY_Version"));
+                if (version != null)
+                {
+                    var indexVersion = annotations.IndexOf(version);
+                    annotations[indexVersion] = $"ProjectY_Version={this.Version}";
+                }
+                else
+                {
+                    annotations.Add($"ProjectY_Version={this.Version}");
+                }
+            }
+            if (!string.IsNullOrEmpty(this.Mode))
+            {
+                var version = annotations.FirstOrDefault(jt => jt.Value<string>().StartsWith("ProjectY_Mode"));
+                if (version != null)
+                {
+                    var indexVersion = annotations.IndexOf(version);
+                    annotations[indexVersion] = $"ProjectY_Mode={this.Mode}";
+                }
+                else
+                {
+                    annotations.Add($"ProjectY_Mode={this.Mode}");
+                }
             }
 
             this.OnSerializing((JObject)AdditionalData["properties"]);
@@ -94,12 +126,12 @@ namespace Ygdra.Core.Entities.Entities
     {
         public override void OnDeserialized(JObject properties)
         {
-            
+
         }
 
         public override void OnSerializing(JObject properties)
         {
-            
+
         }
     }
 

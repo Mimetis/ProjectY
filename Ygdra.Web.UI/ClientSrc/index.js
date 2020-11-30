@@ -11,7 +11,7 @@ import { auth } from "./auth.js"
 import { dotmimtable } from "./dotmimtable"
 import { personFormatters } from './formatters/index.js'
 import { dataSourceNew, dataSourcesPage, dataSourceEdit } from './dataSources/index.js'
-import { entitiesPage, entitiesNewPage } from './entities/index.js'
+import { entitiesPage, entitiesNewPage, entitiesDetailsPage, entitiesNewVersionPage } from './entities/index.js'
 import d from './extensions.js';
 
 dotmimtable.initialize();
@@ -42,3 +42,5 @@ router.register('/DataSources/New', dataSourceNew);
 router.register('/DataSources/Edit', dataSourceEdit);
 router.register('/Entities', entitiesPage);
 router.register('/Entities/New', entitiesNewPage);
+router.register('/Entities/Details', entitiesDetailsPage);
+router.register('/Entities/Version', entitiesNewVersionPage);

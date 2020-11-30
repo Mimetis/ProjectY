@@ -12,7 +12,11 @@ namespace Ygdra.Web.UI.Models
     {
         private YEntityAzureSqlTable entity;
 
-        public EntityViewAzureSqlTable() => this.entity = new YEntityAzureSqlTable();
+        public EntityViewAzureSqlTable()
+        {
+            this.entity = new YEntityAzureSqlTable();
+            this.Mode = "Full";
+        }
         public override YEntity Entity => this.entity;
         public override bool IsNew { get; set; }
         public override Guid EngineId { get; set; }
@@ -81,5 +85,7 @@ namespace Ygdra.Web.UI.Models
                 }
             }
         }
+
+
     }
 }

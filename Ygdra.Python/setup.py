@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='ygdra',
-      version='1.1',
+      version='1.4',
       description='Ygdra helpers',
       url='http://github.com/Mimetis',
       author='Sébastien Pertus',

@@ -3,6 +3,7 @@
 
 microsoft-identity-web
 
+
 # local settings
 *.local.json
 *.[Dd]evelopment.json

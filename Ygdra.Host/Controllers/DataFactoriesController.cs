@@ -24,6 +24,7 @@ using Ygdra.Core.Http;
 using Ygdra.Core.Options;
 using Ygdra.Core.Payloads;
 using Ygdra.Core.Pipelines.Entities;
+using Ygdra.Core.Triggers.Entities;
 using Ygdra.Host.Extensions;
 using Ygdra.Host.Services;
 
@@ -239,6 +240,36 @@ namespace Ygdra.Host.Controllers
 
 
         [HttpGet()]
+        [Route("{engineId}/triggers")]
+        public async Task<IActionResult> GetTriggersAsync(Guid engineId)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var resourceGroupName = engine.ResourceGroupName;
+            var factoryName = engine.FactoryName;
+
+            var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{resourceGroupName}" +
+                          $"/providers/Microsoft.DataFactory/factories/{factoryName}" +
+                          $"/triggers";
+            var query = $"api-version={DataFactoryApiVersion}";
+
+            // Get the response. we may want to create a real class for this result ?
+            var response = await this.client.ProcessRequestManagementAsync<JObject>(
+                pathUri, query).ConfigureAwait(false);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return new NotFoundResult();
+
+            var triggers = response.Value["Value"];
+
+            return new YJsonResult<JToken>(triggers);
+        }
+
+
+        [HttpGet()]
         [Route("{engineId}/links/{dataSourceName}")]
         public async Task<ActionResult<YDataSource>> GetDataSourceAsync(Guid engineId, string dataSourceName)
         {
@@ -297,6 +328,156 @@ namespace Ygdra.Host.Controllers
             return entities.ToList();
         }
 
+        [HttpGet()]
+        [Route("{engineId}/entities/{entityName}")]
+        public async Task<ActionResult<YEntityUnknown>> GetEntityAsync(Guid engineId, string entityName)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var resourceGroupName = engine.ResourceGroupName;
+            var factoryName = engine.FactoryName;
+
+            var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{resourceGroupName}" +
+                          $"/providers/Microsoft.DataFactory/factories/{factoryName}" +
+                          $"/datasets/{entityName}";
+            var query = $"api-version={DataFactoryApiVersion}";
+
+            // Get the response. we may want to create a real class for this result ?
+            var datasetsTokenResponse = await this.client.ProcessRequestManagementAsync<YEntityUnknown>(
+                pathUri, query).ConfigureAwait(false);
+
+            if (datasetsTokenResponse.StatusCode == HttpStatusCode.NotFound)
+                return new NotFoundResult();
+
+            return datasetsTokenResponse.Value;
+        }
+
+
+        [HttpGet()]
+        [Route("{engineId}/daemon/entities/{entityName}")]
+        public async Task<ActionResult<YEntityUnknown>> GetEntityFromDaemonAsync(Guid engineId, string entityName)
+        {
+            var userObjectId = this.User.GetObjectId();
+
+            if (string.IsNullOrEmpty(userObjectId))
+                return new UnauthorizedObjectResult("Daemon id unknown");
+
+            if (userObjectId != this.options.ClientObjectId)
+                return new UnauthorizedObjectResult("This web api should be called only from a daemon application using the correct Client Id / Client Secret");
+
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var resourceGroupName = engine.ResourceGroupName;
+            var factoryName = engine.FactoryName;
+
+            var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{resourceGroupName}" +
+                          $"/providers/Microsoft.DataFactory/factories/{factoryName}" +
+                          $"/datasets/{entityName}";
+            var query = $"api-version={DataFactoryApiVersion}";
+
+            // Get the response. we may want to create a real class for this result ?
+            var datasetsTokenResponse = await this.client.ProcessRequestManagementAsync<YEntityUnknown>(
+                pathUri, query).ConfigureAwait(false);
+
+            if (datasetsTokenResponse.StatusCode == HttpStatusCode.NotFound)
+                return new NotFoundResult();
+
+            return datasetsTokenResponse.Value;
+        }
+
+
+        [HttpGet()]
+        [Route("{engineId}/daemon/entities")]
+        public async Task<ActionResult<List<YEntity>>> GetEntitiesFromDaemonAsync(Guid engineId)
+        {
+
+            var userObjectId = this.User.GetObjectId();
+
+            if (string.IsNullOrEmpty(userObjectId))
+                return new UnauthorizedObjectResult("Daemon id unknown");
+
+            if (userObjectId != this.options.ClientObjectId)
+                return new UnauthorizedObjectResult("This web api should be called only from a daemon application using the correct Client Id / Client Secret");
+
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var resourceGroupName = engine.ResourceGroupName;
+            var factoryName = engine.FactoryName;
+
+            var pathUri = $"/subscriptions/{options.SubscriptionId}/resourceGroups/{resourceGroupName}" +
+                          $"/providers/Microsoft.DataFactory/factories/{factoryName}" +
+                          $"/datasets";
+            var query = $"api-version={DataFactoryApiVersion}";
+
+            // Get the response. we may want to create a real class for this result ?
+            var datasetsTokenResponse = await this.client.ProcessRequestManagementAsync<YEntities>(
+                pathUri, query).ConfigureAwait(false);
+
+            if (datasetsTokenResponse.StatusCode == HttpStatusCode.NotFound)
+                return new NotFoundResult();
+
+            var entities = datasetsTokenResponse.Value.Value;
+
+            return entities.Select(e => YEntityFactory.GetTypedEntity(e)).ToList();
+        }
+
+
+        [HttpGet]
+        [Route("{engineId}/pipelines/{dataSourceName}/entities/{entityName}")]
+        public async Task<ActionResult<List<YPipeline>>> GetPipelinesAsync(Guid engineId, string dataSourceName, string entityName)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var query = $"api-version={DataFactoryApiVersion}";
+
+            // Get Datasource
+            var regex = new Regex(@"^[a-zA-Z0-9--]{3,24}$");
+
+            if (!regex.IsMatch(dataSourceName))
+                throw new Exception($"DataSource name {dataSourceName} is incorrect");
+
+            var entityPathUri = $"/subscriptions/{options.SubscriptionId}" +
+                          $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
+                          $"/factories/{engine.FactoryName}/datasets/{entityName}";
+
+            var responseEntity = await this.client.ProcessRequestManagementAsync<YEntityUnknown>(
+                entityPathUri, query).ConfigureAwait(false);
+
+            if (responseEntity.StatusCode != HttpStatusCode.OK)
+                throw new Exception($"Can't get entity {entityName} to get pipelines");
+
+
+            var pipelinesPathUri = $"/subscriptions/{options.SubscriptionId}" +
+              $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
+              $"/factories/{engine.FactoryName}/pipelines";
+
+            var pipelinesResponse = await this.client.ProcessRequestManagementAsync<YPipelines>(
+                    pipelinesPathUri, query).ConfigureAwait(false);
+
+            if (pipelinesResponse.StatusCode != HttpStatusCode.OK)
+                throw new Exception($"Can't get pipelines for entity {entityName}");
+
+            var pipelines = pipelinesResponse.Value.Value;
+
+            return pipelines.Where(p => p.Name.ToLowerInvariant().StartsWith($"{dataSourceName.ToLowerInvariant()}_{entityName.ToLowerInvariant()}")).ToList();
+
+
+        }
+
+
+
         [HttpPut]
         [Route("{engineId}/links/{dataSourceName}/entities/{entityName}")]
         public async Task<ActionResult<YEntity>> AddEntityAsync(Guid engineId, string dataSourceName, string entityName, [FromBody] YEntityUnknown entity)
@@ -319,12 +500,16 @@ namespace Ygdra.Host.Controllers
 
             var entityQuery = $"api-version={DataFactoryApiVersion}";
 
-
-            // Get the response. we may want to create a real class for this result ?
             var responseEntity = await this.client.ProcessRequestManagementAsync<YEntityUnknown>(
                 entityPathUri, entityQuery, entity, HttpMethod.Put).ConfigureAwait(false);
 
+            await CreatePipelineAsync(engine, entity).ConfigureAwait(false);
 
+            return responseEntity.Value;
+        }
+
+        private async Task CreatePipelineAsync(YEngine engine, YEntity entity)
+        {
             // -------------------------
             // PIPELINE
 
@@ -336,7 +521,7 @@ namespace Ygdra.Host.Controllers
                 version = "v1";
 
             // try to create a Copy Pipeline
-            string pipelineName = $"Copy_{dataSourceName.ToLower()}_{entityName.ToLower()}_{version.ToLower()}";
+            string pipelineName = $"{entity.DataSourceName.ToLower()}_{entity.Name.ToLower()}_{version.ToLower()}";
 
 
             var pipelinePathUri = $"/subscriptions/{options.SubscriptionId}" +
@@ -346,20 +531,20 @@ namespace Ygdra.Host.Controllers
             var pipelineQuery = $"api-version={DataFactoryApiVersion}";
 
 
-            var copyPipeline = new Pipeline
+            var copyPipeline = new YPipeline
             {
                 Name = pipelineName
             };
 
             // Copy Pipeline
 
-            var copyActivity = new Activity
+            var copyActivity = new YPipelineActivity
             {
                 Name = "Loading",
                 Type = "Copy"
             };
 
-            var source = new Source
+            var source = new YPipelineSource
             {
                 Type = entity.EntityType switch
                 {
@@ -372,19 +557,38 @@ namespace Ygdra.Host.Controllers
 
             if (entity.EntityType == YEntityType.Parquet || entity.EntityType == YEntityType.DelimitedText)
             {
-                source.StoreSettings = new StoreSettings();
+                source.StoreSettings = new YPipelineStoreSettings();
                 source.StoreSettings.Recursive = true;
                 source.StoreSettings.WildcardFileName = "*";
                 source.StoreSettings.Type = "AzureBlobStorageReadSettings";
             }
+            else if (entity.EntityType == YEntityType.AzureSqlTable)
+            {
+                // only creates if we have the entity supporting it AND request by the method
+                if (entity.Mode == "Delta")
+                {
+                    var sqlEntity = YEntityFactory.GetTypedEntity(entity) as YEntityAzureSqlTable;
+
+                    source.SqlReaderQuery = new YValueType
+                    {
+                        Type = "Expression",
+                        Value = $"Declare @startDate Datetime = '@{{formatDateTime(pipeline().parameters.windowStart, 'yyyy-MM-dd HH:mm')}}'; " +
+                                $"Declare @fullLoad boolean = @{{pipeline().parameters.fullLoad}}; " +
+                                $"Select * From [{sqlEntity.Schema}].[{sqlEntity.Table}] " +
+                                $"Where ([ModifiedDate] >= @startDate And @fullLoad = 0) OR (@fullLoad = 1)"
+                    };
+                }
+                source.PartitionOption = "none";
+            }
             else
             {
                 source.PartitionOption = "none";
+
             }
 
             copyActivity.TypeProperties.Add("source", JObject.FromObject(source));
 
-            var sink = new Sink { Type = "ParquetSink" };
+            var sink = new YPipelineSink { Type = "ParquetSink" };
             sink.StoreSettings.Type = "AzureBlobFSWriteSettings";
             sink.FormatSettings.Type = "ParquetWriteSettings";
             copyActivity.TypeProperties.Add("sink", JObject.FromObject(sink));
@@ -392,14 +596,14 @@ namespace Ygdra.Host.Controllers
             copyActivity.TypeProperties.Add("enableStaging", false);
 
 
-            copyActivity.Inputs = new List<Reference>();
-            copyActivity.Inputs.Add(new Reference
+            copyActivity.Inputs = new List<YPipelineReference>();
+            copyActivity.Inputs.Add(new YPipelineReference
             {
                 ReferenceName = entity.Name,
                 Type = "DatasetReference"
             });
 
-            var output = new Output
+            var output = new YPipelineOutput
             {
                 ReferenceName = "destinationOutput",
                 Type = "DatasetReference",
@@ -409,56 +613,89 @@ namespace Ygdra.Host.Controllers
             output.Parameters.FolderPath.Type = "Expression";
             output.Parameters.FolderPath.Value = "@{pipeline().parameters.destinationFolderPath}/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}";
 
-            copyActivity.Outputs = new List<Output>();
+            copyActivity.Outputs = new List<YPipelineOutput>();
             copyActivity.Outputs.Add(output);
 
             copyPipeline.Properties.Activities.Add(copyActivity);
 
             // databricks 
 
-            var dbricksActivity = new Activity
+            var dbricksActivity = new YPipelineActivity
             {
                 Name = "Transform",
                 Type = "DatabricksNotebook"
             };
 
-            var dependOn = new DependsOn { Activity = "Loading" };
+            var dependOn = new YPipelineDependsOn { Activity = "Loading" };
             dependOn.DependencyConditions.Add("Succeeded");
             dbricksActivity.DependsOn.Add(dependOn);
 
-            dbricksActivity.LinkedServiceName = new Reference { ReferenceName = $"dsDatabricks-{engine.ClusterName}", Type = "LinkedServiceReference" };
+            dbricksActivity.LinkedServiceName = new YPipelineReference { ReferenceName = $"dsDatabricks-{engine.ClusterName}", Type = "LinkedServiceReference" };
 
-            dbricksActivity.TypeProperties.Add("notebookPath", "/transform/main");
+            dbricksActivity.TypeProperties.Add("notebookPath", "/Shared/main");
             dbricksActivity.TypeProperties.Add("baseParameters", new JObject {
-                        { "engineId", new JObject { { "value", "@{pipeline().parameters.engineId}" },{ "type", "Expression" } } },
-                        { "dataSourceName", new JObject { { "value", "@{pipeline().parameters.dataSourceName}" },{ "type", "Expression" } } },
                         { "entityName", new JObject { { "value", "@{pipeline().parameters.entityName}" },{ "type", "Expression" } } },
-                        { "deltaContainer", new JObject { { "value", "@{pipeline().parameters.deltaContainer}" },{ "type", "Expression" } } },
-                        { "deltaFolderPath", new JObject { { "value", "@{pipeline().parameters.deltaFolderPath}" },{ "type", "Expression" } } }
+                        { "inputPath", new JObject { { "value", "@{concat(pipeline().parameters.destinationFolderPath, '/', formatDateTime(pipeline().parameters.windowStart,'yyyy'), '/', formatDateTime(pipeline().parameters.windowStart,'MM'), '/', formatDateTime(pipeline().parameters.windowStart,'dd'), '/', formatDateTime(pipeline().parameters.windowStart,'HH'))}" },{ "type", "Expression" } } },
+                        { "outputPath", new JObject { { "value", "@{pipeline().parameters.deltaFolderPath}" },{ "type", "Expression" } } },
+                        { "inputContainer", new JObject { { "value", "@{pipeline().parameters.destinationContainer}" },{ "type", "Expression" } } },
+                        { "outputContainer", new JObject { { "value", "@{pipeline().parameters.deltaContainer}" },{ "type", "Expression" } } }
 
                     });
 
             copyPipeline.Properties.Activities.Add(dbricksActivity);
 
 
-            copyPipeline.Properties.Parameters.Add("windowStart", JObject.FromObject(new Parameter { DefaultValue = DateTime.Now }));
-            copyPipeline.Properties.Parameters.Add("destinationContainer", JObject.FromObject(new Parameter { DefaultValue = "bronze" }));
-            copyPipeline.Properties.Parameters.Add("destinationFolderPath", JObject.FromObject(new Parameter { DefaultValue = $"{dataSourceName}/{entityName}/{version}" }));
-            copyPipeline.Properties.Parameters.Add("deltaContainer", JObject.FromObject(new Parameter { DefaultValue = "silver" }));
-            copyPipeline.Properties.Parameters.Add("deltaFolderPath", JObject.FromObject(new Parameter { DefaultValue = $"{dataSourceName}/{entityName}/{version}" }));
-            copyPipeline.Properties.Parameters.Add("engineId", JObject.FromObject(new Parameter { DefaultValue = engine.Id }));
-            copyPipeline.Properties.Parameters.Add("dataSourceName", JObject.FromObject(new Parameter { DefaultValue = dataSourceName }));
-            copyPipeline.Properties.Parameters.Add("entityName", JObject.FromObject(new Parameter { DefaultValue = entityName }));
+            copyPipeline.Properties.Parameters.Add("windowStart", JObject.FromObject(new YPipelineParameter { DefaultValue = DateTime.Now }));
+            copyPipeline.Properties.Parameters.Add("fullLoad", JObject.FromObject(new YPipelineParameter { DefaultValue = "1" }));
+            copyPipeline.Properties.Parameters.Add("destinationContainer", JObject.FromObject(new YPipelineParameter { DefaultValue = "bronze" }));
+            copyPipeline.Properties.Parameters.Add("destinationFolderPath", JObject.FromObject(new YPipelineParameter { DefaultValue = $"{entity.DataSourceName}/{entity.Name}/{version}" }));
+            copyPipeline.Properties.Parameters.Add("deltaContainer", JObject.FromObject(new YPipelineParameter { DefaultValue = "silver" }));
+            copyPipeline.Properties.Parameters.Add("deltaFolderPath", JObject.FromObject(new YPipelineParameter { DefaultValue = $"{entity.DataSourceName}/{entity.Name}/{version}" }));
+            copyPipeline.Properties.Parameters.Add("engineId", JObject.FromObject(new YPipelineParameter { DefaultValue = engine.Id }));
+            copyPipeline.Properties.Parameters.Add("dataSourceName", JObject.FromObject(new YPipelineParameter { DefaultValue = entity.DataSourceName }));
+            copyPipeline.Properties.Parameters.Add("entityName", JObject.FromObject(new YPipelineParameter { DefaultValue = entity.Name }));
 
 
-            var jsonPipeline = JsonConvert.SerializeObject(copyPipeline);
+            //var jsonPipeline = JsonConvert.SerializeObject(copyPipeline);
 
             // Get the response. we may want to create a real class for this result ?
             var pipeline = await this.client.ProcessRequestManagementAsync<JObject>(
                 pipelinePathUri, pipelineQuery, copyPipeline, HttpMethod.Put).ConfigureAwait(false);
 
 
-            return responseEntity.Value;
+            var triggerName = $"trg_{pipelineName}";
+
+            var triggerPathUri = $"/subscriptions/{options.SubscriptionId}" +
+              $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
+              $"/factories/{engine.FactoryName}/triggers/{triggerName}";
+
+
+            var trigger = new YTrigger();
+
+            var pipelineRef = new YTriggerTriggerPipeline();
+            pipelineRef.PipelineReference.ReferenceName = pipelineName;
+            pipelineRef.Parameters = new JObject { 
+                { "windowStart", "@trigger().startTime" },
+                { "fullLoad", "0" }
+            };
+
+            trigger.Properties.Pipelines.Add(pipelineRef);
+
+            trigger.Properties.RuntimeState = "Started";
+            trigger.Properties.Type = "ScheduleTrigger";
+
+            // Get the response. we may want to create a real class for this result ?
+            var newTrigger = await this.client.ProcessRequestManagementAsync<JObject>(
+                triggerPathUri, pipelineQuery, trigger, HttpMethod.Put).ConfigureAwait(false);
+
+
+            var triggerStartUri = $"/subscriptions/{options.SubscriptionId}" +
+                  $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
+                  $"/factories/{engine.FactoryName}/triggers/{triggerName}/start";
+
+            // Get the response. we may want to create a real class for this result ?
+            var newTriggerStarted = await this.client.ProcessRequestManagementAsync<JObject>(
+                triggerStartUri, pipelineQuery, null, HttpMethod.Post).ConfigureAwait(false);
         }
     }
 }

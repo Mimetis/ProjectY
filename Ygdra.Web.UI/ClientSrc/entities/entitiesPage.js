@@ -39,7 +39,7 @@ export class entitiesPage {
         });
 
         this.$entitiesTable.on('click-row.bs.table', (row, $element, field) => {
-            window.location.href = `/Entities/Edit/${this.engine.id}/${$element.name}`;
+            window.location.href = `/Entities/Details/${this.engine.id}/${$element.name}`;
         });
     }
 

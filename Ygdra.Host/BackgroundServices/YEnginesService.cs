@@ -41,6 +41,7 @@ namespace Ygdra.Host.BackgroundServices
         private readonly KeyVaultsController keyVaultsController;
         private readonly IYNotificationsService notificationsService;
         private readonly YMicrosoftIdentityOptions options;
+        private readonly YHostOptions hostOptions;
         private const string ApiVersion = "2020-06-01";
         private const string DataBricksApiVersion = "2018-04-01";
         private const string DataFactoryApiVersion = "2018-06-01";
@@ -53,7 +54,8 @@ namespace Ygdra.Host.BackgroundServices
                                IYEngineProvider engineProvider,
                                KeyVaultsController keyVaultsController,
                                IYNotificationsService notificationsService,
-                               IOptions<YMicrosoftIdentityOptions> azureAdOptions)
+                               IOptions<YMicrosoftIdentityOptions> azureAdOptions,
+                               IOptions<YHostOptions> hostOptions)
         {
             this.authProvider = authProvider;
             this.client = client;
@@ -62,6 +64,7 @@ namespace Ygdra.Host.BackgroundServices
             this.keyVaultsController = keyVaultsController;
             this.notificationsService = notificationsService;
             this.options = azureAdOptions.Value;
+            this.hostOptions = hostOptions.Value;
         }
 
 
@@ -84,13 +87,19 @@ namespace Ygdra.Host.BackgroundServices
 
                 var storage = await CreateStorageAsync(engine, callerUserId, token).ConfigureAwait(false);
 
+                // Create bronze, silver, gold folder
+                await CreateFoldersAsync(engine, callerUserId, token).ConfigureAwait(false);
+
                 // Create Databricks Workspace
                 var clusterWorkspace = await CreateDatabricksWorkspaceAsync(engine, callerUserId, token).ConfigureAwait(false);
 
-                // TODO : Why it's not working ?
+                // Does not work because we are using an SPN AD token instead of a USER AD token
                 // await CreateDatabricksAzureKeyvaultSecretScopeAsync(engine, clusterWorkspace, keyvault, callerUserId, token).ConfigureAwait(false);
 
                 var cluster = await CreateDatabricksClusterAsync(engine, clusterWorkspace, callerUserId, token).ConfigureAwait(false);
+
+                // add notebooks and libraries
+                await CreateDatabricksNotebooksAsync(engine, cluster, clusterWorkspace, callerUserId, token).ConfigureAwait(false);
 
                 // Create Azure Data Factory 
                 var dataFactory = await CreateDataFactoryAsync(engine, callerUserId, token).ConfigureAwait(false);
@@ -782,6 +791,11 @@ namespace Ygdra.Host.BackgroundServices
 
                 if (keyVaultProvisioningState == "Succeeded")
                 {
+                    await keyVaultsController.SetKeyVaultSecret(engine.Id, "clientsecret",
+                            new YKeyVaultSecretPayload { Key = "clientsecret", Value = this.options.ClientSecret });
+
+                    await keyVaultsController.SetKeyVaultSecret(engine.Id, "clientid",
+                            new YKeyVaultSecretPayload { Key = "clientid", Value = this.options.ClientId });
 
                     await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
                             $"Keyvault {engine.KeyVaultName} deployed.", callerUserId,
@@ -904,7 +918,13 @@ namespace Ygdra.Host.BackgroundServices
                     NodeTypeId = "Standard_DS3_v2",
                     SparkEnvVars = new Dictionary<string, string>
                     {
-                        { "PYSPARK_PYTHON", "/databricks/python3/bin/python3" }
+                        { "PYSPARK_PYTHON", "/databricks/python3/bin/python3" },
+                        { "ENGINE_ID", engine.Id.ToString() },
+                        { "TENANT_ID", this.options.TenantId },
+                        { "CLIENT_ID", this.options.ClientId },
+                        { "DOMAIN", this.options.Domain },
+                        { "API_URL", this.hostOptions.BaseAddress },
+                        { "KEYVAULT_NAME", engine.KeyVaultName },
                     },
                     AutoterminationMinutes = 120
                 };
@@ -974,6 +994,183 @@ namespace Ygdra.Host.BackgroundServices
 
 
             return clusterStateResponse.Value;
+
+        }
+
+
+        private async Task CreateDatabricksNotebooksAsync(YEngine engine, YDatabricksCluster cluster, YResource workspace, Guid? callerUserId = default, CancellationToken cancellationToken = default)
+        {
+
+            var dbricksResourceId = workspace.Id;
+
+            if (!workspace.Properties.ContainsKey("workspaceUrl"))
+                throw new Exception("Can't get the workspace url");
+
+            var dbricksWorkspaceName = workspace.Properties["workspaceUrl"];
+
+            // Url for creating a cluster
+            var dbricksUriBuilder = new UriBuilder($"https://{dbricksWorkspaceName}")
+            {
+                Path = "api/2.0/workspace/import"
+            };
+
+            var dbricksWorkspaceUrl = dbricksUriBuilder.Uri;
+
+            // Get connection string
+            var tokenSecret = await keyVaultsController.GetKeyVaultSecret(engine.Id, engine.ClusterName);
+
+            string token = tokenSecret?.Value;
+
+            var mainPy = @"# Databricks notebook source
+dbutils.widgets.text(""entityName"", """", ""Entity Name"")
+dbutils.widgets.text(""inputPath"", """", ""Input path"")
+dbutils.widgets.text(""inputContainer"", """", ""Input container"")
+dbutils.widgets.text(""outputPath"", """", ""Output path"")
+dbutils.widgets.text(""outputContainer"", """", ""Output container"")
+entityName = dbutils.widgets.get(""entityName"")
+inputPath = dbutils.widgets.get(""inputPath"")
+inputContainer = dbutils.widgets.get(""inputContainer"")
+outputPath = dbutils.widgets.get(""outputPath"")
+outputContainer = dbutils.widgets.get(""outputContainer"")
+
+# COMMAND ----------
+
+# MAGIC %run  ""./common""
+
+# COMMAND ----------
+
+source = get_path(inputContainer, inputPath)
+data = spark.read.parquet(source)
+data.show()
+
+# COMMAND ----------
+
+output = get_path(outputContainer, outputPath)
+data.write.format(""delta"").mode(""overwrite"").save(output)";
+
+
+            var mainTextBytes = System.Text.Encoding.UTF8.GetBytes(mainPy);
+            var mainb64string = Convert.ToBase64String(mainTextBytes);
+
+            var commonPy = @"# Databricks notebook source
+# Databricks notebook source
+import os
+import IPython
+import uuid
+from pyspark.sql import *
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+import requests
+import http.client
+import json
+from azure.identity import DefaultAzureCredential, ClientSecretCredential
+import pandas as pd
+from typing import Tuple
+import re
+
+newid = udf(lambda : str(uuid.uuid4()),StringType())
+
+# COMMAND ----------
+
+engineId = os.getenv(""ENGINE_ID"")
+tenant_id = os.getenv(""TENANT_ID"")
+client_id = os.getenv(""CLIENT_ID"")
+domain = os.getenv(""DOMAIN"")
+ygdra_api = os.getenv(""API_URL"")
+keyvault = os.getenv(""KEYVAULT_NAME"")
+
+# Get client secret from vault
+client_secret = dbutils.secrets.get(keyvault, ""clientSecret"")
+
+# Create scope url
+scope = ""https://"" + domain + ""/"" + client_id + ""/.default""
+
+# Get access token
+credential = ClientSecretCredential(tenant_id, client_id, client_secret)
+access_token = credential.get_token(scope)
+headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + access_token.token}
+
+url = ygdra_api + ""/api/engines/daemon/"" + engineId
+
+res = requests.get(url, headers = headers, verify = False)
+
+engine = json.loads(res.text)
+
+accountName = engine[""storageName""] # from engine.storageName
+accountKey = ""dsLake-"" + engine[""storageName""] # from engine.storageName
+
+# Get the secret value
+accountKeyValue = dbutils.secrets.get(keyvault, accountKey)
+
+# set the token for accessing input and output path
+spark.conf.set(""fs.azure.account.key."" + accountName + "".dfs.core.windows.net"", accountKeyValue)
+
+
+# COMMAND ----------
+
+def get_entity(entityName):
+  urlEntities = ygdra_api + ""/api/datafactories/"" + engine[""id""] + ""/daemon/entities/"" + entityName
+  res = requests.get(urlEntities, headers = headers, verify = False)
+  entity = json.loads(res.text)
+  return entity
+
+
+def get_path(container, path):
+  return ""abfss://"" + container + ""@"" + engine[""storageName""] + "".dfs.core.windows.net/"" + path
+";
+
+
+            var commonTextBytes = System.Text.Encoding.UTF8.GetBytes(commonPy);
+            var commonb64string = Convert.ToBase64String(commonTextBytes);
+
+
+            var commonPayload = new JObject
+            {
+                { "path", "/Shared/common" },
+                { "format", "SOURCE" },
+                { "language", "PYTHON" },
+                { "content", commonb64string },
+                { "overwrite", "true" }
+            };
+            var mainPayload = new JObject
+            {
+                { "path", "/Shared/main" },
+                { "format", "SOURCE" },
+                { "language", "PYTHON" },
+                { "content", mainb64string },
+                { "overwrite", "true" }
+            };
+
+            var addCommonNotebook = await this.client.ProcessRequestAsync<JObject>(dbricksWorkspaceUrl, commonPayload, HttpMethod.Post, token).ConfigureAwait(false);
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                $"Databricks cluster {engine.ClusterName} common notebook added. ", callerUserId).ConfigureAwait(false);
+
+
+            var addMainNotebook = await this.client.ProcessRequestAsync<JObject>(dbricksWorkspaceUrl, mainPayload, HttpMethod.Post, token).ConfigureAwait(false);
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                $"Databricks cluster {engine.ClusterName} main notebook added. ", callerUserId).ConfigureAwait(false);
+
+
+            // Url for creating a cluster
+
+            dbricksUriBuilder.Path = "api/2.0/libraries/install";
+            var dbricksInstallLibraries = dbricksUriBuilder.Uri;
+
+            var payload = new JObject {
+                { "cluster_id", cluster.ClusterId },
+                { "libraries", new JArray{
+                    new JObject{ 
+                        { "pypi", new JObject { { "package", "azure-identity" } }} 
+                    }
+                }}
+            };
+
+
+            var addLibrary = await this.client.ProcessRequestAsync<JObject>(dbricksInstallLibraries, payload, HttpMethod.Post, token).ConfigureAwait(false);
+
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                $"Databricks cluster {engine.ClusterName} azure-identity library added. ", callerUserId).ConfigureAwait(false);
+
 
         }
 
