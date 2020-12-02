@@ -20,6 +20,7 @@ namespace Ygdra.Web.UI.Models
 {
     public abstract class DataSourceView
     {
+
         public abstract YDataSource DataSource { get; }
 
         public abstract bool IsNew { get; set; }

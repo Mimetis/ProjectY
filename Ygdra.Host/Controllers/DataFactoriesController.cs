@@ -10,7 +10,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Management.DataFactory;
+using Microsoft.Azure.Management.DataFactory.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest;
+using Microsoft.Rest.Azure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Ygdra.Core.Auth;
@@ -41,6 +45,7 @@ namespace Ygdra.Host.Controllers
         private readonly IYEngineProvider engineProvider;
         private readonly KeyVaultsController keyVaultsController;
         private readonly IYDataSourcesService dataSourcesService;
+        private readonly IYAuthProvider authProvider;
         private YMicrosoftIdentityOptions options;
         private const string DataFactoryApiVersion = "2018-06-01";
         private const string DataBricksApiVersion = "2018-04-01";
@@ -50,13 +55,15 @@ namespace Ygdra.Host.Controllers
             IYEngineProvider engineProvider,
             IOptions<YMicrosoftIdentityOptions> azureAdOptions,
             KeyVaultsController keyVaultsController,
-            IYDataSourcesService dataSourcesService)
+            IYDataSourcesService dataSourcesService,
+            IYAuthProvider authProvider)
         {
             this.resourceClient = resourceClient;
             this.client = client;
             this.engineProvider = engineProvider;
             this.keyVaultsController = keyVaultsController;
             this.dataSourcesService = dataSourcesService;
+            this.authProvider = authProvider;
             this.options = azureAdOptions.Value;
 
         }
@@ -477,10 +484,185 @@ namespace Ygdra.Host.Controllers
         }
 
 
+        [HttpGet]
+        [Route("v2/{engineId}/pipelines/")]
+        public async Task<ActionResult<List<PipelineResource>>> GetPipelines2Async(Guid engineId, string dataSourceName, string entityName)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+
+            var accessToken = await this.authProvider.GetAccessTokenForAppManagementAsync().ConfigureAwait(false);
+
+            ServiceClientCredentials tokenCredentials = new TokenCredentials(accessToken);
+
+            DataFactoryManagementClient client = new DataFactoryManagementClient(tokenCredentials) { SubscriptionId = this.options.SubscriptionId };
+
+            var pagedPipelines = await client.Pipelines.ListByFactoryAsync(engine.ResourceGroupName, engine.FactoryName);
+            var nextPageLink = pagedPipelines.NextPageLink;
+
+            var pipelines = new List<PipelineResource>();
+
+            do
+            {
+                pipelines.AddRange(pagedPipelines.ToList());
+            } while (!string.IsNullOrEmpty(nextPageLink));
+
+            return pipelines;
+        }
+
+
+        [HttpGet()]
+        [Route("v2/{engineId}/links")]
+        public async Task<ActionResult<List<LinkedServiceResource>>> GetDataSources2Async(Guid engineId)
+        {
+            try
+            {
+
+                var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+                if (engine == null)
+                    throw new Exception("Engine does not exists");
+
+
+                var accessToken = await this.authProvider.GetAccessTokenForAppManagementAsync().ConfigureAwait(false);
+
+                ServiceClientCredentials tokenCredentials = new TokenCredentials(accessToken);
+
+                DataFactoryManagementClient client = new DataFactoryManagementClient(tokenCredentials) { SubscriptionId = this.options.SubscriptionId };
+
+                var operations = await client.Operations.ListAsync();
+
+                AzureOperationResponse<IPage<LinkedServiceResource>> pagedDataSources
+                    = await client.LinkedServices.ListByFactoryWithHttpMessagesAsync(engine.ResourceGroupName, engine.FactoryName);
+
+
+
+                //var pagedDataSources = client.LinkedServices.ListByFactory(engine.ResourceGroupName, engine.FactoryName);
+                var nextPageLink = pagedDataSources.Body.NextPageLink;
+
+                var dataSources = new List<LinkedServiceResource>();
+
+                do
+                {
+                    dataSources.AddRange(pagedDataSources.Body.ToList());
+                } while (!string.IsNullOrEmpty(nextPageLink));
+
+                return dataSources;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+
+
+        [HttpPut()]
+        [Route("v2/{engineId}/links/{dataSourceName}")]
+        public async Task<ActionResult<LinkedServiceResource>> AddDataSource2Async(Guid engineId,
+            string dataSourceName, [FromBody] LinkedService linkedService)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var accessToken = await this.authProvider.GetAccessTokenForAppManagementAsync().ConfigureAwait(false);
+
+            ServiceClientCredentials tokenCredentials = new TokenCredentials(accessToken);
+
+            DataFactoryManagementClient client = new DataFactoryManagementClient(tokenCredentials) { SubscriptionId = this.options.SubscriptionId };
+
+            // Create the linked service resource
+            LinkedServiceResource linkedServiceResource = new LinkedServiceResource(linkedService);
+
+            string sensitiveString = linkedServiceResource.Properties switch
+            {
+                AzureStorageLinkedService azureStorageLinkedService => azureStorageLinkedService.ConnectionString.ToString(),
+                _ => null
+
+            };
+
+            if (!string.IsNullOrEmpty(sensitiveString))
+            {
+                // Save the connection string to KeyVault
+                await keyVaultsController.SetKeyVaultSecret(engineId, dataSourceName,
+                    new YKeyVaultSecretPayload { Key = dataSourceName, Value = sensitiveString });
+
+            }
+
+            var newLinkedServiceResourceCreated = await client.LinkedServices.CreateOrUpdateAsync(engine.ResourceGroupName,engine.FactoryName, dataSourceName, linkedServiceResource);
+
+            return newLinkedServiceResourceCreated;
+        }
+
+
+        [HttpGet]
+        [Route("v2/{engineId}/entities")]
+        public async Task<ActionResult<List<DatasetResource>>> GetEntities2Async(Guid engineId)
+        {
+
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var accessToken = await this.authProvider.GetAccessTokenForAppManagementAsync().ConfigureAwait(false);
+
+            ServiceClientCredentials tokenCredentials = new TokenCredentials(accessToken);
+
+            DataFactoryManagementClient client = new DataFactoryManagementClient(tokenCredentials) { SubscriptionId = this.options.SubscriptionId };
+
+            var datasets = new List<DatasetResource>();
+            var datasetsPage = await client.Datasets.ListByFactoryAsync(engine.ResourceGroupName, engine.FactoryName);
+            var nextPageLink = datasetsPage.NextPageLink;
+
+            do
+            {
+                datasets.AddRange(datasetsPage.ToList());
+            } while (!string.IsNullOrEmpty(nextPageLink));
+
+            return datasets;
+        }
+
 
         [HttpPut]
         [Route("{engineId}/links/{dataSourceName}/entities/{entityName}")]
         public async Task<ActionResult<YEntity>> AddEntityAsync(Guid engineId, string dataSourceName, string entityName, [FromBody] YEntityUnknown entity)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            // Get Datasource
+            var regex = new Regex(@"^[a-zA-Z0-9--]{3,24}$");
+
+            if (!regex.IsMatch(dataSourceName))
+                throw new Exception($"DataSource name {dataSourceName} is incorrect");
+
+            var entityPathUri = $"/subscriptions/{options.SubscriptionId}" +
+                          $"/resourceGroups/{engine.ResourceGroupName}/providers/Microsoft.DataFactory" +
+                          $"/factories/{engine.FactoryName}/datasets/{entityName}";
+
+            var entityQuery = $"api-version={DataFactoryApiVersion}";
+
+            var responseEntity = await this.client.ProcessRequestManagementAsync<YEntityUnknown>(
+                entityPathUri, entityQuery, entity, HttpMethod.Put).ConfigureAwait(false);
+
+            await CreatePipelineAsync(engine, entity).ConfigureAwait(false);
+
+            return responseEntity.Value;
+        }
+
+
+        [HttpPut]
+        [Route("{engineId}/pipelines/{dataSourceName}/entities/{entityName}")]
+        public async Task<ActionResult<YEntity>> AddPipelineAsync(Guid engineId, string dataSourceName, string entityName, [FromBody] YEntityUnknown entity)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
 
@@ -507,6 +689,10 @@ namespace Ygdra.Host.Controllers
 
             return responseEntity.Value;
         }
+
+
+
+
 
         private async Task CreatePipelineAsync(YEngine engine, YEntity entity)
         {
@@ -674,7 +860,7 @@ namespace Ygdra.Host.Controllers
 
             var pipelineRef = new YTriggerTriggerPipeline();
             pipelineRef.PipelineReference.ReferenceName = pipelineName;
-            pipelineRef.Parameters = new JObject { 
+            pipelineRef.Parameters = new JObject {
                 { "windowStart", "@trigger().startTime" },
                 { "fullLoad", "0" }
             };

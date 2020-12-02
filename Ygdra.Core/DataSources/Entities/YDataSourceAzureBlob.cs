@@ -51,15 +51,13 @@ namespace Ygdra.Core.DataSources.Entities
 
             var typeProperties = (JObject)properties["typeProperties"];
 
-            typeProperties.Merge("accountKey", this.StorageAccountKey);
-
             if (!string.IsNullOrEmpty(this.StorageAccountName))
             {
                 var storageUrl = this.StorageAccountName.ToLower().StartsWith("https://") ? this.StorageAccountName : $"https://{this.StorageAccountName}";
                 storageUrl = storageUrl.EndsWith(".blob.core.windows.net") ? storageUrl : $"{storageUrl}.blob.core.windows.net";
                 typeProperties.Merge("url", storageUrl);
 
-                typeProperties.Merge("connectionString", $"DefaultEndpointsProtocol=https;AccountName={this.StorageAccountName};EndpointSuffix=core.windows.net;");
+                typeProperties.Merge("connectionString", $"DefaultEndpointsProtocol=https;AccountName={this.StorageAccountName};AccountKey={this.StorageAccountKey};EndpointSuffix=core.windows.net;");
             }
 
 

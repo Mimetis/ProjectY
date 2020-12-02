@@ -50,39 +50,18 @@ namespace Ygdra.Core.Entities.Entities
             AdditionalData["properties"]["linkedServiceName"].Merge("type", "LinkedServiceReference");
             AdditionalData["properties"]["linkedServiceName"].Merge("referenceName", DataSourceName);
 
-            var annotations = AdditionalData["properties"]["annotations"] as JArray;
-            if (annotations == null)
+            if (!(AdditionalData["properties"]["annotations"] is JArray annotations))
             {
                 annotations = new JArray();
                 ((JObject)AdditionalData["properties"]).Add("annotations", annotations);
             }
 
             if (!string.IsNullOrEmpty(this.Version))
-            {
-                var version = annotations.FirstOrDefault(jt => jt.Value<string>().StartsWith("ProjectY_Version"));
-                if (version != null)
-                {
-                    var indexVersion = annotations.IndexOf(version);
-                    annotations[indexVersion] = $"ProjectY_Version={this.Version}";
-                }
-                else
-                {
-                    annotations.Add($"ProjectY_Version={this.Version}");
-                }
-            }
+                annotations.Merge("Version", this.Version);
+
             if (!string.IsNullOrEmpty(this.Mode))
-            {
-                var version = annotations.FirstOrDefault(jt => jt.Value<string>().StartsWith("ProjectY_Mode"));
-                if (version != null)
-                {
-                    var indexVersion = annotations.IndexOf(version);
-                    annotations[indexVersion] = $"ProjectY_Mode={this.Mode}";
-                }
-                else
-                {
-                    annotations.Add($"ProjectY_Mode={this.Mode}");
-                }
-            }
+                annotations.Merge("Mode", this.Version);
+
 
             this.OnSerializing((JObject)AdditionalData["properties"]);
         }

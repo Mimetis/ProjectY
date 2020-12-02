@@ -14,4 +14,8 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\SAMPLES\azure-sdk-for-net\sdk\datafactory\Microsoft.Azure.Management.DataFactory\src\Microsoft.Azure.Management.DataFactory.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -128,20 +128,6 @@ namespace Ygdra.Web.UI.Controllers
         }
 
 
-        //[HttpPost()]
-        //[Route("{engineId}/links/{dataSourceName}/test")]
-        //public Task<YJsonResult<bool>> TestAsync(Guid engineId, string dataSourceName, [FromBody] YDataSource dataSource)
-        //{
-        //    return YExecuteAsync(async () =>
-        //    {
-        //        var response = await this.client.ProcessRequestApiAsync<bool>(
-        //            $"api/DataFactories/{engineId}/links/{dataSourceName}/test",
-        //            null, dataSource, HttpMethod.Post).ConfigureAwait(false);
-
-        //        return response.Value;
-        //    });
-        //}
-
         [HttpPost()]
         [Route("{engineId}/test")]
         public Task<YJsonResult<bool>> TestAsync(Guid engineId, [FromForm] DataSourceView dataSourceView)
