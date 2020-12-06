@@ -824,7 +824,9 @@ namespace Ygdra.Host.Controllers
                         { "inputPath", new JObject { { "value", "@{concat(pipeline().parameters.destinationFolderPath, '/', formatDateTime(pipeline().parameters.windowStart,'yyyy'), '/', formatDateTime(pipeline().parameters.windowStart,'MM'), '/', formatDateTime(pipeline().parameters.windowStart,'dd'), '/', formatDateTime(pipeline().parameters.windowStart,'HH'))}" },{ "type", "Expression" } } },
                         { "outputPath", new JObject { { "value", "@{pipeline().parameters.deltaFolderPath}" },{ "type", "Expression" } } },
                         { "inputContainer", new JObject { { "value", "@{pipeline().parameters.destinationContainer}" },{ "type", "Expression" } } },
-                        { "outputContainer", new JObject { { "value", "@{pipeline().parameters.deltaContainer}" },{ "type", "Expression" } } }
+                        { "outputContainer", new JObject { { "value", "@{pipeline().parameters.deltaContainer}" },{ "type", "Expression" } } },
+                        { "dataSourceName", new JObject { { "value", "@{pipeline().parameters.dataSourceName}" },{ "type", "Expression" } } },
+                        { "version", new JObject { { "value", "@{pipeline().parameters.version}" },{ "type", "Expression" } } }
 
                     });
 
@@ -838,8 +840,9 @@ namespace Ygdra.Host.Controllers
             copyPipeline.Properties.Parameters.Add("deltaContainer", JObject.FromObject(new YPipelineParameter { DefaultValue = "silver" }));
             copyPipeline.Properties.Parameters.Add("deltaFolderPath", JObject.FromObject(new YPipelineParameter { DefaultValue = $"{entity.DataSourceName}/{entity.Name}/{version}" }));
             copyPipeline.Properties.Parameters.Add("engineId", JObject.FromObject(new YPipelineParameter { DefaultValue = engine.Id }));
-            copyPipeline.Properties.Parameters.Add("dataSourceName", JObject.FromObject(new YPipelineParameter { DefaultValue = entity.DataSourceName }));
             copyPipeline.Properties.Parameters.Add("entityName", JObject.FromObject(new YPipelineParameter { DefaultValue = entity.Name }));
+            copyPipeline.Properties.Parameters.Add("dataSourceName", JObject.FromObject(new YPipelineParameter { DefaultValue = entity.DataSourceName }));
+            copyPipeline.Properties.Parameters.Add("version", JObject.FromObject(new YPipelineParameter { DefaultValue = version }));
 
 
             //var jsonPipeline = JsonConvert.SerializeObject(copyPipeline);

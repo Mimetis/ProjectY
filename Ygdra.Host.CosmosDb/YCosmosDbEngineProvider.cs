@@ -88,27 +88,13 @@ namespace Ygdra.Host.CosmosDb
         /// </summary>
         public async Task<YEngine> GetEngineAsync(Guid id)
         {
-            try
-            {
-                using CosmosClient client = new CosmosClient(accountEndpoint, accountKey, clientOptions);
-                var container = client.GetContainer(databaseName, containerName);
+            using CosmosClient client = new CosmosClient(accountEndpoint, accountKey, clientOptions);
+            var container = client.GetContainer(databaseName, containerName);
 
-                var engine = await container.ReadItemAsync<YEngine>(id.ToString(), enginePartitionKey);
+            var engine = await container.ReadItemAsync<YEngine>(id.ToString(), enginePartitionKey);
 
-                return engine;
+            return engine;
 
-            }
-            //catch(CosmosException cex)
-            //{
-            //    if (cex.StatusCode == System.Net.HttpStatusCode.NotFound)
-            //        return null;
-            //    return null;
-            //}
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-                return null;
-            }
 
         }
 

@@ -81,6 +81,7 @@ namespace Ygdra.Host.Controllers
             engine.ClusterName.EnsureStringIsLetterOrDigit();
             engine.FactoryName.EnsureStringIsLetterOrDigit();
             engine.StorageName.EnsureStringIsLetterOrDigit();
+            engine.AppInsightsName.EnsureStringIsLetterOrDigit();
             engine.KeyVaultName.EnsureStringIsLetterOrDigit();
 
             var job = this.hangFireService.GetProcessingJob(engine);
@@ -318,6 +319,13 @@ namespace Ygdra.Host.Controllers
 
                 if (!regex.IsMatch(engine.StorageName))
                     throw new Exception($"Storage account name {engine.StorageName} is incorrect");
+            }
+            if (!string.IsNullOrEmpty(engine.AppInsightsName))
+            {
+                var regex = new Regex(@"^[a-z0-9-]{3,24}$");
+
+                if (!regex.IsMatch(engine.AppInsightsName))
+                    throw new Exception($"AppInsights name {engine.AppInsightsName} is incorrect");
             }
 
             var existingEngine = await this.engineProvider.GetEngineByNameAsync(engine.EngineName);

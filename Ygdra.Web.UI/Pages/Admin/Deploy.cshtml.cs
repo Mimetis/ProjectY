@@ -95,6 +95,14 @@ namespace Ygdra.Web.UI.Pages.Admin
                     string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
                     this.EngineView.StorageName = name;
                 }
+                if (string.IsNullOrEmpty(this.EngineView.AppInsightsName))
+                {
+                    string prefix = settings.FirstOrDefault(s => s.Name == "AppInsightsPrefix")?.Value;
+                    string suffix = settings.FirstOrDefault(s => s.Name == "AppInsightsSuffix")?.Value;
+
+                    string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
+                    this.EngineView.AppInsightsName = name;
+                }
 
                 if (string.IsNullOrEmpty(this.EngineView.Location))
                 {
@@ -128,6 +136,7 @@ namespace Ygdra.Web.UI.Pages.Admin
             engine.FactoryName = this.EngineView.FactoryName;
             engine.KeyVaultName = this.EngineView.KeyVaultName;
             engine.StorageName = this.EngineView.StorageName;
+            engine.AppInsightsName = this.EngineView.AppInsightsName;
             engine.Location = this.EngineView.Location;
 
             try

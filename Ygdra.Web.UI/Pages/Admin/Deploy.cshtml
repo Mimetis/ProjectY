@@ -87,7 +87,18 @@
                 <span asp-validation-for="EngineView.StorageName" class="text-danger"></span>
             </div>
         </div>
-
+        <div class="row align-items-center m-1">
+            <div class="col-3 col-md-2 font-weight-bold align-self-md-start">
+                <label asp-for="EngineView.AppInsightsName"></label>
+            </div>
+            <div class="col-auto mx-n3 hide-md align-self-md-start">
+                <label>:</label>
+            </div>
+            <div class="col-3 col-md-3 align-self-md-start">
+                <input type="text" class="form-control" asp-for="EngineView.AppInsightsName">
+                <span asp-validation-for="EngineView.AppInsightsName" class="text-danger"></span>
+            </div>
+        </div>
 
         <div class="row align-items-center m-1">
             <div class="col-3 col-md-2 font-weight-bold align-self-md-start">

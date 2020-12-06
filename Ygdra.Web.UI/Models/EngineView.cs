@@ -154,6 +154,16 @@ namespace Ygdra.Web.UI.Models
         }
 
 
+        [Display(Name = "Application insights name")]
+        [StringLength(20, MinimumLength = 5)]
+        [Required]
+        public string AppInsightsName
+        {
+            get => this.Engine.AppInsightsName;
+            set => this.Engine.AppInsightsName = value;
+        }
+
+
 
         [Required]
         public YEngineType EngineType

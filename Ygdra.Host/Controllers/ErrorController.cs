@@ -66,7 +66,7 @@ namespace Ygdra.Host.Controllers
                     statusCode = (HttpStatusCode)requestFailedException.Status;
                     break;
                 default:
-                    errors.Add(context.Error.GetType().Name.ToLower(), new JArray { { context.Error.Message } });
+                    errors.Add(context.Error.GetType().Name.ToLower(), new JArray { { context.Error.Message }, { context.Error.StackTrace } });
                     break;
 
             }

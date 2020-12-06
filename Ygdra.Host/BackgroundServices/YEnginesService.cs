@@ -3,8 +3,11 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Hangfire;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Azure.Management.ApplicationInsights.Management;
+using Microsoft.Azure.Management.ApplicationInsights.Management.Models;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -85,6 +88,10 @@ namespace Ygdra.Host.BackgroundServices
                 // Create Keyvault
                 var keyvault = await CreateAzureKeyVaultAsync(engine, callerUserId, token).ConfigureAwait(false);
 
+                // Create AppInsights
+                var appInsights = await CreateApplicationInsightsAsync(engine, callerUserId, token).ConfigureAwait(false);
+
+                // Create storage account
                 var storage = await CreateStorageAsync(engine, callerUserId, token).ConfigureAwait(false);
 
                 // Create bronze, silver, gold folder
@@ -131,6 +138,42 @@ namespace Ygdra.Host.BackgroundServices
                 await ThrowAndNotifyErrorAsync(engine, ex.Message, callerUserId).ConfigureAwait(false);
             }
 
+        }
+
+        public async Task<ApplicationInsightsComponent> CreateApplicationInsightsAsync(YEngine engine, Guid? callerUserId = default, CancellationToken token = default)
+        {
+
+            var accessToken = await this.authProvider.GetAccessTokenForAppManagementAsync().ConfigureAwait(false);
+
+            ServiceClientCredentials tokenCredentials = new TokenCredentials(accessToken);
+
+            ApplicationInsightsManagementClient client = new ApplicationInsightsManagementClient(tokenCredentials) { SubscriptionId = this.options.SubscriptionId };
+
+
+            var appInsightsComponent = new ApplicationInsightsComponent(
+                name: engine.AppInsightsName,
+                location: engine.Location,
+                kind: "web",
+                applicationType: "web",
+                applicationId: engine.AppInsightsName
+            );
+
+            var appInsight = await client.Components.CreateOrUpdateAsync(engine.ResourceGroupName, engine.AppInsightsName, appInsightsComponent);
+
+
+            // Get connection string
+            var instrumentationKeySecret = await keyVaultsController.GetKeyVaultSecret(engine.Id, engine.AppInsightsName);
+
+            string instrumentationKey = instrumentationKeySecret?.Value;
+
+            if (string.IsNullOrEmpty(instrumentationKey) && !string.IsNullOrEmpty(appInsight.InstrumentationKey))
+                await keyVaultsController.SetKeyVaultSecret(engine.Id, engine.AppInsightsName, new YKeyVaultSecretPayload { Key = engine.AppInsightsName, Value = appInsight.InstrumentationKey } );
+
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                        $"Application Insights {engine.AppInsightsName} created.", callerUserId,
+                        appInsight).ConfigureAwait(false);
+
+            return appInsight;
         }
 
 
@@ -1023,11 +1066,15 @@ namespace Ygdra.Host.BackgroundServices
 
             var mainPy = @"# Databricks notebook source
 dbutils.widgets.text(""entityName"", """", ""Entity Name"")
+dbutils.widgets.text(""dataSourceName"", """", ""Data Source Name"")
+dbutils.widgets.text(""version"", """", ""Version"")
 dbutils.widgets.text(""inputPath"", """", ""Input path"")
 dbutils.widgets.text(""inputContainer"", """", ""Input container"")
 dbutils.widgets.text(""outputPath"", """", ""Output path"")
 dbutils.widgets.text(""outputContainer"", """", ""Output container"")
 entityName = dbutils.widgets.get(""entityName"")
+dataSourceName = dbutils.widgets.get(""dataSourceName"")
+version = dbutils.widgets.get(""version"")
 inputPath = dbutils.widgets.get(""inputPath"")
 inputContainer = dbutils.widgets.get(""inputContainer"")
 outputPath = dbutils.widgets.get(""outputPath"")
@@ -1042,6 +1089,52 @@ outputContainer = dbutils.widgets.get(""outputContainer"")
 source = get_path(inputContainer, inputPath)
 data = spark.read.parquet(source)
 data.show()
+
+# COMMAND ----------
+
+d = ({""name"" : entityName, 
+     ""namespace"" : dataSourceName + '.' + entityName ,
+     ""count"" : str(data.count()), 
+     ""dimensions"" : [
+       { ""name"" : ""Engine Name"", ""value"" : engine['engineName'] } ,
+       { ""name"" : ""Entity Name"", ""value"" : entityName } ,
+       { ""name"" : ""Data Source Name"", ""value"" : dataSourceName } ,
+       { ""name"" : ""Version"", ""value"" : version }
+     ] 
+    })
+print(d)
+
+add_metric(json.dumps(d))
+
+# COMMAND ----------
+
+for attribute in data.columns:
+  if stats[attribute]['type'] == 'int' or  'decimal' in stats[attribute]['type'] or 'float' in stats[attribute]['type'] or 'double' in  stats[attribute]['type'] or 'long' in  stats[attribute]['type']:
+    sumof = data.select(sum(col(attribute)).cast(DoubleType()).alias('__sum__'), 
+                        count(col(attribute)).cast(IntegerType()).alias('__count__'), 
+                        min(col(attribute)).cast(IntegerType()).alias('__min__'), 
+                        max(col(attribute)).cast(IntegerType()).alias('__max__'), 
+                       
+                       ).collect()
+    sumof = sumof[0]
+    
+    d = ({""name"" : attribute, 
+     ""sum"" : str(sumof['__sum__']), 
+     ""count"" : str(sumof['__count__']), 
+     ""min"" : str(sumof['__min__']), 
+     ""max"" : str(sumof['__max__']), 
+     ""namespace"" : dataSourceName + '.' + entityName, 
+     ""dimensions"" : [
+       { ""name"" : ""Engine Name"", ""value"" : engine['engineName'] } ,
+       { ""name"" : ""Entity Name"", ""value"" : entityName } ,
+       { ""name"" : ""Data Source Name"", ""value"" : dataSourceName } ,
+       { ""name"" : ""Version"", ""value"" : version } ,
+       { ""name"" : ""Column Name"", ""value"" : attribute } ,
+     ] 
+    })
+    print(d)
+    add_metric(json.dumps(d))
+
 
 # COMMAND ----------
 
@@ -1067,6 +1160,8 @@ from azure.identity import DefaultAzureCredential, ClientSecretCredential
 import pandas as pd
 from typing import Tuple
 import re
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 newid = udf(lambda : str(uuid.uuid4()),StringType())
 
@@ -1080,7 +1175,7 @@ ygdra_api = os.getenv(""API_URL"")
 keyvault = os.getenv(""KEYVAULT_NAME"")
 
 # Get client secret from vault
-client_secret = dbutils.secrets.get(keyvault, ""clientSecret"")
+client_secret = dbutils.secrets.get(keyvault, ""clientsecret"")
 
 # Create scope url
 scope = ""https://"" + domain + ""/"" + client_id + ""/.default""
@@ -1107,6 +1202,16 @@ spark.conf.set(""fs.azure.account.key."" + accountName + "".dfs.core.windows.net
 
 
 # COMMAND ----------
+
+def add_metric(payload):
+  urlMetric = ygdra_api + ""/api/appinsights/"" + engine[""id""] + ""/daemon/metrics/"" + dataSourceName + ""/"" + entityName + ""/"" + version
+  res = requests.post(urlMetric, headers = headers, verify = False, data = payload)
+  return res
+
+def add_pandas_metric(payload):
+  urlMetric = ygdra_api + ""/api/appinsights/"" + engine[""id""] + ""/daemon/metrics/"" + dataSourceName + ""/"" + entityName + ""/"" + version + ""/pandas""
+  res = requests.post(urlMetric, headers = headers, verify = False, data = payload)
+  return res
 
 def get_entity(entityName):
   urlEntities = ygdra_api + ""/api/datafactories/"" + engine[""id""] + ""/daemon/entities/"" + entityName

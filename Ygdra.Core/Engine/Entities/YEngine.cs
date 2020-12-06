@@ -67,6 +67,7 @@ namespace Ygdra.Core.Engine.Entities
         public string FactoryName { get; set; }
         public string KeyVaultName { get; set; }
         public string StorageName { get; set; }
+        public string AppInsightsName { get; set; }
 
 
         public string Comments { get; set; }
