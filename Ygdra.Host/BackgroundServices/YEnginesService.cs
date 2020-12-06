@@ -1108,6 +1108,8 @@ add_metric(json.dumps(d))
 
 # COMMAND ----------
 
+stats = {x[0]: {'type': x[1]} for x in data.dtypes}
+
 for attribute in data.columns:
   if stats[attribute]['type'] == 'int' or  'decimal' in stats[attribute]['type'] or 'float' in stats[attribute]['type'] or 'double' in  stats[attribute]['type'] or 'long' in  stats[attribute]['type']:
     sumof = data.select(sum(col(attribute)).cast(DoubleType()).alias('__sum__'), 
