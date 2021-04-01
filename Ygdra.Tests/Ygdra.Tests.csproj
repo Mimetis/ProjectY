@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.12.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.13.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.6" />
@@ -25,7 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ygdra.Core\Ygdra.Core.csproj" />
     <ProjectReference Include="..\Ygdra.Host.CosmosDb\Ygdra.Host.CosmosDb.csproj" />
+    <ProjectReference Include="..\Ygdra.Host\Ygdra.Host.csproj" />
   </ItemGroup>
 
   <ItemGroup>

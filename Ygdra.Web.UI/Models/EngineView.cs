@@ -78,7 +78,7 @@ namespace Ygdra.Web.UI.Models
 
         [StringLength(10, MinimumLength = 5)]
         [Required]
-        [Display(Name = "Engine name")]
+        [Display(Name = "Name")]
         public string EngineName
         {
             get => this.Engine.EngineName;
@@ -166,6 +166,7 @@ namespace Ygdra.Web.UI.Models
 
 
         [Required]
+        [Display(Name = "Type")]
         public YEngineType EngineType
         {
             get => this.Engine.EngineType;

@@ -29,7 +29,7 @@ using Ygdra.Web.UI.TagHelpers;
 namespace Ygdra.Web.UI.Pages.Engines
 {
     [Authorize]
-    [BreadCrumb(Title = "Engines")]
+    [BreadCrumb(Title = "Landing Zones")]
     public class IndexModel : PageModel
     {
         private readonly IYHttpRequestHandler client;

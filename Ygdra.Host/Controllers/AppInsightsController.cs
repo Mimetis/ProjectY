@@ -186,23 +186,26 @@ namespace Ygdra.Host.Controllers
 
         private async Task PostMetric2Async(YEngine engine, YMetricPayload2 payload, string instrumentationKey)
         {
-            TelemetryConfiguration configuration = TelemetryConfiguration.CreateDefault();
+            using TelemetryConfiguration configuration = TelemetryConfiguration.CreateDefault();
+            
             configuration.InstrumentationKey = instrumentationKey;
+            
             var telemetryClient = new TelemetryClient(configuration);
 
             var telemetry = new MetricTelemetry(payload.Namespace, payload.Name, payload.Count, payload.Sum, payload.Min, payload.Max, 0);
-           
+
             foreach (var d in payload.Dimensions)
                 telemetry.Properties.Add(d.Name, d.Value);
 
             telemetryClient.TrackMetric(telemetry);
 
+            telemetryClient.Flush();
         }
 
         private async Task PostMetricAsync(YEngine engine, YMetricPayload payload, string instrumentationKey)
         {
 
-            TelemetryConfiguration configuration = TelemetryConfiguration.CreateDefault();
+            using TelemetryConfiguration configuration = TelemetryConfiguration.CreateDefault();
             configuration.InstrumentationKey = instrumentationKey;
 
             var telemetryClient = new TelemetryClient(configuration);
@@ -291,6 +294,8 @@ namespace Ygdra.Host.Controllers
                     , payload.Dimensions[3].Value, payload.Dimensions[4].Value, payload.Dimensions[5].Value, payload.Dimensions[6].Value, payload.Dimensions[7].Value
                     , payload.Dimensions[8].Value, payload.Dimensions[9].Value);
             }
+
+            telemetryClient.Flush();
         }
 
     }

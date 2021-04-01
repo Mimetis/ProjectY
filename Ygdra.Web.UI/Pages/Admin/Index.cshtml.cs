@@ -17,7 +17,7 @@ using Ygdra.Web.UI.Models;
 namespace Ygdra.Web.UI.Pages.Admin
 {
     [Authorize(Roles = "Admin")]
-    [BreadCrumb(Title = "Engines requests")]
+    [BreadCrumb(Title = "Landing Zones requests")]
     public class IndexModel : PageModel
     {
         private readonly IYHttpRequestHandler client;

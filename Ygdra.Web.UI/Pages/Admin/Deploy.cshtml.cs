@@ -25,7 +25,7 @@ using Ygdra.Web.UI.Models;
 namespace Ygdra.Web.UI.Pages.Admin
 {
     [Authorize(Roles = "Admin")]
-    [BreadCrumb(Title = "Engine deployment")]
+    [BreadCrumb(Title = "Landing Zone deployment")]
 
     public class DeployModel : PageModel
     {
