@@ -62,7 +62,7 @@ From the result you get, please note:
 - `password`: Will be used as `ClientSecret` in appsettings.
 - `tenant`: Will be used as `TenantId` in appsettings.
 
-We need the underlying Managed Identity Object Id, from the Service Principal.
+We need the underlying Managed Identity Object Id, from the Service Principal.  
 You can get it with from this command line:
 
 ``` bash
@@ -74,11 +74,11 @@ AAAA-AAAA-AAAA-AAAA
 
 ### Application / Web app Authentication
 
-From the Azure Portal, go to Azure Active Directory -> App Registrations.
-Choose your newly created Application (called ProjectYDemo refering the previous script in this walkthrough)
+From the Azure Portal, go to Azure Active Directory -> App Registrations.  
+Choose your newly created Application (called ProjectYDemo refering the previous script in this walkthrough)  
 From your Application go to **Authentication** section, and add some web redirections:
 
-> We can use the same SPN for both prod and dev. So far, each url will be submitted twice. 
+> We can use the same SPN for both prod and dev. So far, each url will be submitted twice.  
 One for localhost dev mode, and one for production mode.
 
 Redirection for **Ygdra.Host**:
@@ -93,7 +93,7 @@ Redirection for **Ygrdra.Web.UI**:
 
 ### Web Api protection
 
-From your Application go to **Expose an API** section, and edit the Application ID URI.
+From your Application go to **Expose an API** section, and edit the Application ID URI.  
 This application ID Uri should looks like:
 
 `https://{YOURDOMAIN}.onmicrosoft.com/{CLIENT_ID}`
@@ -105,7 +105,7 @@ Then, add a new scope:
 
 The newly scope should looks like `https://{YOUR_DOMAIN}.onmicrosoft.com/{CLIENT_ID}/user_impersonation`
 
-From you Application go to **Api Permissions** section, and add permissions:
+From your Application go to **Api Permissions** section, and add permissions:
 
 - **Microsoft Graph** : User.Read, User.ReadBasic.All
 - **Your API** : user_impersonation
@@ -122,13 +122,13 @@ From your Application, Go to **App Roles** and create a new app role:
 
 ### Add your user to Admin Role
 
-From your Application go to **Overview** section, then click on your **Managed Application in local directory**  Entreprise Application link.
+From your Application go to **Overview** section, then click on your **Managed Application in local directory**  Entreprise Application link.  
 You will be redirected to the Managed Identity that supports your Application.
 
 > You should see now, from the Entreprise Application properties, the Object ID value, that we get from the `az ad sp show --id <appId> --query objectId` query, previously.
 
-From your Entreprise Application, go to **Users and Groups** section.
-Then assign your user to the **Admin** role
+From your Entreprise Application, go to **Users and Groups** section.  
+Then assign your user to the **Admin** role.
 
 ## Azure Web Apps Configuration
 
@@ -138,7 +138,7 @@ Once you have cloned the `Poject Y` repository, please add a new `appsettings.De
 
 Configuration for the Azure Web Api project `Ygdra.Host`:
 
-``` json
+``` jsonc
 {
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",
@@ -186,7 +186,7 @@ Configuration for the Azure Web Api project `Ygdra.Host`:
 
 Configuration for the Azure Web UI project `Ygdra.Web.UI`:
 
-``` json
+``` jsonc
 {
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",
@@ -216,5 +216,5 @@ Configuration for the Azure Web UI project `Ygdra.Web.UI`:
       "Microsoft.Hosting.Lifetime": "Information"
     }
   }
-}`
+}
 ```
