@@ -1064,190 +1064,30 @@ namespace Ygdra.Host.BackgroundServices
 
             string token = tokenSecret?.Value;
 
-            var mainPy = @"# Databricks notebook source
-dbutils.widgets.text(""entityName"", """", ""Entity Name"")
-dbutils.widgets.text(""dataSourceName"", """", ""Data Source Name"")
-dbutils.widgets.text(""version"", """", ""Version"")
-dbutils.widgets.text(""inputPath"", """", ""Input path"")
-dbutils.widgets.text(""inputContainer"", """", ""Input container"")
-dbutils.widgets.text(""outputPath"", """", ""Output path"")
-dbutils.widgets.text(""outputContainer"", """", ""Output container"")
-entityName = dbutils.widgets.get(""entityName"")
-dataSourceName = dbutils.widgets.get(""dataSourceName"")
-version = dbutils.widgets.get(""version"")
-inputPath = dbutils.widgets.get(""inputPath"")
-inputContainer = dbutils.widgets.get(""inputContainer"")
-outputPath = dbutils.widgets.get(""outputPath"")
-outputContainer = dbutils.widgets.get(""outputContainer"")
-
-# COMMAND ----------
-
-# MAGIC %run  ""./common""
-
-# COMMAND ----------
-
-source = get_path(inputContainer, inputPath)
-data = spark.read.parquet(source)
-data.show()
-
-# COMMAND ----------
-
-d = ({""name"" : entityName, 
-     ""namespace"" : dataSourceName + '.' + entityName ,
-     ""count"" : str(data.count()), 
-     ""dimensions"" : [
-       { ""name"" : ""Engine Name"", ""value"" : engine['engineName'] } ,
-       { ""name"" : ""Entity Name"", ""value"" : entityName } ,
-       { ""name"" : ""Data Source Name"", ""value"" : dataSourceName } ,
-       { ""name"" : ""Version"", ""value"" : version }
-     ] 
-    })
-print(d)
-
-add_metric(json.dumps(d))
-
-# COMMAND ----------
-
-stats = {x[0]: {'type': x[1]} for x in data.dtypes}
-
-for attribute in data.columns:
-  if stats[attribute]['type'] == 'int' or  'decimal' in stats[attribute]['type'] or 'float' in stats[attribute]['type'] or 'double' in  stats[attribute]['type'] or 'long' in  stats[attribute]['type']:
-    sumof = data.select(sum(col(attribute)).cast(DoubleType()).alias('__sum__'), 
-                        count(col(attribute)).cast(IntegerType()).alias('__count__'), 
-                        min(col(attribute)).cast(IntegerType()).alias('__min__'), 
-                        max(col(attribute)).cast(IntegerType()).alias('__max__'), 
-                       
-                       ).collect()
-    sumof = sumof[0]
-    
-    d = ({""name"" : attribute, 
-     ""sum"" : str(sumof['__sum__']), 
-     ""count"" : str(sumof['__count__']), 
-     ""min"" : str(sumof['__min__']), 
-     ""max"" : str(sumof['__max__']), 
-     ""namespace"" : dataSourceName + '.' + entityName, 
-     ""dimensions"" : [
-       { ""name"" : ""Engine Name"", ""value"" : engine['engineName'] } ,
-       { ""name"" : ""Entity Name"", ""value"" : entityName } ,
-       { ""name"" : ""Data Source Name"", ""value"" : dataSourceName } ,
-       { ""name"" : ""Version"", ""value"" : version } ,
-       { ""name"" : ""Column Name"", ""value"" : attribute } ,
-     ] 
-    })
-    print(d)
-    add_metric(json.dumps(d))
-
-
-# COMMAND ----------
-
-output = get_path(outputContainer, outputPath)
-data.write.format(""delta"").mode(""overwrite"").save(output)";
-
-
+            var mainPyNotebook = "./Notebooks/main.ipynb";
+            var mainPy = System.IO.File.ReadAllText(mainPyNotebook);
             var mainTextBytes = System.Text.Encoding.UTF8.GetBytes(mainPy);
             var mainb64string = Convert.ToBase64String(mainTextBytes);
-
-            var commonPy = @"# Databricks notebook source
-# Databricks notebook source
-import os
-import IPython
-import uuid
-from pyspark.sql import *
-from pyspark.sql.functions import *
-from pyspark.sql.types import *
-import requests
-import http.client
-import json
-from azure.identity import DefaultAzureCredential, ClientSecretCredential
-import pandas as pd
-from typing import Tuple
-import re
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-newid = udf(lambda : str(uuid.uuid4()),StringType())
-
-# COMMAND ----------
-
-engineId = os.getenv(""ENGINE_ID"")
-tenant_id = os.getenv(""TENANT_ID"")
-client_id = os.getenv(""CLIENT_ID"")
-domain = os.getenv(""DOMAIN"")
-ygdra_api = os.getenv(""API_URL"")
-keyvault = os.getenv(""KEYVAULT_NAME"")
-
-# Get client secret from vault
-client_secret = dbutils.secrets.get(keyvault, ""clientsecret"")
-
-# Create scope url
-scope = ""https://"" + domain + ""/"" + client_id + ""/.default""
-
-# Get access token
-credential = ClientSecretCredential(tenant_id, client_id, client_secret)
-access_token = credential.get_token(scope)
-headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + access_token.token}
-
-url = ygdra_api + ""/api/engines/daemon/"" + engineId
-
-res = requests.get(url, headers = headers, verify = False)
-
-engine = json.loads(res.text)
-
-accountName = engine[""storageName""] # from engine.storageName
-accountKey = ""dsLake-"" + engine[""storageName""] # from engine.storageName
-
-# Get the secret value
-accountKeyValue = dbutils.secrets.get(keyvault, accountKey)
-
-# set the token for accessing input and output path
-spark.conf.set(""fs.azure.account.key."" + accountName + "".dfs.core.windows.net"", accountKeyValue)
-
-
-# COMMAND ----------
-
-def add_metric(payload):
-  urlMetric = ygdra_api + ""/api/appinsights/"" + engine[""id""] + ""/daemon/metrics/"" + dataSourceName + ""/"" + entityName + ""/"" + version
-  res = requests.post(urlMetric, headers = headers, verify = False, data = payload)
-  return res
-
-def add_pandas_metric(payload):
-  urlMetric = ygdra_api + ""/api/appinsights/"" + engine[""id""] + ""/daemon/metrics/"" + dataSourceName + ""/"" + entityName + ""/"" + version + ""/pandas""
-  res = requests.post(urlMetric, headers = headers, verify = False, data = payload)
-  return res
-
-def get_entity(entityName):
-  urlEntities = ygdra_api + ""/api/datafactories/"" + engine[""id""] + ""/daemon/entities/"" + entityName
-  res = requests.get(urlEntities, headers = headers, verify = False)
-  entity = json.loads(res.text)
-  return entity
-
-
-def get_path(container, path):
-  return ""abfss://"" + container + ""@"" + engine[""storageName""] + "".dfs.core.windows.net/"" + path
-";
-
-
-            var commonTextBytes = System.Text.Encoding.UTF8.GetBytes(commonPy);
-            var commonb64string = Convert.ToBase64String(commonTextBytes);
-
-
-            var commonPayload = new JObject
-            {
-                { "path", "/Shared/common" },
-                { "format", "SOURCE" },
-                { "language", "PYTHON" },
-                { "content", commonb64string },
-                { "overwrite", "true" }
-            };
             var mainPayload = new JObject
             {
                 { "path", "/Shared/main" },
-                { "format", "SOURCE" },
-                { "language", "PYTHON" },
+                { "format", "JUPYTER" },
                 { "content", mainb64string },
                 { "overwrite", "true" }
             };
 
+            var commonPyNotebook = "./Notebooks/common.ipynb";
+            var commonPy = System.IO.File.ReadAllText(commonPyNotebook);
+            var commonTextBytes = System.Text.Encoding.UTF8.GetBytes(commonPy);
+            var commonb64string = Convert.ToBase64String(commonTextBytes);
+            var commonPayload = new JObject
+            {
+                { "path", "/Shared/common" },
+                { "format", "JUPYTER" },
+                { "content", commonb64string },
+                { "overwrite", "true" }
+            };
+            
             var addCommonNotebook = await this.client.ProcessRequestAsync<JObject>(dbricksWorkspaceUrl, commonPayload, HttpMethod.Post, token).ConfigureAwait(false);
             await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
                 $"Databricks cluster {engine.ClusterName} common notebook added. ", callerUserId).ConfigureAwait(false);
