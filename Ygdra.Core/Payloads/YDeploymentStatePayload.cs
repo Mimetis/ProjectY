@@ -37,7 +37,7 @@ namespace Ygdra.Core.Payloads
         None = 0,
         Deploying,
         Deployed,
-        Droping,
+        Dropping,
         Dropped,
         Error
     }

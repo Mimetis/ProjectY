@@ -190,7 +190,7 @@ namespace Ygdra.Host.BackgroundServices
                     // Check if resource group is deployed
                     if (checkResourceGroupResponse.StatusCode == HttpStatusCode.NotFound)
                     {
-                        await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Droping, engine,
+                        await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Dropping, engine,
                             $"Resource group {engine.ResourceGroupName} is already dropped or does not exists.", callerUserId).ConfigureAwait(false);
                     }
                     else
@@ -206,8 +206,8 @@ namespace Ygdra.Host.BackgroundServices
                         // wait for cluster to be deployed
                         while (deletionStatusCode != HttpStatusCode.OK)
                         {
-                            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Droping, engine,
-                                  $"Resource group {engine.ResourceGroupName} is droping...", callerUserId).ConfigureAwait(false);
+                            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Dropping, engine,
+                                  $"Resource group {engine.ResourceGroupName} is dropping...", callerUserId).ConfigureAwait(false);
 
                             await Task.Delay(10000).ConfigureAwait(false);
 
