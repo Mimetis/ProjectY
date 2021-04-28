@@ -894,7 +894,7 @@ class modalPanelDeleteEngine {
             case "Error":
                 this.deleteConsole.appendError(deploy.message);
                 break;
-            case "Droping":
+            case "Dropping":
                 this.deleteConsole.appendLine(deploy.message);
                 break;
             case "Dropped":
@@ -1058,7 +1058,7 @@ class modalPanelResourceGroup {
             case "Error":
                 this.console.appendError(deploy.message);
                 break;
-            case "Droping":
+            case "Dropping":
                 this.console.appendLine(deploy.message);
                 break;
             case "Dropped":
@@ -1244,7 +1244,7 @@ class modalPanelDatabricks {
             case "Error":
                 this.console.appendError(deploy.message);
                 break;
-            case "Droping":
+            case "Dropping":
                 this.console.appendLine(deploy.message);
                 break;
             case "Dropped":
@@ -1410,7 +1410,7 @@ class modalPanelDataFactory {
             case "Error":
                 this.console.appendError(deploy.message);
                 break;
-            case "Droping":
+            case "Dropping":
                 this.console.appendLine(deploy.message);
                 break;
             case "Dropped":

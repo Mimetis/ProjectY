@@ -152,7 +152,7 @@ export class modalPanelDeleteEngine {
             case "Error":
                 this.deleteConsole.appendError(deploy.message);
                 break;
-            case "Droping":
+            case "Dropping":
                 this.deleteConsole.appendLine(deploy.message);
                 break;
             case "Dropped":

@@ -142,7 +142,7 @@ export class modalPanelDataFactory {
             case "Error":
                 this.console.appendError(deploy.message);
                 break;
-            case "Droping":
+            case "Dropping":
                 this.console.appendLine(deploy.message);
                 break;
             case "Dropped":
