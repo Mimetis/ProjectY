@@ -14,8 +14,8 @@ using Ygdra.Web.UI.Models;
 
 namespace Ygdra.Web.UI.Pages.Engines
 {
-    [BreadCrumb(Title = "Landing Zones", Order = 1, Url = "/Engines/Index")]
-    [BreadCrumb(Title = "Landing Zone", Order = 2)]
+    [BreadCrumb(Title = "Engines", Order = 1, Url = "/Engines/Index")]
+    [BreadCrumb(Title = "Engine", Order = 2)]
     [Authorize]
     public class DetailsModel : PageModel
     {

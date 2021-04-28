@@ -27,8 +27,8 @@ using Ygdra.Web.UI.TagHelpers;
 namespace Ygdra.Web.UI.Pages.Engines
 {
     [Authorize]
-    [BreadCrumb(Title = "Landing Zones", Order = 1, Url = "/Engines/Index")]
-    [BreadCrumb(Title = "Landing Zone", Order = 2)]
+    [BreadCrumb(Title = "Engines", Order = 1, Url = "/Engines/Index")]
+    [BreadCrumb(Title = "Engine", Order = 2)]
     public class EditModel : PageModel
     {
         private readonly IYHttpRequestHandler client;

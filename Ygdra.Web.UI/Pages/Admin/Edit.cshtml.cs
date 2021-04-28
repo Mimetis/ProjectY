@@ -20,7 +20,7 @@ using Ygdra.Web.UI.Models;
 
 namespace Ygdra.Web.UI.Pages.Admin
 {
-    [BreadCrumb(Title = "Landing Zones requests", Order = 1, Url = "/Admin/EnginesRequests")]
+    [BreadCrumb(Title = "Engines requests", Order = 1, Url = "/Admin/EnginesRequests")]
     [BreadCrumb(Title = "Request", Order = 2)]
     [Authorize(Roles = "Admin")]
     public class EditModel : PageModel
