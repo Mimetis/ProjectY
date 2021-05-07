@@ -32,6 +32,8 @@ using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.SignalR;
 using Ygdra.Web.UI.ModelBinders;
 using Newtonsoft.Json.Converters;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace Ygdra.WebUI
 {
@@ -101,36 +103,28 @@ namespace Ygdra.WebUI
 
             services.AddMicrosoftGraph(Configuration);
 
-            services.AddControllersWithViews().AddMicrosoftIdentityUI();
+            //services.AddControllersWithViews().AddMicrosoftIdentityUI();
+            services.AddControllersWithViews();
 
             services.AddRazorPages()
                  .AddMvcOptions(options =>
                  {
                      options.ModelBinderProviders.Insert(0, new PolymorphicEntitySourceBinderProvider());
                      options.ModelBinderProviders.Insert(0, new PolymorphicDataSourceViewModelBinderProvider());
-                 });
+                     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                     options.Filters.Add(new AuthorizeFilter(policy));
+                 }).AddMicrosoftIdentityUI();
 
             services.AddControllers();
 
             var signalROptions = new YSignalROptions();
             Configuration.Bind("SignalR", signalROptions);
 
-            //var serviceManager = new ServiceManagerBuilder().WithOptions(option =>
-            //{
-            //    option.ConnectionString = signalROptions.ConnectionString;
-            //    option.ServiceTransportType = ServiceTransportType.Persistent;
-            //}).Build();
-            //services.AddSingleton(serviceManager);
-
             services.AddSignalR().AddAzureSignalR(options =>
             {
                 options.ConnectionString = signalROptions.ConnectionString;
                 options.ServerStickyMode = ServerStickyMode.Required;
             });
-
-            //services.AddSignalR(options =>
-            //{
-            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -166,9 +160,9 @@ namespace Ygdra.WebUI
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                //endpoints.MapControllerRoute(
+                //    name: "default",
+                //    pattern: "{controller=Home}/{action=Index}/{id?}");
 
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();

@@ -3,6 +3,9 @@
 
 microsoft-identity-web
 
+# Created during deployment of resources
+app-roles.manifest.json
+resources.manifest.json
 
 # local settings
 *.local.json
@@ -14,9 +17,16 @@ microsoft-identity-web
 *.user
 *.userosscache
 *.sln.docstates
+*.pubxml
+*.pubxml.user
+profile.arm.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+
+# Publish folders
+[Pp]ublishProfiles/
+[Ss]erviceDependencies/
 
 # Build results
 [Dd]ebug/

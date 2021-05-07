@@ -6,7 +6,7 @@ export class mgtloader {
     static setMgtProvider() {
         const provider = new mgt.ProxyProvider("/api/Proxy");
         provider.login = () => window.location.href = '/Account/SignIn?redirectUri=' + window.location.href;
-        provider.logout = () => window.location.href = '/MicrosoftIdentity/Account/SignOut';
+        provider.logout = () => window.location.href = '/Account/SignOut';
 
         mgt.Providers.globalProvider = provider;
     }

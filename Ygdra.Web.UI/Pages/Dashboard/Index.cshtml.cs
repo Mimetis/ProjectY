@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +26,7 @@ using Ygdra.Web.UI.TagHelpers;
 
 namespace Ygdra.Web.UI.Pages.Dashboard
 {
+    [AllowAnonymous]
     public class IndexModel : PageModel
     {
         private readonly IYAuthProvider authProvider;
@@ -50,22 +52,10 @@ namespace Ygdra.Web.UI.Pages.Dashboard
 
         public async Task OnGetAsync()
         {
-
-            var clientSecret = configuration["ClientSecret"];
         }
 
         public async Task OnPostAsync()
         {
-
-            try
-            {
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-
         }
 
 
