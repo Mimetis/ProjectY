@@ -18,21 +18,19 @@ Once cloned, you can build the solution, using **Visual Studio 2019** or **Visua
 
 Once compiled, you need to:
 
-- Create the Azure Services required by **Project Y** to run.
-- Create a Service Principal required by **Project Y** to authenticate users.
-- Create 2 appsettings files, locally (one for dev / one for prod) to be able to start **Project Y** web app and web api.
+- Create the **Azure Services** required by **Project Y** to run.
+- Create a **Service Principal** required by **Project Y** to authenticate users.
+- Create **2 appsettings files**, locally (one for dev / one for prod) to be able to start **Project Y** web app and web api.
 
 As you can see, the **appsettings** file (in each project `Ygdra.Web.UI` and `Ygdra.Host`) are barely empty.
 
 ## Azure Services
 
-Basically, **Project Y** needs to run:
-
 **Project Y** will require the following to run:
 
-- One **Resource Group** that will host the Ygdra Core Services.
-- One **Azure Signal R Service** instance that will push notifications to users and to Ygdra Core Services.
-  - When creating your Azure Signal R Service, please use **Default** service mode
+- One **Resource Group** that will host the **Ygdra Core Services**.
+- One **Azure Signal R Service** instance that will push notifications to users and to **Ygdra Core Services**.
+  - When creating your Azure Signal R Service, please use **Default** service mode.
   - Using a free tier may not be sufficient since the number of messages could exceed the daily limit if you are doing lots of configurations.
 - One **Azure CosmosDB** database that will store some Ygdra metadata and the `HangFire` running jobs.
   - Once the backend API (Host) is running, two databases will be created called `Ygdra` and `HangFire`.
@@ -46,7 +44,7 @@ For production, you can also choose to set up the following:
 
 ### Resource Group
 
-1. Log in to the Azure portal and navigate to the subscription that you will be using for your deployment. In the navigation menu, select `Resource Groups` to see a list of current Resource Groups that already exist
+1. Log in to the Azure portal and navigate to the subscription that you will be using for your deployment. In the navigation menu, select `Resource Groups` to see a list of current Resource Groups that already exist.
 1. Click the `Add` link above the Resource Group list to go to the `Create a resource group` process.
     - On the **Basics** tab, verify the subscription is correct and type desired name of your resource group. This is where all of the resources for managing your deployment will be placed.
     - Select the region closest to you. (Make sure that all of the resources required are available in the region you selected.)
@@ -59,14 +57,13 @@ For production, you can also choose to set up the following:
 
 ### Web Apps
 
-We need to Web Apps to run the solution:
+We need two Web Apps to run the solution:
 
 - First Web App will be used for the **Ygdra Web UI**.
 - Second Web App will be used to host the **Ygdra Web Api** services.
   - This Web App needs to have the `Always On` option, since we have some background services running by `HangFire`.
 
-Here is the screenshot when creating the **app service** for the **Web UI** project.  
-Don't forget to create as well an **app service** for the **Web API** project.
+Here is the screenshot when creating the **app service** for the **Web UI** project:
 
 ![Web App For UI](./docs/assets/createwebappui01.png)
 

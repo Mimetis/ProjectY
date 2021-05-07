@@ -1,6 +1,7 @@
 # SETUP PROJECT Y BY SCRIPT
 
 This documentation describes how to deploy the core components of **Project Y**, through an automated script.
+> If you want to do it manually, check the [Setup In Details](SETUP_DETAILS.md) documentation
 
 ## Clone the solution
 
@@ -16,22 +17,20 @@ Once cloned, you can build the solution, using **Visual Studio 2019** or **Visua
 
 Once compiled, you need to:
 
-- Create the Azure Services required by **Project Y** to run.
-- Create a Service Principal required by **Project Y** to authenticate users.
-- Create 2 appsettings files, locally (one for dev / one for prod) to be able to start **Project Y** web app and web api.
+- Create the **Azure Services** required by **Project Y** to run.
+- Create a **Service Principal** required by **Project Y** to authenticate users.
+- Create **2 appsettings files**, locally (one for dev / one for prod) to be able to start **Project Y** web app and web api.
 
 As you can see, the **appsettings** file (in each project `Ygdra.Web.UI` and `Ygdra.Host`) are barely empty.
 
+The [setup.sh](setup.sh) file will do everything for you.
+
 ## Script setup.sh
 
-If you want to quickly setup your environment, a bash script has been prepared to deploy everything you need.
+The bash script `setup.sh` will create all the services and the service principal to be able to deploy the solution in your subscription.  
+Then the script will create all the **appsettings files** for all the projects (web / api) that require them.
 
-> If you want to do it manually, check the [Setup In Details](SETUP_DETAILS.md) documentation
-
-The bash script `setup.sh` will create for your all services and the service principal to be able to deploy the solution in your subscription.
-Then the script will create all the appsettings files for all the projects that need it.
-
-> Note: These two files are explicitly part of the .gitignore file. They will never be commited to Github.
+> Note: These generated files (`appsettings.developement.json` and `appsettings.production.json`) are explicitly part of the .gitignore file. They will never be commited to Github.
 
 Be sure to:
 
@@ -92,4 +91,4 @@ Finally, you can check you have a service principal created for you that will be
 
 ![Resource Group](./docs/assets/tldr06.png)
 
-If you want to know more about what the script does behind the scene, you can check this doc, where we are creating everything manually.
+If you want to know more about what the script does behind the scene, you can check the [Setup In Details](SETUP_DETAILS.md) documentation, where we are creating everything manually.
