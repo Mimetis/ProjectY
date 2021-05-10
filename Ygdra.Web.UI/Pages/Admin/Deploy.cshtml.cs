@@ -57,7 +57,7 @@ namespace Ygdra.Web.UI.Pages.Admin
             {
                 if (string.IsNullOrEmpty(this.EngineView.ResourceGroupName))
                 {
-                    string prefix = settings.FirstOrDefault(s => s.Name == "ResourceGroupPrefix")?.Value;
+                    string prefix = settings.FirstOrDefault(s => s.Name == "ResourceGroupPrefix")?.Value ?? "rg";
                     string suffix = settings.FirstOrDefault(s => s.Name == "ResourceGroupSuffix")?.Value;
 
                     string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
@@ -65,7 +65,7 @@ namespace Ygdra.Web.UI.Pages.Admin
                 }
                 if (string.IsNullOrEmpty(this.EngineView.ClusterName))
                 {
-                    string prefix = settings.FirstOrDefault(s => s.Name == "DatabricksWorkspacePrefix")?.Value;
+                    string prefix = settings.FirstOrDefault(s => s.Name == "DatabricksWorkspacePrefix")?.Value ?? "dw";
                     string suffix = settings.FirstOrDefault(s => s.Name == "DatabricksWorkspaceSuffix")?.Value;
 
                     string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
@@ -73,7 +73,7 @@ namespace Ygdra.Web.UI.Pages.Admin
                 }
                 if (string.IsNullOrEmpty(this.EngineView.FactoryName))
                 {
-                    string prefix = settings.FirstOrDefault(s => s.Name == "DataFactoryPrefix")?.Value;
+                    string prefix = settings.FirstOrDefault(s => s.Name == "DataFactoryPrefix")?.Value ?? "df";
                     string suffix = settings.FirstOrDefault(s => s.Name == "DataFactorySuffix")?.Value;
 
                     string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
@@ -81,7 +81,7 @@ namespace Ygdra.Web.UI.Pages.Admin
                 }
                 if (string.IsNullOrEmpty(this.EngineView.KeyVaultName))
                 {
-                    string prefix = settings.FirstOrDefault(s => s.Name == "KeyVaultPrefix")?.Value;
+                    string prefix = settings.FirstOrDefault(s => s.Name == "KeyVaultPrefix")?.Value ?? "kv";
                     string suffix = settings.FirstOrDefault(s => s.Name == "KeyVaultSuffix")?.Value;
 
                     string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
@@ -89,7 +89,7 @@ namespace Ygdra.Web.UI.Pages.Admin
                 }
                 if (string.IsNullOrEmpty(this.EngineView.StorageName))
                 {
-                    string prefix = settings.FirstOrDefault(s => s.Name == "StoragePrefix")?.Value;
+                    string prefix = settings.FirstOrDefault(s => s.Name == "StoragePrefix")?.Value ?? "stor";
                     string suffix = settings.FirstOrDefault(s => s.Name == "StorageSuffix")?.Value;
 
                     string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
@@ -97,7 +97,7 @@ namespace Ygdra.Web.UI.Pages.Admin
                 }
                 if (string.IsNullOrEmpty(this.EngineView.AppInsightsName))
                 {
-                    string prefix = settings.FirstOrDefault(s => s.Name == "AppInsightsPrefix")?.Value;
+                    string prefix = settings.FirstOrDefault(s => s.Name == "AppInsightsPrefix")?.Value ?? "ai";
                     string suffix = settings.FirstOrDefault(s => s.Name == "AppInsightsSuffix")?.Value;
 
                     string name = $"{prefix}{this.EngineView.EngineName}{suffix}";
@@ -106,7 +106,7 @@ namespace Ygdra.Web.UI.Pages.Admin
 
                 if (string.IsNullOrEmpty(this.EngineView.Location))
                 {
-                    string location = settings.FirstOrDefault(s => s.Name == "DefaultLocation")?.Value;
+                    string location = settings.FirstOrDefault(s => s.Name == "DefaultLocation")?.Value ?? "northeurope";
                     this.EngineView.Location = location;
                 }
             }
