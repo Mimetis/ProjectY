@@ -25,11 +25,6 @@ using Ygdra.Core.Http;
 using Ygdra.Core.Options;
 using Ygdra.Core.Payloads;
 
-using Microsoft.Azure.Management.ResourceManager;
-using Microsoft.Azure.Management.Purview;
-using Microsoft.Azure.Management.Purview.Models;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-
 namespace Ygdra.Host.Controllers
 {
     [Route("api/[controller]")]
@@ -256,6 +251,32 @@ namespace Ygdra.Host.Controllers
                 }}
             };
             yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uri,jsondata,System.Net.Http.HttpMethod.Put,accessToken).ConfigureAwait(false);
+            return yHttpResponse;
+        }
+
+        [HttpDelete()]
+        [Route("Sources/engine/{engineId}/{datasourcename}/scans/{scanname}")]
+        public async Task<YHttpResponse<JObject>> DeletePurviewSourceScansAsync(Guid engineId, string datasourcename, string scanname)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var baseURI = hostOptions.PurviewScanEndpoint;
+            var query = PurviewApiVersion;
+            var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
+            
+            //check if the datasource is in the specified engine
+            var pathURISource = $"datasources/{datasourcename}";
+            var uriSource = new System.Uri($"{baseURI}/{pathURISource}?{query}");
+            YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uriSource,null,System.Net.Http.HttpMethod.Get,accessToken).ConfigureAwait(false);
+            var engineSource = yHttpResponse.Value.SelectToken($"$.properties.parentCollection.referenceName");
+            if (engineSource.Value<string>()!=engine.EngineName)
+                throw new Exception($"The source {datasourcename} does not belong to the collection {engine.EngineName}");
+
+            var pathURI = $"datasources/{datasourcename}/scans/{scanname}";
+            var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
+            yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uri,null,System.Net.Http.HttpMethod.Delete,accessToken).ConfigureAwait(false);
             return yHttpResponse;
         }
 
