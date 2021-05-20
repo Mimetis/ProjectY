@@ -99,7 +99,6 @@ This Cli let's you manage the ProjectY features exposes through it's API.",
                             Id = Guid.NewGuid(),
                             EngineName = nameArg.Value,
                             EngineType = typeArg.Value == "databricks" ? YEngineType.Databricks : YEngineType.Synapse,
-                            Comments = commentArg.
                         };
 
                         var token = await AuthorizationHelper.GetAccessTokenAsync(ClientId);
