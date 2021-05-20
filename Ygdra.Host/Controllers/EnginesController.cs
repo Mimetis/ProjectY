@@ -281,6 +281,9 @@ namespace Ygdra.Host.Controllers
 
                 if (!regex.IsMatch(engine.EngineName))
                     throw new Exception($"Engine name {engine.EngineName} is incorrect. The regex used to validate the name is {regex}");
+
+                if (engine.EngineName.Length < 5 || engine.EngineName.Length > 10)
+                    throw new Exception("The engine name needs to be between 5 and 10 characters long.");
             }
 
             if (!string.IsNullOrEmpty(engine.ResourceGroupName))
@@ -326,6 +329,12 @@ namespace Ygdra.Host.Controllers
 
                 if (!regex.IsMatch(engine.AppInsightsName))
                     throw new Exception($"AppInsights name {engine.AppInsightsName} is incorrect");
+            }
+
+            if(engine.OwnerEmails!=null && engine.OwnerEmails.Count>0)
+            {
+                //Lookup IDs for the provided owner email addresses to complete the request.
+
             }
 
             var existingEngine = await this.engineProvider.GetEngineByNameAsync(engine.EngineName);

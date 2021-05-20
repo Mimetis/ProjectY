@@ -61,7 +61,10 @@ namespace Ygdra.Core.Engine.Entities
         public string ResourceGroupName { get; set; }
 
         public ICollection<YPerson> Owners { get; set; }
+        public ICollection<string> OwnerEmails { get; set; }
         public ICollection<YPerson> Members { get; set; }
+        public ICollection<string> MemberEmails { get; set; }
+
 
         public string ClusterName { get; set; }
         public string FactoryName { get; set; }

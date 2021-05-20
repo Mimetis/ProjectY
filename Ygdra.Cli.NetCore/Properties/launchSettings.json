@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Ygdra.Cli.NetCore": {
+      "commandName": "Project",
+      "commandLineArgs": "create engine sometest-engine databricks"
+    }
+  }
+}
