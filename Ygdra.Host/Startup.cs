@@ -70,6 +70,7 @@ namespace Ygdra.Host
             services.Configure<YGraphOptions>(options => Configuration.Bind("Graph", options));
             services.Configure<YProviderOptions>(options => Configuration.Bind("YProvider", options));
             services.Configure<YHostOptions>(options => Configuration.Bind("YgdraServices", options));
+            services.Configure<YPurviewOptions>(options => Configuration.Bind("Purview", options));
             services.Configure<YMicrosoftIdentityOptions>(options => Configuration.Bind("AzureAD", options));
 
 
