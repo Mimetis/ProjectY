@@ -365,34 +365,59 @@ namespace Ygdra.Host.Controllers
         }
 
         [HttpPut()]
-        [Route("Sources/Factory/{engineId}")]
+        [Route("Factory/{engineId}")]
         /// <summary>
         /// Connects the Data Factory of the specified Engine to Purview
         /// Creates a Role assignment as Purview Data Curator for the ADF Managed Identity to access Purview
         /// Tags the ADF so that the connection to Purview is enabled
         /// </summary>
-       public async Task<ActionResult<Core.Cloud.Entities.YResource>> ConnectFactoryToPurviewAsync(Guid engineId)
+       public async Task<YHttpResponse<JObject>> ConnectFactoryToPurviewAsync(Guid engineId)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
                 throw new Exception("Engine does not exists");
 
-            var baseURI = hostOptions.PurviewScanEndpoint;
-            var query = PurviewApiVersion;
             var factoryResult = await factoryController.GetDataFactoryAsync(engineId).ConfigureAwait(false);
             var factoryResource = factoryResult.Value;
 
             // Role Definition Id of Purview Data Curator Role
             // /subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/8a3c2885-9b38-4fd2-9d99-91af537c1347"
             // scope: Purview Account
-            // Get Purview Account id by Name: GET https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Purview/accounts/{accountName}?api-version=2020-12-01-preview
-            // 
-            // /subscriptions/{subscriptionId}/
-            
-            // Tag the Factory with catalogUri=PurviewAtlasEndpoint without https://
-            return factoryResult;
-        }
+            // /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Purview/accounts/{accountName}?api-version=2020-12-01-preview
+            // the Purview {accountName} is the Atlas Endpoint without https:// and without catalog.blabla...
+            var purviewUri = hostOptions.PurviewAtlasEndpoint.Replace("https://","");
+            var purviewAccountName = purviewUri.Split(".")[0];
+            var purviewScope = $"/subscriptions/{hostOptions.PurviewSubscriptionId}/resourceGroups/{hostOptions.PurviewResourceGroup}/providers/Microsoft.Purview/accounts/{purviewAccountName}";
+            var factoryRoleDefinition = $"/subscriptions/{hostOptions.PurviewSubscriptionId}/providers/Microsoft.Authorization/roleDefinitions/8a3c2885-9b38-4fd2-9d99-91af537c1347";
+            var roleAssignmentName = Guid.NewGuid();
+            var assignmentUri = $"{purviewScope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}";
+            var query ="api-version=2021-04-01-preview";
+            var requestBody = new JObject {
+                {"properties", new JObject {
+                    {"roleDefinitionId", factoryRoleDefinition },
+                    {"principalId", factoryResource.Identity.PrincipalId}
+                }}
+            };
+            var result = await this.client.ProcessRequestManagementAsync<JObject>(
+                assignmentUri, query, requestBody, System.Net.Http.HttpMethod.Put).ConfigureAwait(false);
 
+            // Tag the Factory with catalogUri=PurviewAtlasEndpoint without https://
+            // Tags - Create Or Update At Scope
+            // PUT https://management.azure.com/{scope}/providers/Microsoft.Resources/tags/default?api-version=2021-04-01
+            // {scope} is the ADF id
+            requestBody = new JObject{
+                {"properties", new JObject{
+                    {"tags", new JObject{
+                        {"catalogUri", purviewUri}
+                    }}
+                }}
+            };
+            query ="api-version=2021-04-01";
+            var tagUri = $"{factoryResource.Id}/providers/Microsoft.Resources/tags/default";
+            result = await this.client.ProcessRequestManagementAsync<JObject>(
+                tagUri, query, requestBody, System.Net.Http.HttpMethod.Put).ConfigureAwait(false);
+            return result;
+        }
 
     }
 }
