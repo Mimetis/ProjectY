@@ -8,9 +8,6 @@ namespace Ygdra.Core.Options
     {
         public string BaseAddress { get; set; }
         public string Scopes { get; set; }
-        public string PurviewResource {get;set;}
-        public string PurviewAtlasEndpoint {get; set;}
-        public string PurviewScanEndpoint {get;set;}
         public IEnumerable<string> GetScopes()
         {
             if (string.IsNullOrEmpty(Scopes))
