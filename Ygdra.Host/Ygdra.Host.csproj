@@ -11,9 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Notebooks\common.ipynb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Wheels\ygdra-1.0-py3-none-any.whl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -42,6 +39,12 @@
 
   <ItemGroup>
     <Folder Include="Misc\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Notebooks\main.ipynb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 
