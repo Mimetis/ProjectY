@@ -46,7 +46,7 @@ __   __        _
   \_/\__, |\__,_|_|  \__,_|
       __/ |                
      |___/                 
-This Cli let's you manage the ProjectY features exposes through it's API.",
+Command line interface. Remark: Start with the login command to setup your client ID and API URL.",
             };
 
             app.HelpOption();
@@ -192,25 +192,22 @@ This Cli let's you manage the ProjectY features exposes through it's API.",
 
                 var engineIdOpt = deployCommand.Option("-e|--engineid <ENGINEID>", "Engine Id that identifies the engine to be deployed.", CommandOptionType.SingleValue).IsRequired();
                 var deploymentLocationOpt = deployCommand.Option("-l|--location <LOCATION>", "The location where the engine should be deployed (eg. WestEurope, NorthEurope, EastUS, ...).", CommandOptionType.SingleValue);
-                var resourceGroupOpt = deployCommand.Option("-r|--resourcegroup <RESOURCEGROUP>", "The resource group in whichthe engine should be deployed.", CommandOptionType.SingleValue);
-
-
-                //location/rg name/ 
-
-                string location = null;
-                string resourceGroup = null;
-                if(deploymentLocationOpt.HasValue())
-                {
-                    location = deploymentLocationOpt.Value();
-                }
-
-                if(resourceGroupOpt.HasValue())
-                {
-                    resourceGroup = resourceGroupOpt.Value();
-                }
+                var resourceGroupOpt = deployCommand.Option("-r|--resourcegroup <RESOURCEGROUP>", "The resource group in whichthe engine should be deployed.", CommandOptionType.SingleValue);           
 
                 deployCommand.OnExecuteAsync(async x =>
                 {
+                    string location = null;
+                    string resourceGroup = null;
+                    if (deploymentLocationOpt.HasValue())
+                    {
+                        location = deploymentLocationOpt.Value();
+                    }
+
+                    if (resourceGroupOpt.HasValue())
+                    {
+                        resourceGroup = resourceGroupOpt.Value();
+                    }
+
                     var clientId = GetClientId();
                     var token = await AuthorizationHelper.GetAccessTokenAsync(clientId);
                     var deploymentState = await ApiWrapper.DeployEngineAsync<YDeploymentStatePayload>(token, engineIdOpt.Value(), location, resourceGroup);
@@ -243,57 +240,6 @@ This Cli let's you manage the ProjectY features exposes through it's API.",
                     {
                         Console.WriteLine("{0,-20} {1,5:N1}", ye.EngineName, ye.Status.ToString());
                     }
-                });
-            });
-
-            listCommand.Command("enginesold", thisCmd =>
-        {
-            thisCmd.Description = "Retrieves all engines available in a specific environment.";
-            var arg1 = thisCmd.Argument("env", "The environment to retrieve from.").IsRequired();
-            var arg2 = thisCmd.Argument("tenant", "The tenant hosting the environment").IsRequired();
-
-            thisCmd.OnExecuteAsync(async x =>
-            {
-                Console.WriteLine($"Getting engines for environment:  {arg1.Value} in tenant {arg2.Value}");
-
-                if (McMaster.Extensions.CommandLineUtils.Prompt.GetYesNo("Do you want to proceed?", false))
-                {
-                    await Task.Run(() =>
-                    {
-                        Console.WriteLine("Engine 1");
-                        Console.WriteLine("Engine 2");
-                        Console.WriteLine("Engine 3");
-                        Console.WriteLine("Engine 4");
-                    });
-                    return 0;
-                }
-                else
-                {
-                    Console.WriteLine("Command cancelled.");
-                    return 1;
-                }
-            });
-        });
-
-            listCommand.Command("sources", thatCmd =>
-            {
-                var json = thatCmd.Option("--json", "Json output format", CommandOptionType.NoValue);
-
-                thatCmd.OnExecuteAsync(async x =>
-                {
-                    Console.WriteLine("Retrieving sources");
-                    if (json.HasValue())
-                    {
-                        Console.WriteLine("{['sourcename':'source 1'],['sourcename':'source 2'],['sourcename':'source 2']}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Source 1");
-                        Console.WriteLine("Source 2");
-                        Console.WriteLine("Source 3");
-                        Console.WriteLine("Source 4");
-                    }
-                    return 0;
                 });
             });
         });

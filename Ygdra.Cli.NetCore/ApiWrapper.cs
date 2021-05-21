@@ -115,7 +115,7 @@ namespace Ygdra.Cli.NetCore
         /// <param name="accessToken">Token that needs to contain the claim this user is an Admin.</param>
         /// <param name="engineId">The engine id to be deployed.</param>
         /// <returns></returns>
-        public static async Task<T> DeployEngineAsync<T>(string accessToken, string engineId, string location = null, string resourceGroup =  null)
+        public static async Task<T> DeployEngineAsync<T>(string accessToken, string engineId, string location = null, string resourceGroupName =  null)
         {
             var httpClient = new HttpClient();
             var ygdraApiUrl = Environment.GetEnvironmentVariable("Ygdra-ApiUrl", EnvironmentVariableTarget.User);
@@ -131,6 +131,17 @@ namespace Ygdra.Cli.NetCore
             {
                 engine.Location = location;
             }
+
+            if(resourceGroupName !=null)
+            {
+                engine.ResourceGroupName = resourceGroupName;
+            }
+
+            using var saveRequestMessage = new HttpRequestMessage(HttpMethod.Put, ygdraApiUrl + "/Engines/" + engineId);
+            saveRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(engine), UnicodeEncoding.UTF8, "application/json");
+            var saveRequestResponse = await httpClient.SendAsync(saveRequestMessage);
+
+            saveRequestResponse.EnsureSuccessStatusCode();
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, ygdraApiUrl + "/Engines/" + engine.Id + "/deploy");
             requestMessage.Content = new StringContent(JsonConvert.SerializeObject(engine), UnicodeEncoding.UTF8, "application/json");
