@@ -25,6 +25,7 @@ using Ygdra.Core.Cloud.Entities;
 using Ygdra.Core.DataSources.Entities;
 using Ygdra.Core.Engine;
 using Ygdra.Core.Engine.Entities;
+using Ygdra.Core.Enumerations;
 using Ygdra.Core.Http;
 using Ygdra.Core.Notifications;
 using Ygdra.Core.Notifications.Entities;
@@ -309,7 +310,8 @@ namespace Ygdra.Host.BackgroundServices
                 var factoryResourceRequest = new YResource
                 {
                     Location = engine.Location,
-                    Properties = new Dictionary<string, object>()
+                    Properties = new Dictionary<string, object>(),
+                    Identity = new YIdentity(){ Type = YResourceIdentityType.SystemAssigned}
                 };
 
                 factoryResourceResponse = await this.clientResource.StartCreateOrUpdateAsync

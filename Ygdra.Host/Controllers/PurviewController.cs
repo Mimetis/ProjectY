@@ -38,6 +38,7 @@ namespace Ygdra.Host.Controllers
         private readonly IYHttpRequestHandler client;
         private readonly YPurviewOptions hostOptions;
         private readonly IYEngineProvider engineProvider;
+        private readonly DataFactoriesController factoryController;
         private const string PurviewApiVersion = "api-version=2018-12-01-preview";
         static readonly string[] scopeRequiredByApi = new string[] { "user_impersonation" };
 
@@ -45,13 +46,15 @@ namespace Ygdra.Host.Controllers
         IOptions<YMicrosoftIdentityOptions> azureAdOptions,
         IYHttpRequestHandler client,
         IOptions<YPurviewOptions> hostOptions,
-        IYEngineProvider engineProvider)
+        IYEngineProvider engineProvider,
+        DataFactoriesController dataFactoriesController)
         {
             this.authProvider = authProvider;
             this.options = azureAdOptions.Value;
             this.client = client;
             this.hostOptions = hostOptions.Value;
             this.engineProvider = engineProvider;
+            this.factoryController = dataFactoriesController;
         }
 
         // [HttpGet()]
@@ -61,12 +64,12 @@ namespace Ygdra.Host.Controllers
         // }
 
         [HttpPut()]
-        [Route("Sources/engine/{engineId}/{datasourcename}")]
+        [Route("Sources/{engineId}/{dataSourceName}")]
         /// <summary>
         /// Registers a new datasource in Purview.
         /// Adds the source to a collection with the name of the engine
         /// </summary>
-        public async Task<YHttpResponse<JObject>> AddPurviewSourcesAsync(Guid engineId,string datasourcename, [FromBody] YPurviewSourcePayload dataSource)
+        public async Task<YHttpResponse<JObject>> AddPurviewSourcesAsync(Guid engineId,string dataSourceName, [FromBody] YPurviewSourcePayload dataSource)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
@@ -89,7 +92,7 @@ namespace Ygdra.Host.Controllers
             };
             YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uriCollection,jsondataCollection,System.Net.Http.HttpMethod.Put,accessToken).ConfigureAwait(false);
 
-            var pathURI = $"datasources/{datasourcename}";
+            var pathURI = $"datasources/{dataSourceName}";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             var jsondata = new JObject {
                     {"kind", dataSource.Kind.ToString()}, 
@@ -108,12 +111,12 @@ namespace Ygdra.Host.Controllers
         }
 
         [HttpGet()]
-        [Route("Sources/engine/{engineId}/{datasourcename}")]
+        [Route("Sources/{engineId}/{dataSourceName}")]
         /// <summary>
         /// Gets a specific Purview source that belongs to an engine
         /// Assumes the Purview sources will be in a collection with the name of the engine
         /// </summary>
-        public async Task<YHttpResponse<JObject>> GetPurviewSourcesAsync(Guid engineId, string datasourcename)
+        public async Task<YHttpResponse<JObject>> GetPurviewSourcesAsync(Guid engineId, string dataSourceName)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
@@ -121,7 +124,7 @@ namespace Ygdra.Host.Controllers
 
             var baseURI = hostOptions.PurviewScanEndpoint;
             var query = PurviewApiVersion;
-            var pathURI = $"datasources/{datasourcename}";
+            var pathURI = $"datasources/{dataSourceName}";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
             YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uri, null, System.Net.Http.HttpMethod.Get, accessToken).ConfigureAwait(false);
@@ -135,12 +138,12 @@ namespace Ygdra.Host.Controllers
         }
 
         [HttpDelete()]
-        [Route("Sources/engine/{engineId}/{datasourcename}")]
+        [Route("Sources/{engineId}/{dataSourceName}")]
         /// <summary>
         /// Deletes a specific Purview source
         /// Assumes the Purview sources will be in a collection with the name of the engine
         /// </summary>
-        public async Task<YHttpResponse<JObject>> DeletePurviewSourcesAsync(Guid engineId,string datasourcename)
+        public async Task<YHttpResponse<JObject>> DeletePurviewSourcesAsync(Guid engineId,string dataSourceName)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
@@ -148,7 +151,7 @@ namespace Ygdra.Host.Controllers
 
             var baseURI = hostOptions.PurviewScanEndpoint;
             var query = PurviewApiVersion;
-            var pathURI = $"datasources/{datasourcename}";
+            var pathURI = $"datasources/{dataSourceName}";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
             // First check if the source is in the engine the user has entered
@@ -156,19 +159,19 @@ namespace Ygdra.Host.Controllers
             var engineSources = yHttpResponse.Value.SelectToken($"$.properties.parentCollection.referenceName");
             if (engineSources.Value<string>()!=engine.EngineName)
             {
-                throw new Exception($"No source {datasourcename} in your Engine {engine.EngineName}");
+                throw new Exception($"No source {dataSourceName} in your Engine {engine.EngineName}");
             }
             yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uri,null,System.Net.Http.HttpMethod.Delete,accessToken).ConfigureAwait(false);
             return yHttpResponse;
         }
 
         [HttpGet()]
-        [Route("Sources/{datasourcename}")]
+        [Route("Sources/{dataSourceName}")]
         /// <summary>
         /// Gets a specific Purview source
         /// Requires Admin rights as it is across engines
         /// </summary>
-        public async Task<YHttpResponse<JObject>> GetPurviewSourcesAsync(string datasourcename)
+        public async Task<YHttpResponse<JObject>> GetPurviewSourcesAsync(string dataSourceName)
         {
 
             HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
@@ -178,7 +181,7 @@ namespace Ygdra.Host.Controllers
 
             var baseURI = hostOptions.PurviewScanEndpoint;
             var query = PurviewApiVersion;
-            var pathURI = $"datasources/{datasourcename}";
+            var pathURI = $"datasources/{dataSourceName}";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
             YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uri, null, System.Net.Http.HttpMethod.Get, accessToken).ConfigureAwait(false);
@@ -186,12 +189,12 @@ namespace Ygdra.Host.Controllers
         }
 
         [HttpGet()]
-        [Route("Sources/engine/{engineId}/{datasourcename}/scans")]
+        [Route("Sources/{engineId}/{dataSourceName}/scans")]
         /// <summary>
         /// Gets all scan settings for a specific Purview source
         /// Assumes the Purview sources will be in a collection with the name of the engine
         /// </summary>
-        public async Task<YHttpResponse<JObject>> GetPurviewSourceScansAsync(Guid engineId, string datasourcename)
+        public async Task<YHttpResponse<JObject>> GetPurviewSourceScansAsync(Guid engineId, string dataSourceName)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
@@ -202,14 +205,14 @@ namespace Ygdra.Host.Controllers
             var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
             
             //check if the datasource is in the specified engine
-            var pathURISource = $"datasources/{datasourcename}";
+            var pathURISource = $"datasources/{dataSourceName}";
             var uriSource = new System.Uri($"{baseURI}/{pathURISource}?{query}");
             YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uriSource,null,System.Net.Http.HttpMethod.Get,accessToken).ConfigureAwait(false);
             var engineSource = yHttpResponse.Value.SelectToken($"$.properties.parentCollection.referenceName");
             if (engineSource.Value<string>()!=engine.EngineName)
-                throw new Exception($"The source {datasourcename} does not belong to the collection {engine.EngineName}");
+                throw new Exception($"The source {dataSourceName} does not belong to the collection {engine.EngineName}");
 
-            var pathURI = $"datasources/{datasourcename}/scans";
+            var pathURI = $"datasources/{dataSourceName}/scans";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uri,null,System.Net.Http.HttpMethod.Get,accessToken).ConfigureAwait(false);
             return yHttpResponse;
@@ -217,8 +220,8 @@ namespace Ygdra.Host.Controllers
         }
 
         [HttpPut()]
-        [Route("Sources/engine/{engineId}/{datasourcename}/scans/{scanname}")]
-        public async Task<YHttpResponse<JObject>> AddPurviewSourceScansAsync(Guid engineId, string datasourcename, string scanname, [FromBody] YPurviewSourceScanPayload scanPayload)
+        [Route("Sources/{engineId}/{dataSourceName}/scans/{scanName}")]
+        public async Task<YHttpResponse<JObject>> AddPurviewSourceScansAsync(Guid engineId, string dataSourceName, string scanName, [FromBody] YPurviewSourceScanPayload scanPayload)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
@@ -229,14 +232,14 @@ namespace Ygdra.Host.Controllers
             var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
             
             //check if the datasource is in the specified engine
-            var pathURISource = $"datasources/{datasourcename}";
+            var pathURISource = $"datasources/{dataSourceName}";
             var uriSource = new System.Uri($"{baseURI}/{pathURISource}?{query}");
             YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uriSource,null,System.Net.Http.HttpMethod.Get,accessToken).ConfigureAwait(false);
             var engineSource = yHttpResponse.Value.SelectToken($"$.properties.parentCollection.referenceName");
             if (engineSource.Value<string>()!=engine.EngineName)
-                throw new Exception($"The source {datasourcename} does not belong to the collection {engine.EngineName}");
+                throw new Exception($"The source {dataSourceName} does not belong to the collection {engine.EngineName}");
 
-            var pathURI = $"datasources/{datasourcename}/scans/{scanname}";
+            var pathURI = $"datasources/{dataSourceName}/scans/{scanName}";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             var jsondata = new JObject 
             {
@@ -255,8 +258,8 @@ namespace Ygdra.Host.Controllers
         }
 
         [HttpDelete()]
-        [Route("Sources/engine/{engineId}/{datasourcename}/scans/{scanname}")]
-        public async Task<YHttpResponse<JObject>> DeletePurviewSourceScansAsync(Guid engineId, string datasourcename, string scanname)
+        [Route("Sources/{engineId}/{dataSourceName}/scans/{scanName}")]
+        public async Task<YHttpResponse<JObject>> DeletePurviewSourceScansAsync(Guid engineId, string dataSourceName, string scanName)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
@@ -267,26 +270,26 @@ namespace Ygdra.Host.Controllers
             var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
             
             //check if the datasource is in the specified engine
-            var pathURISource = $"datasources/{datasourcename}";
+            var pathURISource = $"datasources/{dataSourceName}";
             var uriSource = new System.Uri($"{baseURI}/{pathURISource}?{query}");
             YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uriSource,null,System.Net.Http.HttpMethod.Get,accessToken).ConfigureAwait(false);
             var engineSource = yHttpResponse.Value.SelectToken($"$.properties.parentCollection.referenceName");
             if (engineSource.Value<string>()!=engine.EngineName)
-                throw new Exception($"The source {datasourcename} does not belong to the collection {engine.EngineName}");
+                throw new Exception($"The source {dataSourceName} does not belong to the collection {engine.EngineName}");
 
-            var pathURI = $"datasources/{datasourcename}/scans/{scanname}";
+            var pathURI = $"datasources/{dataSourceName}/scans/{scanName}";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uri,null,System.Net.Http.HttpMethod.Delete,accessToken).ConfigureAwait(false);
             return yHttpResponse;
         }
 
         [HttpPut()]
-        [Route("Sources/engine/{engineId}/{datasourcename}/scans/{scanname}/run")]
+        [Route("Sources/{engineId}/{dataSourceName}/scans/{scanName}/run")]
         /// <summary>
         /// Runs a scan for a specific Purview source
         /// Assumes the Purview sources will be in a collection with the name of the engine
         /// </summary>
-       public async Task<YHttpResponse<JObject>> RunPurviewSourceScanAsync(Guid engineId, string datasourcename, string scanname, [FromBody] YPurviewSourceScanRunPayload scanPayload)
+       public async Task<YHttpResponse<JObject>> RunPurviewSourceScanAsync(Guid engineId, string dataSourceName, string scanName, [FromBody] YPurviewSourceScanRunPayload scanPayload)
         {
             var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
             if (engine == null)
@@ -297,15 +300,15 @@ namespace Ygdra.Host.Controllers
             var accessToken = await this.authProvider.GetAccessTokenForAsync(hostOptions.PurviewResource+"/.default").ConfigureAwait(false);
             
             //check if the datasource is in the specified engine
-            var pathURISource = $"datasources/{datasourcename}";
+            var pathURISource = $"datasources/{dataSourceName}";
             var uriSource = new System.Uri($"{baseURI}/{pathURISource}?{query}");
             YHttpResponse<JObject> yHttpResponse = await this.client.ProcessRequestAsync<JObject>(uriSource,null,System.Net.Http.HttpMethod.Get,accessToken).ConfigureAwait(false);
             var engineSource = yHttpResponse.Value.SelectToken($"$.properties.parentCollection.referenceName");
             if (engineSource.Value<string>()!=engine.EngineName)
-                throw new Exception($"The source {datasourcename} does not belong to the collection {engine.EngineName}");
+                throw new Exception($"The source {dataSourceName} does not belong to the collection {engine.EngineName}");
             
             var runId = Guid.NewGuid();
-            var pathURI = $"datasources/{datasourcename}/scans/{scanname}/runs/{runId}";
+            var pathURI = $"datasources/{dataSourceName}/scans/{scanName}/runs/{runId}";
             var uri = new System.Uri($"{baseURI}/{pathURI}?{query}");
             var jsondata = new JObject 
             {
@@ -338,7 +341,7 @@ namespace Ygdra.Host.Controllers
         }
         
         [HttpGet()]
-        [Route("Sources/engine/{engineId}")]
+        [Route("Sources/{engineId}")]
         /// <summary>
         /// Gets Purview sources that belong to an engine
         /// Assumes the Purview sources will be in a collection with the name of the engine
@@ -359,6 +362,35 @@ namespace Ygdra.Host.Controllers
             var engineSources = yHttpResponse.Value.SelectToken($"$.value[?(@.properties.parentCollection.referenceName=='{engine.EngineName}')]");
             yHttpResponse.Value = engineSources is null ? null : engineSources.ToObject<JObject>();
             return yHttpResponse;
+        }
+
+        [HttpPut()]
+        [Route("Sources/Factory/{engineId}")]
+        /// <summary>
+        /// Connects the Data Factory of the specified Engine to Purview
+        /// Creates a Role assignment as Purview Data Curator for the ADF Managed Identity to access Purview
+        /// Tags the ADF so that the connection to Purview is enabled
+        /// </summary>
+       public async Task<ActionResult<Core.Cloud.Entities.YResource>> ConnectFactoryToPurviewAsync(Guid engineId)
+        {
+            var engine = await this.engineProvider.GetEngineAsync(engineId).ConfigureAwait(false);
+            if (engine == null)
+                throw new Exception("Engine does not exists");
+
+            var baseURI = hostOptions.PurviewScanEndpoint;
+            var query = PurviewApiVersion;
+            var factoryResult = await factoryController.GetDataFactoryAsync(engineId).ConfigureAwait(false);
+            var factoryResource = factoryResult.Value;
+
+            // Role Definition Id of Purview Data Curator Role
+            // /subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/8a3c2885-9b38-4fd2-9d99-91af537c1347"
+            // scope: Purview Account
+            // Get Purview Account id by Name: GET https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Purview/accounts/{accountName}?api-version=2020-12-01-preview
+            // 
+            // /subscriptions/{subscriptionId}/
+            
+            // Tag the Factory with catalogUri=PurviewAtlasEndpoint without https://
+            return factoryResult;
         }
 
 
