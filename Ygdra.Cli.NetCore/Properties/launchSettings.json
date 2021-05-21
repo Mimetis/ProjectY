@@ -2,7 +2,7 @@
   "profiles": {
     "Ygdra.Cli.NetCore": {
       "commandName": "Project",
-      "commandLineArgs": "create engine sometest-engine databricks"
+      "commandLineArgs": "create engine -n vjengine7 -t databricks -c \"some comment\"  -o a17ffba4-829b-4093-8caf-217822f45dcb -m a17ffba4-829b-4093-8caf-217822f45dcb"
     }
   }
 }
