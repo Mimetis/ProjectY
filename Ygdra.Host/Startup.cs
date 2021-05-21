@@ -35,6 +35,7 @@ using Ygdra.Core.Notifications;
 using Ygdra.Core.Options;
 using Ygdra.Host.BackgroundServices;
 using Ygdra.Host.Extensions;
+using Ygdra.Host.Hangfire;
 using Ygdra.Host.Services;
 
 namespace Ygdra.Host
@@ -185,13 +186,17 @@ namespace Ygdra.Host
             app.UseCors();
 
             app.UseAuthentication();
-
             app.UseAuthorization();
+
+
             app.UseSwagger();
             // Add Swagger UI and needed params (like client id)
             app.UseAzureSwaggerUi("Ygdra Api", Configuration);
 
-            app.UseHangfireDashboard("/hangfire");
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = new[] { new HangFireAuthorizationFilter() }
+            });
 
             app.UseEndpoints(endpoints =>
             {

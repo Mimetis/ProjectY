@@ -42,6 +42,7 @@ bld/
 
 # Visual Studio code cache/options directory
 .vscode/
+.config/
 
 
 # Visual Studio 2015 cache/options directory
