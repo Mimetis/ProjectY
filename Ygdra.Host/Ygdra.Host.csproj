@@ -7,14 +7,14 @@
 
   <ItemGroup>
     <None Remove="Notebooks\common.ipynb" />
-    <None Remove="Notebooks\main.ipynb" />
+    <None Remove="Wheels\ygdra-1.0-py3-none-any.whl" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Notebooks\common.ipynb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Notebooks\main.ipynb">
+    <Content Include="Wheels\ygdra-1.0-py3-none-any.whl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
