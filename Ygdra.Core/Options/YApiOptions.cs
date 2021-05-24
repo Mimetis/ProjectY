@@ -8,7 +8,6 @@ namespace Ygdra.Core.Options
     {
         public string BaseAddress { get; set; }
         public string Scopes { get; set; }
-
         public IEnumerable<string> GetScopes()
         {
             if (string.IsNullOrEmpty(Scopes))

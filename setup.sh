@@ -3,7 +3,7 @@ export PREFIX=ygdra
 export SUFFIX=aioup
 
 export RG_NAME=rg
-export LOCATION=northeurope
+export LOCATION=westeurope
 
 export SERVICE_PRINCIPAL_NAME=sp
 export WEB_UI_NAME=web 
@@ -15,6 +15,8 @@ export WEB_API_LOCAL_NAME="localhost:44339"
 export COSMOSDB_NAME=cosmos
 export SIGNALR_SERVICES_NAME=signalr
 export APP_SERVICE_PLAN=plan
+export PURVIEW_NAME=purview
+export KV_NAME=kv
 
 export DOMAIN=microsoft.onmicrosoft.com
 
@@ -47,7 +49,6 @@ while getopts 'p:s:r:l:d:' OPTION; do
 done
 
 
-
 RG_NAME="$PREFIX$RG_NAME$SUFFIX"
 WEB_UI_NAME="$PREFIX$WEB_UI_NAME$SUFFIX"
 WEB_API_NAME="$PREFIX$WEB_API_NAME$SUFFIX"
@@ -55,6 +56,8 @@ COSMOSDB_NAME="$PREFIX$COSMOSDB_NAME$SUFFIX"
 SIGNALR_SERVICES_NAME="$PREFIX$SIGNALR_SERVICES_NAME$SUFFIX"
 APP_SERVICE_PLAN="$PREFIX$APP_SERVICE_PLAN$SUFFIX"
 SERVICE_PRINCIPAL_NAME="$PREFIX$SERVICE_PRINCIPAL_NAME$SUFFIX"
+PURVIEW_NAME="$PREFIX$PURVIEW_NAME$SUFFIX"
+KV_NAME="$PREFIX$KV_NAME$SUFFIX"
 
 
 # Check if jq is installed
@@ -82,7 +85,7 @@ az_login
 
 IdentifierUri="https://${DOMAIN}"
 HomePage="http://${SERVICE_PRINCIPAL_NAME}"
-ReturnUris="https://${WEB_UI_NAME}.azurewebsites.net/signin-oidc https://${WEB_UI_LOCAL_NAME}/signin-oidc https://${WEB_UI_LOCAL_NAME}/swagger/oauth2-redirect.html https://${WEB_API_NAME}.azurewebsites.net/oauth2-redirect.html https://${WEB_API_LOCAL_NAME}/oauth2-redirect.html"
+ReturnUris="https://login.microsoftonline.com/common/oauth2/nativeclient https://${WEB_UI_NAME}.azurewebsites.net/signin-oidc https://${WEB_UI_LOCAL_NAME}/signin-oidc https://${WEB_UI_LOCAL_NAME}/swagger/oauth2-redirect.html https://${WEB_API_NAME}.azurewebsites.net/oauth2-redirect.html https://${WEB_API_LOCAL_NAME}/oauth2-redirect.html"
 
 printf "%b\n" "## Getting Tenant and Subscription"
 tenant_id=$(az account show | jq -r '.tenantId')
@@ -105,6 +108,16 @@ else
     printf "%b\n" "   Resource Group \e[32m$RG_NAME\e[0m already exists."
 fi
 
+printf "%b\n" "## Checking KeyVault \e[32m$KV_NAME\e[0m."
+kv_exists=$(az keyvault list -g $RG_NAME --query "[?name=='$KV_NAME']" | jq '. | length')
+
+if [ "$kv_exists" == "0" ]; then
+    printf "%b\n" "   Create KeyVault \e[32m$KV_NAME\e[0m in resource group \e[32m$RG_NAME\e[0m."
+    kv_created=$(az keyvault create -g $RG_NAME -n $KV_NAME -l $LOCATION)
+    printf "%b\n" "   KeyVault \e[32m$KV_NAME\e[0m created."
+else
+    printf "%b\n" "   KeyVault \e[32m$KV_NAME\e[0m already exists."
+fi
 
 printf "%b\n" "## Checking App Service Plan \e[32m$APP_SERVICE_PLAN\e[0m."
 app_service_plan_exists=$(az appservice plan list -g $RG_NAME --query "[?name=='$APP_SERVICE_PLAN']" | jq '. | length')
@@ -171,6 +184,12 @@ printf "%b\n" "   Document Endpoint:\e[32m$cosmosdb_created_document_endpoint\e[
 cosmosdb_created_primary_master_key=$(az cosmosdb keys list -n $COSMOSDB_NAME -g $RG_NAME --type keys | jq -r '.primaryMasterKey')
 printf "%b\n" "   Primary Master Key:\e[32m$cosmosdb_created_primary_master_key\e[0m."
 
+comsmosdb_kv_primary_master_key_exists=$(az keyvault secret list --vault-name $KV_NAME --query "[?name=='cosmosbprimarymasterkey']" | jq '. | length')
+if [ "$comsmosdb_kv_primary_master_key_exists" == "0" ]; then
+  comsmosdb_kv_primary_master_key=$(az keyvault secret set --name cosmosbprimarymasterkey --vault-name $KV_NAME --value $cosmosdb_created_primary_master_key)
+  printf "%b\n" "   Primary Master Key from Cosmos DB added to keyvault \e[32m$KV_NAME\e[0m."
+fi  
+
 printf "%b\n" "## Checking SignalR Services \e[32m$SIGNALR_SERVICES_NAME\e[0m."
 signalr_exists=$(az signalr list -g $RG_NAME --query "[?name=='$SIGNALR_SERVICES_NAME']" | jq '. | length')
 
@@ -188,6 +207,58 @@ printf "%b\n" "   Host Name:\e[32m$signalr_created_host_name\e[0m."
 signalr_created_primary_connection_string=$(az signalr key list -n $SIGNALR_SERVICES_NAME -g $RG_NAME  | jq -r '.primaryConnectionString')
 printf "%b\n" "   Primary Connection String:\e[32m$signalr_created_primary_connection_string\e[0m."
 
+signalr_kv_primary_connection_string_exists=$(az keyvault secret list --vault-name $KV_NAME --query "[?name=='signalrprimaryconnectionstring']" | jq '. | length')
+if [ "$signalr_kv_primary_connection_string_exists" == "0" ]; then
+  signalr_kv_primary_connection_string=$(az keyvault secret set --name signalrprimaryconnectionstring --vault-name $KV_NAME --value $signalr_created_primary_connection_string)
+  printf "%b\n" "   Primary Connection String from SignalR Services added to keyvault \e[32m$KV_NAME\e[0m."
+fi  
+
+
+# Create Purview
+printf "%b\n" "## Checking Purview \e[32m$PURVIEW_NAME\e[0m."
+purview_deployment_already_exists=$(az resource list -g $RG_NAME | jq -r '.[] | select(.type=="Microsoft.Purview/accounts") | [.] | length')
+
+if [ "x$purview_deployment_already_exists" == "x" ]; then
+
+  cat <<EOF > purview.json
+  {
+    "\$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "resources": [
+      {
+        "name": "$PURVIEW_NAME",
+        "type": "Microsoft.Purview/accounts",
+        "apiVersion": "2020-12-01-preview",
+        "location": "$LOCATION",
+        "identity": {
+          "type": "SystemAssigned"
+        },
+        "properties": {
+          "networkAcls": {
+            "defaultAction": "Allow"
+          }
+        },
+        "dependsOn": [],
+        "sku": {
+          "name": "Standard",
+          "capacity": "4"
+        },
+        "tags": {}
+      }
+    ],
+    "outputs": {}
+  }
+EOF
+
+  printf "%b\n" "   Create Purview instance \e[32m$PURVIEW_NAME\e[0m in resource group \e[32m$RG_NAME\e[0m."
+  purview_deployment_created=$(az deployment group create --resource-group $RG_NAME --template-file "purview.json")
+  printf "%b\n" "   Purview instance \e[32m$PURVIEW_NAME\e[0m created."
+  rm purview.json
+else
+  printf "%b\n" "   Purview instance \e[32m$PURVIEW_NAME\e[0m in resource group \e[32m$RG_NAME\e[0m already exists."
+fi
+
+
 # Create the application
 printf "%b\n" "## Create Or Patch Azure AD Application"
 azure_ad_application=$(az ad app create --display-name "${SERVICE_PRINCIPAL_NAME}" \
@@ -197,7 +268,7 @@ azure_ad_application=$(az ad app create --display-name "${SERVICE_PRINCIPAL_NAME
     --oauth2-allow-implicit-flow)
 
 app_id=$(echo "${azure_ad_application}" | jq -r '.appId')
-objectId=$(echo "${azure_ad_application}" | jq -r '.objectId')
+app_object_id=$(echo "${azure_ad_application}" | jq -r '.objectId')
 
 printf "%b\n" "   ClientId:\e[32m${app_id}\e[0m"
 
@@ -267,7 +338,7 @@ if [ "$adminrole_exists" == "0" ]; then
     }]
 EOF
     printf "%b\n" "   Create Admin Role."
-    admin_role=$(az ad app update --id "${objectId}" --app-roles @app-roles.manifest.json)
+    admin_role=$(az ad app update --id "${app_object_id}" --app-roles @app-roles.manifest.json)
     printf "%b\n" "   \e[32mAdmin\e[0m Role \e[32m$adminrole_id\e[0m created."
     rm app-roles.manifest.json
     printf "%b\n" "   Waiting \e[31m1\e[0m minute for AD propagation"
@@ -332,7 +403,7 @@ cat <<EOF > resources.manifest.json
 EOF
 
 # Update Application Roles
-graph_resources=$(az ad app update --id "${objectId}" --required-resource-accesses @resources.manifest.json)
+graph_resources=$(az ad app update --id "${app_object_id}" --required-resource-accesses @resources.manifest.json)
 printf "%b\n" "   Resources access updated."
 rm resources.manifest.json
 
@@ -340,6 +411,42 @@ printf "%b\n" "## Create Client Secret"
 client_secret=$(az ad app credential reset --id ${app_id} --years 1 --only-show-errors | jq -r '.password')
 printf "%b\n" "   Client Secret created."
 printf "%b\n" "   ClientSecret:\e[32m${client_secret}\e[0m"
+
+client_secret_kv=$(az keyvault secret set --name clientsecret --vault-name $KV_NAME --value $client_secret)
+printf "%b\n" "   ClientSecret from Application added to keyvault \e[32m$KV_NAME\e[0m."
+
+
+# Check if isFallbackPublicClient is correctly set to true
+printf "%b\n" "## Check isFallbackClient value"
+graph_app=$(curl -sf https://graph.microsoft.com/v1.0/applications/${app_object_id} -H "Authorization: Bearer $token")
+graph_app_is_fallback_client=$(echo $graph_app | jq -r '.isFallbackPublicClient')
+
+
+if [ "x$graph_app_is_fallback_client" != "xtrue" ]; then
+
+    # Affect Admin Role assignment for current user
+    graph_app_is_fallback_assignment=$(curl -sf -X POST https://graph.microsoft.com/v1.0/applications/${app_object_id} \
+                        -H "Authorization: Bearer $token" \
+                        -H "Content-type: application/json" \
+                        -X PATCH \
+                        -d "{\"isFallbackPublicClient\": true }")
+
+    printf "%b\n" "   \e[32misFallbackClient\e[0m set correctly to true."
+else
+    printf "%b\n" "   \e[32misFallbackClient\e[0m already set to true."
+fi
+
+printf "%b\n" "## Checking role Storage Blob Data Reader assignement to Service Principal."
+role_storage_blob_data_reader_exists=$(az role assignment list --assignee ${app_id} --role "Storage Blob Data Reader" | jq '. | length')
+
+if [ "$role_storage_blob_data_reader_exists" == "0" ]; then
+    printf "%b\n" "   Adding role assignement Storage Blob Data Reader to Service Principal"
+    role_storage_blob_data_reader=$(az role assignment create --subscription ${subscription_id} --assignee ${app_id} --role "Storage Blob Data Reader")
+    printf "%b\n" "   Service Principal role assignement \e[32mStorage Blob Data Reader\e[0m done."
+else
+    printf "%b\n" "   Service Principal already has role \e[32mStorage Blob Data Reader\e[0m in the subscription."
+fi
+
 
 printf "%b\n" "## Checking role Contributor assignement to Service Principal."
 role_contributor_exists=$(az role assignment list --assignee ${app_id} --role "Contributor" | jq '. | length')
@@ -364,7 +471,7 @@ else
 fi
 # Set current principal owner of the application
 printf "%b\n" "## Set current principal owner of the application"
-owner=$(az ad app owner add --id "${objectId}" --owner-object-id "${currentPrincipalId}")
+owner=$(az ad app owner add --id "${app_object_id}" --owner-object-id "${currentPrincipalId}")
 printf "%b\n" "   Current Principal is owner of the application."
 
 

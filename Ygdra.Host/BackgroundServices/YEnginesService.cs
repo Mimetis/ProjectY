@@ -25,6 +25,7 @@ using Ygdra.Core.Cloud.Entities;
 using Ygdra.Core.DataSources.Entities;
 using Ygdra.Core.Engine;
 using Ygdra.Core.Engine.Entities;
+using Ygdra.Core.Enumerations;
 using Ygdra.Core.Http;
 using Ygdra.Core.Notifications;
 using Ygdra.Core.Notifications.Entities;
@@ -309,7 +310,8 @@ namespace Ygdra.Host.BackgroundServices
                 var factoryResourceRequest = new YResource
                 {
                     Location = engine.Location,
-                    Properties = new Dictionary<string, object>()
+                    Properties = new Dictionary<string, object>(),
+                    Identity = new YIdentity(){ Type = YResourceIdentityType.SystemAssigned}
                 };
 
                 factoryResourceResponse = await this.clientResource.StartCreateOrUpdateAsync
@@ -962,11 +964,11 @@ namespace Ygdra.Host.BackgroundServices
                     SparkEnvVars = new Dictionary<string, string>
                     {
                         { "PYSPARK_PYTHON", "/databricks/python3/bin/python3" },
-                        { "ENGINE_ID", engine.Id.ToString() },
-                        { "TENANT_ID", this.options.TenantId },
-                        { "CLIENT_ID", this.options.ClientId },
-                        { "DOMAIN", this.options.Domain },
-                        { "API_URL", this.hostOptions.BaseAddress },
+                        { "YGDRA_ENGINE_ID", engine.Id.ToString() },
+                        { "YGDRA_API_URL", this.hostOptions.BaseAddress },
+                        { "AD_TENANT_ID", this.options.TenantId },
+                        { "AD_DOMAIN", this.options.Domain },
+                        { "SP_CLIENT_ID", this.options.ClientId },
                         { "KEYVAULT_NAME", engine.KeyVaultName },
                     },
                     AutoterminationMinutes = 120
@@ -1043,26 +1045,22 @@ namespace Ygdra.Host.BackgroundServices
 
         private async Task CreateDatabricksNotebooksAsync(YEngine engine, YDatabricksCluster cluster, YResource workspace, Guid? callerUserId = default, CancellationToken cancellationToken = default)
         {
-
-            var dbricksResourceId = workspace.Id;
-
             if (!workspace.Properties.ContainsKey("workspaceUrl"))
                 throw new Exception("Can't get the workspace url");
 
             var dbricksWorkspaceName = workspace.Properties["workspaceUrl"];
 
-            // Url for creating a cluster
+            // Get connection string
+            var tokenSecret = await keyVaultsController.GetKeyVaultSecret(engine.Id, engine.ClusterName);
+            string token = tokenSecret?.Value;
+
+            // Url for importing notebook
             var dbricksUriBuilder = new UriBuilder($"https://{dbricksWorkspaceName}")
             {
                 Path = "api/2.0/workspace/import"
             };
 
-            var dbricksWorkspaceUrl = dbricksUriBuilder.Uri;
-
-            // Get connection string
-            var tokenSecret = await keyVaultsController.GetKeyVaultSecret(engine.Id, engine.ClusterName);
-
-            string token = tokenSecret?.Value;
+            var dbricksWorkspaceImportUrl = dbricksUriBuilder.Uri;
 
             var mainPyNotebook = "./Notebooks/main.ipynb";
             var mainPy = System.IO.File.ReadAllText(mainPyNotebook);
@@ -1075,31 +1073,48 @@ namespace Ygdra.Host.BackgroundServices
                 { "content", mainb64string },
                 { "overwrite", "true" }
             };
-
-            var commonPyNotebook = "./Notebooks/common.ipynb";
-            var commonPy = System.IO.File.ReadAllText(commonPyNotebook);
-            var commonTextBytes = System.Text.Encoding.UTF8.GetBytes(commonPy);
-            var commonb64string = Convert.ToBase64String(commonTextBytes);
-            var commonPayload = new JObject
+            
+            var importNotebookResponse = await this.client.ProcessRequestAsync<JObject>(dbricksWorkspaceImportUrl, mainPayload, HttpMethod.Post, token).ConfigureAwait(false);
+            if (importNotebookResponse == null || importNotebookResponse.StatusCode != HttpStatusCode.OK || importNotebookResponse.Value == null)
             {
-                { "path", "/Shared/common" },
-                { "format", "JUPYTER" },
-                { "content", commonb64string },
+                var message = $"Unable to import notebook into Databricks workspace {dbricksWorkspaceName}";
+                await ThrowAndNotifyErrorAsync(engine, message, callerUserId).ConfigureAwait(false);
+            }
+
+            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                $"Databricks cluster {engine.ClusterName} notebook added. ", callerUserId).ConfigureAwait(false);
+
+            // Compute dbfs destination path
+            var guid = Guid.NewGuid();
+            var wheelPath = $"/FileStore/jars/{guid}/ygdra-1.0-py3-none-any.whl";
+
+            // Url to copy file to dbfs file system
+            dbricksUriBuilder.Path = "api/2.0/dbfs/put";
+            var dbricksUploadDbfs = dbricksUriBuilder.Uri;
+
+            var wheel = "./Wheels/ygdra-1.0-py3-none-any.whl";
+            var wheelBytes = System.IO.File.ReadAllBytes(wheel);
+            var wheelBase64 = Convert.ToBase64String(wheelBytes);
+            var wheelPayload = new JObject
+            {
+                { "path", wheelPath },
+                { "contents", wheelBase64 },
                 { "overwrite", "true" }
             };
-            
-            var addCommonNotebook = await this.client.ProcessRequestAsync<JObject>(dbricksWorkspaceUrl, commonPayload, HttpMethod.Post, token).ConfigureAwait(false);
+
+
+            var copyWheelResponse = await this.client.ProcessRequestAsync<JObject>(dbricksUploadDbfs, wheelPayload, HttpMethod.Post, token).ConfigureAwait(false);
+            if (copyWheelResponse == null || copyWheelResponse.StatusCode != HttpStatusCode.OK || copyWheelResponse.Value == null)
+            {
+                var message = $"Unable to copy wheel to dbfs destination {wheelPath}";
+                await ThrowAndNotifyErrorAsync(engine, message, callerUserId).ConfigureAwait(false);
+            }
+
             await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
-                $"Databricks cluster {engine.ClusterName} common notebook added. ", callerUserId).ConfigureAwait(false);
+                $"Databricks cluster {engine.ClusterName} wheel package copied.", callerUserId).ConfigureAwait(false);
 
 
-            var addMainNotebook = await this.client.ProcessRequestAsync<JObject>(dbricksWorkspaceUrl, mainPayload, HttpMethod.Post, token).ConfigureAwait(false);
-            await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
-                $"Databricks cluster {engine.ClusterName} main notebook added. ", callerUserId).ConfigureAwait(false);
-
-
-            // Url for creating a cluster
-
+            // Url to install library
             dbricksUriBuilder.Path = "api/2.0/libraries/install";
             var dbricksInstallLibraries = dbricksUriBuilder.Uri;
 
@@ -1108,17 +1123,23 @@ namespace Ygdra.Host.BackgroundServices
                 { "libraries", new JArray{
                     new JObject{ 
                         { "pypi", new JObject { { "package", "azure-identity" } }} 
+                    },
+                    new JObject{
+                        { "whl", $"dbfs:{wheelPath}" }
                     }
                 }}
             };
 
 
-            var addLibrary = await this.client.ProcessRequestAsync<JObject>(dbricksInstallLibraries, payload, HttpMethod.Post, token).ConfigureAwait(false);
+            var addLibrariesResponse = await this.client.ProcessRequestAsync<JObject>(dbricksInstallLibraries, payload, HttpMethod.Post, token).ConfigureAwait(false);
+            if (addLibrariesResponse == null || addLibrariesResponse.StatusCode != HttpStatusCode.OK || addLibrariesResponse.Value == null)
+            {
+                var message = $"Unable to install libraries.";
+                await ThrowAndNotifyErrorAsync(engine, message, callerUserId).ConfigureAwait(false);
+            }
 
             await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
-                $"Databricks cluster {engine.ClusterName} azure-identity library added. ", callerUserId).ConfigureAwait(false);
-
-
+                $"Databricks cluster {engine.ClusterName} azure-identity and ydra libraries installed. ", callerUserId).ConfigureAwait(false);
         }
 
         private async Task<YDatabricksCluster> CreateDatabricksAzureKeyvaultSecretScopeAsync(YEngine engine, YResource workspace, YResource keyvault, Guid? callerUserId = default, CancellationToken cancellationToken = default)

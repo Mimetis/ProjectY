@@ -1,17 +1,12 @@
-# -*- coding: utf-8 -*-
-
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(name='ygdra',
-      version='1.4',
+      version='1.0',
       description='Ygdra helpers',
-      url='http://github.com/Mimetis',
+      url='http://github.com/Mimetis/ProjectY',
       author='Sébastien Pertus',
       author_email='spertus@microsoft.com',
       license='MIT',
       packages=['ygdra'],
-      zip_safe=False,
-      install_requires=[
-          'azure-identity', 
-          'pyspark']
+      install_requires=['azure-identity']
       )
