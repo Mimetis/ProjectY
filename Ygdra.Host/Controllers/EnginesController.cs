@@ -25,6 +25,7 @@ using Ygdra.Core.Http;
 using Ygdra.Core.Options;
 using Ygdra.Core.Payloads;
 using Ygdra.Core.Services;
+using Ygdra.Core.Settings;
 using Ygdra.Host.BackgroundServices;
 using Ygdra.Host.Extensions;
 using Ygdra.Host.Services;
@@ -39,6 +40,7 @@ namespace Ygdra.Host.Controllers
     [Produces("application/json")]
     public class EnginesController : ControllerBase
     {
+        private readonly IYSettingProvider settingsProvider;
         private readonly IYEngineProvider engineProvider;
         private readonly IYEnginesService enginesService;
         private readonly IYNotificationsService notificationsService;
@@ -46,12 +48,14 @@ namespace Ygdra.Host.Controllers
         private readonly YMicrosoftIdentityOptions options;
         static readonly string[] scopeRequiredByApi = new string[] { "user_impersonation" };
 
-        public EnginesController(IYEngineProvider engineProvider,
+        public EnginesController(IYSettingProvider settingsProvider,
+                                 IYEngineProvider engineProvider,
                                  IYEnginesService enginesService,
                                  IYNotificationsService notificationsService,
                                  IYHangFireService hangFireService,
                                  IOptions<YMicrosoftIdentityOptions> options)
         {
+            this.settingsProvider = settingsProvider;
             this.engineProvider = engineProvider;
             this.enginesService = enginesService;
             this.notificationsService = notificationsService;
@@ -76,6 +80,66 @@ namespace Ygdra.Host.Controllers
             var userId = new Guid(userObjectId);
 
             engine = await this.engineProvider.GetEngineAsync(id).ConfigureAwait(false);
+
+            var settings = await this.settingsProvider.GetSettingsAsync().ConfigureAwait(false);
+
+            if (settings != null)
+            {
+                if (string.IsNullOrEmpty(engine.ResourceGroupName))
+                {
+                    string prefix = settings.FirstOrDefault(s => s.Name == "ResourceGroupPrefix")?.Value ?? "rg";
+                    string suffix = settings.FirstOrDefault(s => s.Name == "ResourceGroupSuffix")?.Value;
+
+                    string name = $"{prefix}{engine.EngineName}{suffix}";
+                    engine.ResourceGroupName = name;
+                }
+                if (string.IsNullOrEmpty(engine.ClusterName))
+                {
+                    string prefix = settings.FirstOrDefault(s => s.Name == "DatabricksWorkspacePrefix")?.Value ?? "dw";
+                    string suffix = settings.FirstOrDefault(s => s.Name == "DatabricksWorkspaceSuffix")?.Value;
+
+                    string name = $"{prefix}{engine.EngineName}{suffix}";
+                    engine.ClusterName = name;
+                }
+                if (string.IsNullOrEmpty(engine.FactoryName))
+                {
+                    string prefix = settings.FirstOrDefault(s => s.Name == "DataFactoryPrefix")?.Value ?? "df";
+                    string suffix = settings.FirstOrDefault(s => s.Name == "DataFactorySuffix")?.Value;
+
+                    string name = $"{prefix}{engine.EngineName}{suffix}";
+                    engine.FactoryName = name;
+                }
+                if (string.IsNullOrEmpty(engine.KeyVaultName))
+                {
+                    string prefix = settings.FirstOrDefault(s => s.Name == "KeyVaultPrefix")?.Value ?? "kv";
+                    string suffix = settings.FirstOrDefault(s => s.Name == "KeyVaultSuffix")?.Value;
+
+                    string name = $"{prefix}{engine.EngineName}{suffix}";
+                    engine.KeyVaultName = name;
+                }
+                if (string.IsNullOrEmpty(engine.StorageName))
+                {
+                    string prefix = settings.FirstOrDefault(s => s.Name == "StoragePrefix")?.Value ?? "stor";
+                    string suffix = settings.FirstOrDefault(s => s.Name == "StorageSuffix")?.Value;
+
+                    string name = $"{prefix}{engine.EngineName}{suffix}";
+                    engine.StorageName = name;
+                }
+                if (string.IsNullOrEmpty(engine.AppInsightsName))
+                {
+                    string prefix = settings.FirstOrDefault(s => s.Name == "AppInsightsPrefix")?.Value ?? "ai";
+                    string suffix = settings.FirstOrDefault(s => s.Name == "AppInsightsSuffix")?.Value;
+
+                    string name = $"{prefix}{engine.EngineName}{suffix}";
+                    engine.AppInsightsName = name;
+                }
+
+                if (string.IsNullOrEmpty(engine.Location))
+                {
+                    string location = settings.FirstOrDefault(s => s.Name == "DefaultLocation")?.Value ?? "northeurope";
+                    engine.Location = location;
+                }
+            }
 
             engine.ResourceGroupName.EnsureStringIsLetterOrDigit();
             engine.ClusterName.EnsureStringIsLetterOrDigit();
@@ -281,6 +345,9 @@ namespace Ygdra.Host.Controllers
 
                 if (!regex.IsMatch(engine.EngineName))
                     throw new Exception($"Engine name {engine.EngineName} is incorrect. The regex used to validate the name is {regex}");
+
+                if (engine.EngineName.Length < 5 || engine.EngineName.Length > 10)
+                    throw new Exception("The engine name needs to be between 5 and 10 characters long.");
             }
 
             if (!string.IsNullOrEmpty(engine.ResourceGroupName))
@@ -326,6 +393,12 @@ namespace Ygdra.Host.Controllers
 
                 if (!regex.IsMatch(engine.AppInsightsName))
                     throw new Exception($"AppInsights name {engine.AppInsightsName} is incorrect");
+            }
+
+            if(engine.OwnerEmails!=null && engine.OwnerEmails.Count>0)
+            {
+                //Lookup IDs for the provided owner email addresses to complete the request.
+
             }
 
             var existingEngine = await this.engineProvider.GetEngineByNameAsync(engine.EngineName);
