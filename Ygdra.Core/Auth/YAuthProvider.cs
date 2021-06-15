@@ -63,7 +63,6 @@ namespace Ygdra.Core.Auth
             return token;
         }
 
-        private static string token_GetAccessTokenForAppManagementAsync;
         /// <summary>
         /// Get access token  for the confidential client itself (not on behalf of a user) using the client credentials flow to access management apis
         /// </summary>

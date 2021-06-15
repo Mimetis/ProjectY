@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Azure.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json;
@@ -16,12 +17,39 @@ namespace Ygdra.Cli.NetCore.Helpers
     public class AuthorizationHelper
     {
         // Authority
-        static string Authority = "https://login.microsoftonline.com/microsoft.onmicrosoft.com";
-        // Graph scopes
-        static string[] GraphScopes = new string[] { "user.read" };
-        // Ygdra API scope
-        static string[] ApiScopes = new string[] { "https://microsoft.onmicrosoft.com/02991530-afbd-44b8-b9c9-8dd49dd5515f/user_impersonation" };
+        static string LoginUrlConstant = "https://login.microsoftonline.com/{0}";
 
+        // API scope
+        static string ApiScopesConstant = "https://{0}/{1}/user_impersonation";
+
+        public string ClientId { get; }
+        public string Authority { get; }
+        public string[] ApiScopes { get; }
+
+        private IPublicClientApplication pca;
+
+        public AuthorizationHelper(string clientId, string domain)
+        {
+            if (clientId is null)
+                throw new ArgumentNullException(nameof(clientId));
+            if (domain is null)
+                throw new ArgumentNullException(nameof(domain));
+
+            ClientId = clientId;
+            Authority = string.Format(LoginUrlConstant, domain);
+            ApiScopes = new string[] { string.Format(ApiScopesConstant, domain, clientId) };
+
+            // Using MASAL to Get access token and id token
+            pca = PublicClientApplicationBuilder
+                    .Create(ClientId)
+                    .WithAuthority(Authority)
+                    .WithDefaultRedirectUri()
+                    .Build();
+
+            // Adding cache helper
+            TokenCacheHelper.EnableSerialization(pca.UserTokenCache);
+
+        }
 
         /// <summary>
         /// Classic deserialize with JSON.NET
@@ -48,11 +76,12 @@ namespace Ygdra.Cli.NetCore.Helpers
         /// </summary>
         /// <param name="clientId">The AAD App registration's client ID.</param>
         /// <returns></returns>
-        public static async Task<string> GetAccessTokenAsync(string clientId)
+        public async Task<string> GetAccessTokenAsync()
         {
-            AuthenticationResult result = await GetAuthenticationAsync(clientId);
+            AuthenticationResult result = await AuthenticateAsync();
+            
             // Get user information from id token
-            var user = AuthorizationHelper.GetUser(result.IdToken);
+            var user = GetUser(result.IdToken);
 
             // Just in case, we can see if user is an Admin
             var isAdmin = user.IsInRole("Admin") ? "You are an Admin" : "You are a user";
@@ -65,38 +94,27 @@ namespace Ygdra.Cli.NetCore.Helpers
         /// </summary>
         /// <param name="clientId">The AAD App registration's client ID.</param>
         /// <returns></returns>
-        public static async Task<ClaimsPrincipal> GetUserClaimsAsync(string clientId)
+        public async Task<ClaimsPrincipal> GetUserClaimsAsync()
         {
-            AuthenticationResult result = await GetAuthenticationAsync(clientId);
+            AuthenticationResult result = await AuthenticateAsync();
+            
             // Get user information from id token
-            var user = AuthorizationHelper.GetUser(result.IdToken);
-
+            var user = GetUser(result.IdToken);
            
             return user;
         }
 
-        public static async Task<AuthenticationResult> GetAuthenticationAsync(string clientId)
+        public async Task<AuthenticationResult> AuthenticateAsync()
         {
-            // Using MASAL to Get access token and id token
-            IPublicClientApplication pca = PublicClientApplicationBuilder
-                    .Create(clientId)
-                    .WithAuthority(Authority)
-                    .WithDefaultRedirectUri()
-                    .Build();
-
-            // Adding cache helper
-            TokenCacheHelper.EnableSerialization(pca.UserTokenCache);
-
             // Getting the access_token AND id_token
-            return await AuthorizationHelper.GetAccessTokenWithMSALAsync(pca, ApiScopes);
-
+            return await GetAccessTokenWithMSALAsync(pca, ApiScopes);
         }
 
 
         /// <summary>
         /// Get access token and id token from Azure AD
         /// </summary>
-        public static async Task<AuthenticationResult> GetAccessTokenWithMSALAsync(IPublicClientApplication pca, string[] scopes)
+        public async Task<AuthenticationResult> GetAccessTokenWithMSALAsync(IPublicClientApplication pca, string[] scopes)
         {
 
             var accounts = await pca.GetAccountsAsync();
@@ -106,7 +124,7 @@ namespace Ygdra.Cli.NetCore.Helpers
             {
                 return await pca.AcquireTokenSilent(scopes, accounts.FirstOrDefault()).ExecuteAsync();
             }
-            catch (MsalUiRequiredException ex)
+            catch (MsalUiRequiredException)
             {
                 // No token found in the cache or AAD insists that a form interactive auth is required (e.g. the tenant admin turned on MFA)
                 // If you want to provide a more complex user experience, check out ex.Classification 
@@ -129,7 +147,6 @@ namespace Ygdra.Cli.NetCore.Helpers
                         return Task.FromResult(0);
                     }).ExecuteAsync();
 
-                Console.WriteLine(result.Account.Username);
                 return result;
             }
             // TODO: handle or throw all these exceptions
@@ -143,7 +160,7 @@ namespace Ygdra.Cli.NetCore.Helpers
         /// <summary>
         /// Get user info from id token
         /// </summary>
-        internal static ClaimsPrincipal GetUser(string idToken)
+        internal ClaimsPrincipal GetUser(string idToken)
         {
             JsonWebToken jsonWebToken = new JsonWebToken(idToken);
             var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(jsonWebToken.Claims, "Bearer", "preferred_username", "roles"));
@@ -151,17 +168,17 @@ namespace Ygdra.Cli.NetCore.Helpers
         }
 
 
-        /// <summary>
-        /// Get token with Azure.Identity
-        /// Easier but unfortunatelly does not work without Admin Consent
-        /// </summary>
-        static async Task<string> GetAccessTokenWithAzureIdentityAsync(string[] scopes)
-        {
-            var credential = new DeviceCodeCredential();
-            var tokenRequest = new TokenRequestContext(scopes);
-            var token = await credential.GetTokenAsync(tokenRequest);
+        ///// <summary>
+        ///// Get token with Azure.Identity
+        ///// Easier but unfortunatelly does not work without Admin Consent
+        ///// </summary>
+        //static async Task<string> GetAccessTokenWithAzureIdentityAsync(string[] scopes)
+        //{
+        //    var credential = new DeviceCodeCredential();
+        //    var tokenRequest = new TokenRequestContext(scopes);
+        //    var token = await credential.GetTokenAsync(tokenRequest);
 
-            return token.Token;
-        }
+        //    return token.Token;
+        //}
     }
 }
