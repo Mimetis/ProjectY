@@ -122,5 +122,10 @@ namespace Ygdra.Cli.NetCore.Helpers
                 return null;
             }
         }
+
+        public Task<string> GetAccessTokenForPurviewAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

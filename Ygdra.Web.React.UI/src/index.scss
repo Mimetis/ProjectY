@@ -1,0 +1,31 @@
+:root {
+    --header-height: 2rem;
+    --nav-width: 62px;
+    --first-color: #F0F0F0;
+    --first-color-light: #878787;
+    --nav-link-color-over: #2f90c4;
+    --white-color: #0078D4;
+    --body-font: 'Nunito', sans-serif;
+    --normal-font-size: 1rem;
+    --z-fixed: 100
+}
+
+body {
+    position: relative;
+    margin: calc(var(--header-height) + 0.5rem) 0 0 0;
+    padding: 0 1rem;
+    font-family: var(--body-font);
+    font-size: var(--normal-font-size);
+    padding-left: calc(var(--nav-width) + 1rem);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@media screen and (min-width: 768px) {
+    body {
+        margin: calc(var(--header-height) + 1rem) 0 0 0;
+        padding-left: calc(var(--nav-width) + 156px + 1rem)
+    }
+
+}

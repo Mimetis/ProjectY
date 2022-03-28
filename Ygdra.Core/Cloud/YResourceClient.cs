@@ -128,12 +128,31 @@ namespace Ygdra.Core.Cloud
         }
 
 
+        public async Task<YHttpResponse<T>> GetAsync<T>(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                this.ThrowIfParametersMissing(resourceProviderNamespace, parentResourcePath, resourceType, resourceName, apiVersion);
+                var path = this.BuildPath(resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName);
+                var query = this.BuildQuery(apiVersion);
+
+                var result = await this.requestHandler.ProcessRequestManagementAsync<T>(path, query, null, HttpMethod.Get, cancellationToken);
+
+                return result;
+            }
+            catch
+            {
+                return YHttpResponse<T>.NotFound;
+            }
+        }
+
+
         public async Task<YHttpResponse<YResource>> GetAsync(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion, CancellationToken cancellationToken = default)
         {
             try
             {
 
-                this.ThrowIfParametersMissing(resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, apiVersion);
+                this.ThrowIfParametersMissing(resourceProviderNamespace, parentResourcePath, resourceType, resourceName, apiVersion);
                 var path = this.BuildPath(resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName);
                 var query = this.BuildQuery(apiVersion);
 
@@ -152,7 +171,7 @@ namespace Ygdra.Core.Cloud
         public async Task<YHttpResponse<YResource>> StartCreateOrUpdateAsync(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName,
                 string apiVersion, YResource parameters, CancellationToken cancellationToken = default)
         {
-            this.ThrowIfParametersMissing(resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, apiVersion);
+            this.ThrowIfParametersMissing(resourceProviderNamespace, parentResourcePath, resourceType, resourceName, apiVersion);
 
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -169,7 +188,7 @@ namespace Ygdra.Core.Cloud
 
         public async Task<YHttpResponse<YResource>> StartDeleteAsync(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion, CancellationToken cancellationToken = default)
         {
-            this.ThrowIfParametersMissing(resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, apiVersion);
+            this.ThrowIfParametersMissing(resourceProviderNamespace, parentResourcePath, resourceType, resourceName, apiVersion);
             var path = this.BuildPath(resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName);
             var query = this.BuildQuery(apiVersion);
 
@@ -206,7 +225,10 @@ namespace Ygdra.Core.Cloud
         {
             var pathBuilder = new StringBuilder();
             pathBuilder.Append($"/subscriptions/{this.options.SubscriptionId}");
-            pathBuilder.Append($"/resourceGroups/{resourceGroupName}");
+
+            if (!string.IsNullOrEmpty(resourceGroupName))
+                pathBuilder.Append($"/resourceGroups/{resourceGroupName}");
+
             pathBuilder.Append($"/providers/{resourceProviderNamespace}");
             if (!string.IsNullOrEmpty(parentResourcePath))
                 pathBuilder.Append($"/{parentResourcePath}");
@@ -221,10 +243,8 @@ namespace Ygdra.Core.Cloud
         /// <summary>
         /// Check args
         /// </summary>
-        private void ThrowIfParametersMissing(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion)
+        private void ThrowIfParametersMissing(string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion)
         {
-            if (resourceGroupName == null)
-                throw new ArgumentNullException(nameof(resourceGroupName));
             if (resourceProviderNamespace == null)
                 throw new ArgumentNullException(nameof(resourceProviderNamespace));
             if (parentResourcePath == null)

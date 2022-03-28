@@ -40,6 +40,9 @@ namespace Ygdra.Core.Http
         {
             get
             {
+                if (this.Headers == null)
+                    return null;
+
                 this.Headers.TryGetValue("Location", out var location);
                 this.Headers.TryGetValue("Operation-Location", out var operationLocation);
                 this.Headers.TryGetValue("Azure-AsyncOperation", out var azureAsyncOperation);

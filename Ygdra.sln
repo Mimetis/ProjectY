@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.128
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32210.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ygdra.Core", "Ygdra.Core\Ygdra.Core.csproj", "{EA3EC9BA-332A-4896-9E5E-CB13BCF69C57}"
 EndProject
@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ygdra.Web.UI", "Ygdra.Web.U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ygdra.Host.CosmosDb", "Ygdra.Host.CosmosDb\Ygdra.Host.CosmosDb.csproj", "{2290A624-67A2-4F73-86EA-156D3FF0A70A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ygdra.Cli.NetCore", "Ygdra.Cli.NetCore\Ygdra.Cli.NetCore.csproj", "{9B15F8D8-A8E1-4A7D-9419-84B00AA53B70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ygdra.Cli.NetCore", "Ygdra.Cli.NetCore\Ygdra.Cli.NetCore.csproj", "{9B15F8D8-A8E1-4A7D-9419-84B00AA53B70}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Ygdra.Web.React.UI", "Ygdra.Web.React.UI\Ygdra.Web.React.UI.esproj", "{1DA65882-9A18-4A64-A767-1DD2AFB5DD20}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,12 @@ Global
 		{9B15F8D8-A8E1-4A7D-9419-84B00AA53B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B15F8D8-A8E1-4A7D-9419-84B00AA53B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B15F8D8-A8E1-4A7D-9419-84B00AA53B70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DA65882-9A18-4A64-A767-1DD2AFB5DD20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DA65882-9A18-4A64-A767-1DD2AFB5DD20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DA65882-9A18-4A64-A767-1DD2AFB5DD20}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{1DA65882-9A18-4A64-A767-1DD2AFB5DD20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DA65882-9A18-4A64-A767-1DD2AFB5DD20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DA65882-9A18-4A64-A767-1DD2AFB5DD20}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

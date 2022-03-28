@@ -43,8 +43,6 @@ namespace Ygdra.Cli.NetCore
         static async Task<int> Main(string[] args)
         {
 
-
-
             //setup our DI
             var services = new ServiceCollection();
             ConfigureServices(services);

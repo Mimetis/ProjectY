@@ -129,7 +129,6 @@ namespace Ygdra.Core.Http
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 }
-
                 if (headers != null && headers.Count > 0)
                     foreach (var header in headers)
                         requestMessage.Headers.Add(header.Key, header.Value);

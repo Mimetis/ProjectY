@@ -36,6 +36,11 @@ namespace Ygdra.Core.Auth
         Task<string> GetAccessTokenForAppManagementAsync();
 
         /// <summary>
+        /// Get access token  for the confidential client itself (not on behalf of a user) using the client credentials flow to access management apis
+        /// </summary>
+        Task<string> GetAccessTokenForPurviewAsync();
+
+        /// <summary>
         /// Gets Graph scopes from options
         /// </summary>
         IEnumerable<string> GraphScopes { get; }

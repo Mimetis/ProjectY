@@ -609,6 +609,10 @@ namespace Ygdra.Host.BackgroundServices
                             $"Databricks cluster {engine.ClusterName} deployed.", callerUserId,
                                 dbricksResourceResponse.Value).ConfigureAwait(false);
 
+                    await notificationsService.SendNotificationAsync("deploy", YDeploymentStatePayloadState.Deploying, engine,
+                            $"Waiting 60 sec to be sure Databricks workspace {engine.ClusterName} is up and running.", callerUserId).ConfigureAwait(false);
+
+                    await Task.Delay(60000).ConfigureAwait(false);
                     return dbricksResourceResponse.Value;
                 }
                 else
@@ -891,6 +895,7 @@ namespace Ygdra.Host.BackgroundServices
             var tokenSecret = await keyVaultsController.GetKeyVaultSecret(engine.Id, engine.ClusterName);
 
             string token = tokenSecret?.Value;
+
 
             if (tokenSecret == null)
             {

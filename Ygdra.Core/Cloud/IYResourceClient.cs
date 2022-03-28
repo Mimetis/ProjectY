@@ -8,6 +8,7 @@ namespace Ygdra.Core.Cloud
     public interface IYResourceClient
     {
         Task<YHttpResponse<YResource>> GetAsync(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion, CancellationToken cancellationToken = default);
+        Task<YHttpResponse<T>> GetAsync<T>(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion, CancellationToken cancellationToken = default);
         Task<YHttpResponse<YResource>> StartCreateOrUpdateAsync(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion, YResource parameters, CancellationToken cancellationToken = default);
         Task<YHttpResponse<YResource>> StartDeleteAsync(string resourceGroupName, string resourceProviderNamespace, string parentResourcePath, string resourceType, string resourceName, string apiVersion, CancellationToken cancellationToken = default);
         Task<YHttpResponse<YResource>> UpdateStatusAsync(string updateUri, CancellationToken cancellationToken = default);

@@ -1,0 +1,164 @@
+﻿
+.header {
+    padding: 10 2rem 0 calc(var(--nav-width) - 3rem);
+    width: 100%;
+    height: calc(var(--header-height) + 0.5rem);
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--white-color);
+    z-index: var(--z-fixed);
+    /*transition: .5s;*/
+    /*Icons bell and settings color, hover color, placed on right upper corner of the screen*/
+
+    a {
+        color: white;
+        z-index: inherit;
+        display: flex;
+        align-items: center;
+        height: inherit;
+        padding: 0.4em;
+        text-decoration: none;
+        &:hover {
+            background: rgba(255,255,255, 0.2);
+        }
+    }
+
+    .search {
+        flex: 0.4;
+        min-width: 350px;
+    }
+
+    .settings {
+        color: white;
+        list-style: none;
+        padding-left: inherit;
+        li
+
+    {
+        margin-top: 1.2em;
+        display: flex;
+        flex-direction: column;
+    }
+
+    }
+}
+
+.header_toggle {
+    color: var(--first-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 2rem 0 calc(var(--nav-width) - 3rem)
+}
+
+.header_img {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden
+}
+
+.header_img img {
+    width: 40px
+}
+
+
+.notif {
+    display: flex;
+    padding-bottom: 2px;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 10px;
+    border-bottom: thin solid darkgray;
+
+    .notif-title {
+        color: #0056b3;
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        font-size: 1.4em;
+
+        i {
+            margin-right: 5px;
+        }
+    }
+
+    .notif-message {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+}
+
+
+
+
+.notif-empty {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+
+    .notif-empty-body {
+        font-size: 100px;
+    }
+
+    .notif-empty-message {
+        color: #0056b3;
+    }
+}
+
+.notif-bell {
+    position: relative;
+
+    .notif-bell-content {
+        position: absolute;
+        top: 8px;
+        right: 4px;
+        border-radius: 16px;
+        border-color: rgba(0,0,0,.85);
+        border-style: solid;
+        border-width: 1px;
+        font-size: 10px;
+        text-align: center;
+        background: white;
+        color: rgba(0,0,0,.85);
+        width: 16px;
+    }
+}
+
+
+.header-padding {
+    padding-left: calc(var(--nav-width) + 1rem)
+}
+
+@media screen and (min-width: 768px) {
+    .header {
+        height: calc(var(--header-height) + 1rem);
+        padding: 0 2rem 0 calc(var(--nav-width) );
+
+        .search {
+            flex: 0.4;
+            min-width: 350px;
+        }
+    }
+
+    .header_img {
+        width: 40px;
+        height: 40px
+    }
+
+    .header_img img {
+        width: 45px
+    }
+
+    .header-padding {
+        padding-left: calc(var(--nav-width) + 156px + 1rem)
+    }
+}

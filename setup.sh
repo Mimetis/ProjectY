@@ -469,6 +469,19 @@ if [ "$role_kv_contributor_exists" == "0" ]; then
 else
     printf "%b\n" "   Service Principal already has role \e[32mKey Vault Contributor\e[0m in the subscription."
 fi
+
+printf "%b\n" "## Checking role User Access Administrator assignement to Service Principal."
+role_user_access_admin_exists=$(az role assignment list --assignee ${app_id} --role "User Access Administrator" | jq '. | length')
+
+if [ "$role_user_access_admin_exists" == "0" ]; then
+    printf "%b\n" "   Adding role assignement User Access Administrator"
+    user_access_admin=$(az role assignment create --subscription ${subscription_id} --assignee ${app_id} --role "User Access Administrator")
+    printf "%b\n" "   Service Principal role assignement \e[32mUser Access Administrator\e[0m done."
+else
+    printf "%b\n" "   Service Principal already has role \e[32mUser Access Administrator\e[0m in the subscription."
+fi
+
+
 # Set current principal owner of the application
 printf "%b\n" "## Set current principal owner of the application"
 owner=$(az ad app owner add --id "${app_object_id}" --owner-object-id "${currentPrincipalId}")

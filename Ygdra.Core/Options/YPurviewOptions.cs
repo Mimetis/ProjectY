@@ -4,16 +4,10 @@ using System.Text;
 
 namespace Ygdra.Core.Options
 {
-    public abstract class YAPurviewOptions
+    public class YPurviewOptions
     {
-        public string PurviewResource {get;set;}
-        public string PurviewResourceGroup {get;set;}
-        public string PurviewSubscriptionId {get;set;}
-        public string PurviewAtlasEndpoint {get; set;}
-        public string PurviewScanEndpoint {get;set;}        
-    }
-    public class YPurviewOptions : YAPurviewOptions
-    {
-
+        public string AccountName {get;set; }
+        public string AtlasEndpoint => $"https://{AccountName}.catalog.purview.azure.com";
+        public string ScanEndpoint => $"https://{AccountName}.scan.purview.azure.com";
     }
 }

@@ -74,6 +74,16 @@ namespace Ygdra.Core.Auth
         }
 
         /// <summary>
+        /// Get access token  for the confidential client itself (not on behalf of a user) using the client credentials flow to access management apis
+        /// </summary>
+        public async Task<string> GetAccessTokenForPurviewAsync()
+        {
+
+            var token = await this.TokenAcquisition.GetAccessTokenForAppAsync("https://purview.azure.net/.default").ConfigureAwait(false);
+            return token;
+        }
+
+        /// <summary>
         /// Gets an access token on behalf of the user account to access graph apis
         /// </summary>
         public async Task<string> GetAccessTokenForUserGraphAsync(IEnumerable<string> scopes = null)
@@ -106,7 +116,6 @@ namespace Ygdra.Core.Auth
                     ((List<string>)scopes).Add(scope);
                 }
             }
-
             var tokenProd = await this.TokenAcquisition.GetAuthenticationResultForUserAsync(scopes, user: userClaims);
             return tokenProd.AccessToken;
         }
