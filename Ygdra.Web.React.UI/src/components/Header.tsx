@@ -34,11 +34,11 @@ const NavMenu: React.FunctionComponent<Props> = ({ toggle, setToggle }): React.R
             <div className="header_toggle" id="header_toggle" onClick={(e) => show(e)}><FontAwesomeIcon icon={faBars} /></div>
 
             <div className="d-flex align-items-center justify-content-end settings">
-                <a href="#" data-toggle="modal" data-target="#notif" data-type="notifications" data-title="Notifications" className="notif-bell">
+                <a href="#top" data-toggle="modal" data-target="#notif" data-type="notifications" data-title="Notifications" className="notif-bell">
                     <FontAwesomeIcon icon={faBell} />
                     <span className="notif-bell-content" id="notif-bell-content" >+</span>
                 </a>
-                <a href="#" data-toggle="modal" data-target="#settings" data-type="settings" data-title="Settings">
+                <a href="#top" data-toggle="modal" data-target="#settings" data-type="settings" data-title="Settings">
                     <FontAwesomeIcon icon={faCog} className="p-2" />
                 </a>
 

@@ -1,12 +1,17 @@
 import * as React from 'react';
+import { initializeIcons } from '@fluentui/react/lib/Icons'
 import { Container } from 'reactstrap';
 import Header from './Header';
 import NavMenu from './NavMenu';
+import NavBasicExample from './NavMenuFluent';
 import './Layout.scss';
 
 type ToggleState = {
     isToggle: boolean
 }
+
+// Initialize icons in case this example uses them
+initializeIcons();
 
 const Layout: React.FunctionComponent = (props): React.ReactElement => {
 
@@ -29,7 +34,8 @@ const Layout: React.FunctionComponent = (props): React.ReactElement => {
     return (
         <div>
             <Header toggle={toggle} setToggle={updateToggle} />
-            <NavMenu toggle={toggle} />
+            <NavBasicExample></NavBasicExample>
+            {/* <NavMenu toggle={toggle} /> */}
             <Container id="container-body">
                 {props.children}
             </Container>

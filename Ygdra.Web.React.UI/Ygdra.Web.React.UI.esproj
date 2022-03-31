@@ -10,4 +10,10 @@
   <ItemGroup>
     <Folder Include="src\store\" />
   </ItemGroup>
+  <ItemGroup>
+    <TypeScriptConfiguration Remove="src\.vscode\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="src\.vscode\**" />
+  </ItemGroup>
 </Project>
